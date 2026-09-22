@@ -1,0 +1,7 @@
+services:
+  api:
+    environment:
+      # Capacity-test-only quota. The limiter derives a 2,000 events/s per-IP
+      # rate from this value, matching a single k6 load generator.
+      INGEST_PROJECT_RATE_PER_SECOND: 4000
+      INGEST_PROJECT_BURST: 8000

@@ -1,0 +1,11 @@
+{
+  "name": "browser-monitor-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "build": "pnpm --filter @browser-monitor/protocol build && pnpm --filter cx-browser-monitor-sdk build && pnpm --filter @browser-monitor/platform build",
+    "typecheck": "pnpm --filter @browser-monitor/protocol typecheck && pnpm --filter cx-browser-monitor-sdk typecheck && pnpm --filter @browser-monitor/platform typecheck",
+    "test": "pnpm --filter @browser-monitor/protocol test && pnpm --filter cx-browser-monitor-sdk test && pnpm --filter @browser-monitor/platform test",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@browser-monitor/platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "build": "pnpm --filter @browser-monitor/shared build && pnpm --filter @browser-monitor/database build && pnpm --filter @browser-monitor/api build && pnpm --filter @browser-monitor/worker build && pnpm --filter @browser-monitor/web build",
+    "typecheck": "pnpm --filter @browser-monitor/shared typecheck && pnpm --filter @browser-monitor/database typecheck && pnpm --filter @browser-monitor/api typecheck && pnpm --filter @browser-monitor/worker typecheck && pnpm --filter @browser-monitor/web typecheck",
+    "test": "pnpm --filter @browser-monitor/shared test && pnpm --filter @browser-monitor/api test && pnpm --filter @browser-monitor/worker test && pnpm --filter @browser-monitor/web test",
+    "dev:api": "pnpm --filter @browser-monitor/api dev",
+    "dev:worker": "pnpm --filter @browser-monitor/worker dev",
+    "dev:web": "pnpm --filter @browser-monitor/web dev",
+    "db:migrate": "pnpm --filter @browser-monitor/database migrate"
+  }
+}
+

@@ -1,0 +1,87 @@
+{
+  "name": "cx-browser-monitor-sdk",
+  "version": "0.2.0",
+  "description": "Framework-agnostic browser telemetry SDK for performance, events, errors, network, and views.",
+  "keywords": [
+    "browser",
+    "error-monitoring",
+    "monitoring",
+    "network-monitoring",
+    "performance",
+    "rum",
+    "telemetry",
+    "sdk"
+  ],
+  "author": "cxDlogver",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.global.js",
+  "jsdelivr": "./dist/index.global.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxDlogver/cx-learn-notes.git",
+    "directory": "browser-monitor/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/cxDlogver/cx-learn-notes/issues"
+  },
+  "homepage": "https://github.com/cxDlogver/cx-learn-notes/tree/main/browser-monitor/sdk#readme",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10.28.2"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "publint": "publint",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm publint",
+    "prepublishOnly": "pnpm check"
+  },
+  "dependencies": {
+    "@browser-monitor/protocol": "workspace:*",
+    "web-vitals": "6.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@types/node": "22.20.2",
+    "eslint": "9.39.2",
+    "globals": "16.5.0",
+    "jsdom": "29.1.1",
+    "prettier": "3.8.1",
+    "publint": "0.3.24",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.48.0",
+    "vitest": "4.0.18"
+  }
+}

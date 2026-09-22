@@ -1,0 +1,26 @@
+# Dependencies are installed inside each image. Host pnpm links are platform-
+# specific and would overwrite the Linux links created by `pnpm install`.
+node_modules/
+**/node_modules/
+
+# Every image builds its own Linux output from source.
+dist/
+**/dist/
+coverage/
+**/coverage/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Local runtime state and repository metadata are not build inputs.
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+.cache/
+**/.cache/
+
+# Documentation and editor configuration are not required by runtime images.
+**/docs/
+.vscode/
+.idea/

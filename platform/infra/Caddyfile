@@ -1,0 +1,32 @@
+{$SITE_ADDRESS::8080} {
+  encode zstd gzip
+
+  handle /api/* {
+    reverse_proxy api:3000
+  }
+
+  handle /health/* {
+    reverse_proxy api:3000
+  }
+
+  handle /internal/* {
+    @private remote_ip private_ranges
+    handle @private {
+      reverse_proxy api:3000
+    }
+    respond "Forbidden" 403
+  }
+
+  handle {
+    root * /srv
+    try_files {path} /index.html
+    file_server
+  }
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    -Server
+  }
+}

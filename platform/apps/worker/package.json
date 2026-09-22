@@ -1,0 +1,27 @@
+{
+  "name": "@browser-monitor/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@browser-monitor/database": "workspace:*",
+    "@browser-monitor/protocol": "workspace:*",
+    "@browser-monitor/shared": "workspace:*",
+    "ioredis": "^5.7.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "@types/pg": "^8.15.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
