@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 import type { ProcessingStage } from '../pipeline';
 
 /** FNV-1a 32 位哈希：确定性、分布均匀、实现极简，适合做稳定分桶。 */
@@ -35,7 +35,9 @@ export class SamplingStage implements ProcessingStage {
     if (this.rate <= 0) return undefined; // 全不采
 
     // 键里刻意不含 eventId 与 timestamp：保证同一会话同类事件的判定结果恒定。
-    const key = [envelope.context.sessionId, envelope.type, envelope.name].join(':');
+    const key = envelope.correlation.traceId
+      ? [envelope.context.sessionId, 'trace', envelope.correlation.traceId].join(':')
+      : [envelope.context.sessionId, envelope.type, envelope.name].join(':');
     return stableRatio(key) < this.rate ? envelope : undefined;
   }
 }

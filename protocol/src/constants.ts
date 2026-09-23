@@ -1,7 +1,9 @@
 /** The only wire protocol accepted by the platform. */
-export const PROTOCOL_VERSION = '2.0' as const;
+export const PROTOCOL_VERSION = '3.0' as const;
 
 export const SDK_NAME = 'cx-browser-monitor-sdk' as const;
+
+export const BUILTIN_METRIC_UNITS = ['ms', 's', 'bytes', 'count', 'percent', 'score'] as const;
 
 export const MAX_BATCH_EVENTS = 100;
 export const MAX_EVENT_NAME_LENGTH = 128;

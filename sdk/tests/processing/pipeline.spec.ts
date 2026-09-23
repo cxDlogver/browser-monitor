@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { createProcessingPipeline } from '../../src/processing';
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 
 function envelope(value: number = 1_000): TelemetryEnvelope {
   return {
-    protocolVersion: '2.0',
+    protocolVersion: '3.0',
     eventId: 'event-' + value,
     type: 'performance',
     name: 'LCP',

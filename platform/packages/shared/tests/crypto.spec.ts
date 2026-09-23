@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { hashPassword, hashToken, hashUserId, verifyPassword } from '../src/crypto';
+import { decryptValue, encryptValue, hashPassword, hashToken, hashUserId, verifyPassword } from '../src/crypto';
 
 describe('authentication crypto', () => {
   it('hashes and verifies passwords without storing the original value', async () => {
@@ -16,3 +16,18 @@ describe('authentication crypto', () => {
   });
 });
 
+describe('authenticated encryption', () => {
+  const key = Buffer.alloc(32, 7).toString('base64url');
+
+  it('round-trips an encrypted value without exposing plaintext', () => {
+    const encrypted = encryptValue('{"authorization":"secret"}', key);
+    expect(encrypted.ciphertext.toString()).not.toContain('secret');
+    expect(decryptValue(encrypted, key)).toBe('{"authorization":"secret"}');
+  });
+
+  it('rejects tampered ciphertext', () => {
+    const encrypted = encryptValue('secret', key);
+    encrypted.ciphertext[0] = (encrypted.ciphertext[0] ?? 0) ^ 1;
+    expect(() => decryptValue(encrypted, key)).toThrow();
+  });
+});

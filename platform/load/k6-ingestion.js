@@ -42,7 +42,7 @@ export function sendBatch() {
   const events = Array.from({ length: 20 }, (_, index) => {
     const suffix = `${exec.scenario.iterationInTest}-${index}`;
     return {
-      protocolVersion: '2.0',
+      protocolVersion: '3.0',
       eventId: `load-event-${suffix}`,
       type: 'performance',
       name: 'LCP',
@@ -65,7 +65,7 @@ export function sendBatch() {
     };
   });
   const response = http.post(dsn, JSON.stringify({
-    protocolVersion: '2.0', sentAt: now, sdk: { name: 'k6', version: '1.0.0' }, events,
+    protocolVersion: '3.0', sentAt: now, sdk: { name: 'k6', version: '1.0.0' }, events,
   }), { headers: { 'content-type': 'application/json', origin } });
   check(response, { 'ingestion accepted': (value) => value.status === 202 });
 }

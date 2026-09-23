@@ -6,6 +6,7 @@ import { ProjectLayout } from './layout/ProjectLayout';
 import { AuthPage } from './pages/AuthPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { CustomEventsPage } from './pages/CustomEventsPage';
+import { CustomSignalDetailPage } from './pages/CustomSignalDetailPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { PerformancePage } from './pages/PerformancePage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -13,6 +14,7 @@ import { RawEventsPage } from './pages/RawEventsPage';
 import { RoutesPage } from './pages/RoutesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ServiceStatusPage } from './pages/ServiceStatusPage';
+import { LabAuditsPage } from './pages/LabAuditsPage';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -45,8 +47,10 @@ export function App() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<OverviewPage />} />
         <Route path="performance" element={<PerformancePage />} />
+        <Route path="lab-audits" element={<LabAuditsPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="events" element={<CustomEventsPage />} />
+        <Route path="events/:kind/:name" element={<CustomSignalDetailPage />} />
         <Route path="raw-events" element={<RawEventsPage />} />
         <Route path="service-status" element={<ServiceStatusPage />} />
         <Route path="settings" element={<SettingsPage />} />

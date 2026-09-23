@@ -1,45 +1,61 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Col, Row, Table, Tag } from 'antd';
-import type { EChartsOption } from 'echarts';
-import { useParams } from 'react-router-dom';
+import { Alert, Card, Input, Select, Space, Table, Tag, Typography } from 'antd';
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { api } from '../api/client';
-import { Chart } from '../components/Chart';
 import { PageHeading } from '../components/PageHeading';
 import { useAnalyticsRange } from '../hooks/useAnalyticsRange';
+import type { CustomSignalSummary } from './custom-signal-types';
 
-interface EventPoint { bucket: string; name: string; routeName: string; count: number }
+const kindLabels = { event: '事件', trace: 'Trace', span: 'Span' };
 
 export function CustomEventsPage() {
   const { projectId = '' } = useParams();
+  const navigate = useNavigate();
   const range = useAnalyticsRange();
+  const [search, setSearch] = useState('');
+  const [kind, setKind] = useState<'all' | CustomSignalSummary['kind']>('all');
   const query = useQuery({
-    queryKey: ['custom-events', projectId, range],
-    queryFn: () => api<EventPoint[]>(`/api/v1/projects/${projectId}/analytics/events${range}`),
+    queryKey: ['custom-signals', projectId, range],
+    queryFn: () => api<CustomSignalSummary[]>(`/api/v1/projects/${projectId}/analytics/custom-signals${range}`),
     refetchInterval: 15_000,
   });
-  const points = query.data ?? [];
-  const buckets = [...new Set(points.map((point) => point.bucket))];
-  const names = [...new Set(points.map((point) => point.name))];
-  const option: EChartsOption = {
-    tooltip: { trigger: 'axis' },
-    legend: { data: names.slice(0, 8) },
-    xAxis: { type: 'category', data: buckets.map((value) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) },
-    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#20324a' } } },
-    series: names.slice(0, 8).map((name) => ({ name, type: 'line', showSymbol: false, data: buckets.map((bucket) => points.filter((point) => point.bucket === bucket && point.name === name).reduce((sum, point) => sum + point.count, 0)) })),
-  };
-  const totals = [...new Map(names.map((name) => [name, points.filter((point) => point.name === name).reduce((sum, point) => sum + point.count, 0)])).entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  const rows = useMemo(() => (query.data ?? []).filter((row) =>
+    (kind === 'all' || row.kind === kind) && row.name.toLowerCase().includes(search.trim().toLowerCase()),
+  ), [query.data, kind, search]);
+
   return (
     <>
-      <PageHeading title="自定义事件" description="观察业务埋点的发生次数、时间趋势与页面分布。" />
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={16}><Card title="事件趋势"><Chart option={option} /></Card></Col>
-        <Col xs={24} xl={8}><Card title="事件排行"><Table rowKey="name" pagination={false} dataSource={totals.slice(0, 10)} columns={[{ title: '事件', dataIndex: 'name', render: (value: string) => <Tag>{value}</Tag> }, { title: '次数', dataIndex: 'count' }]} /></Card></Col>
-        <Col span={24}><Card title="页面明细"><Table rowKey={(row) => `${row.bucket}-${row.name}-${row.routeName}`} dataSource={[...points].reverse()} columns={[{ title: '时间', dataIndex: 'bucket', render: (value: string) => new Date(value).toLocaleString() }, { title: '事件', dataIndex: 'name' }, { title: '页面', dataIndex: 'routeName' }, { title: '次数', dataIndex: 'count' }]} /></Card></Col>
-      </Row>
+      <PageHeading title="自定义观测项" description="按埋点名称查看独立的统计、趋势和原始记录。" />
+      {query.isError && <Alert type="error" showIcon message="自定义观测项加载失败" />}
+      <Card>
+        <Space wrap style={{ marginBottom: 16 }}>
+          <Input.Search placeholder="搜索埋点名称" allowClear value={search} onChange={(event) => setSearch(event.target.value)} style={{ width: 280 }} />
+          <Select value={kind} onChange={setKind} style={{ width: 140 }} options={[
+            { value: 'all', label: '全部类型' },
+            { value: 'event', label: '事件' },
+            { value: 'trace', label: 'Trace' },
+            { value: 'span', label: 'Span' },
+          ]} />
+        </Space>
+        <Table<CustomSignalSummary>
+          rowKey={(row) => `${row.kind}:${row.name}`}
+          loading={query.isLoading}
+          dataSource={rows}
+          pagination={{ pageSize: 20 }}
+          locale={{ emptyText: '当前时间范围内没有自定义观测项' }}
+          onRow={(row) => ({ onClick: () => navigate(`/projects/${projectId}/events/${row.kind}/${encodeURIComponent(row.name)}`), style: { cursor: 'pointer' } })}
+          columns={[
+            { title: '类型', dataIndex: 'kind', width: 100, render: (value: CustomSignalSummary['kind']) => <Tag>{kindLabels[value]}</Tag> },
+            { title: '名称', dataIndex: 'name', render: (value: string) => <Typography.Link>{value}</Typography.Link> },
+            { title: '发生次数', dataIndex: 'count', sorter: (a, b) => a.count - b.count },
+            { title: '影响会话', dataIndex: 'sessionCount', sorter: (a, b) => a.sessionCount - b.sessionCount },
+            { title: '可用指标', dataIndex: 'metrics', render: (metrics: CustomSignalSummary['metrics']) => metrics.length ? metrics.map((metric) => <Tag key={`${metric.name}:${metric.unit}`}>{metric.name} ({metric.unit})</Tag>) : '—' },
+            { title: '最后发生', dataIndex: 'lastSeenAt', render: (value: string | null) => value ? new Date(value).toLocaleString() : '—' },
+          ]}
+        />
+      </Card>
     </>
   );
 }
-

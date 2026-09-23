@@ -7,7 +7,7 @@ Instrumentation → Signal Hub → Collector → Context → Envelope
 → Processing → Transport → Ingestion Endpoint
 ```
 
-Performance 不再通过独立订阅回调输出。LCP、FCP、INP、CLS、FPS 和 LoAF 会转换为协议 2.0 的统一 `TelemetryEventV2`，经过规范化、校验、脱敏、过滤、去重、采样和限流后，由 Transport 批量发送。
+Performance 不再通过独立订阅回调输出。LCP、FCP、INP、CLS、FPS 和 LoAF 会转换为协议 3.0 的统一 `TelemetryEventV3`，经过规范化、校验、脱敏、过滤、去重、采样和限流后，由 Transport 批量发送。
 
 ## 快速开始
 
@@ -48,7 +48,7 @@ const monitor = createMonitor({
     },
   },
   transport: {
-    dsn: 'https://monitor.example.com/api/v2/ingest/bm_pk_xxx/envelopes',
+    dsn: 'https://monitor.example.com/api/v3/ingest/bm_pk_xxx/envelopes',
     batchSize: 20,
     flushIntervalMs: 10_000,
     maxQueueSize: 200,
@@ -60,7 +60,8 @@ monitor.start();
 monitor.setViewName('checkout-confirm');
 
 monitor.track('order_submit', {
-  orderType: 'normal',
+  attributes: { orderType: 'normal' },
+  metrics: { amount: { value: 199.9, unit: 'CNY' } },
 });
 
 // stop() 只暂停监控，后续可以重新 start()。
@@ -86,7 +87,7 @@ createMonitor({
     sensitiveKeys: ['token', 'password', 'authorization'],
   },
   transport: {
-    dsn: 'https://monitor.example.com/api/v2/ingest/bm_pk_xxx/envelopes',
+    dsn: 'https://monitor.example.com/api/v3/ingest/bm_pk_xxx/envelopes',
   },
 });
 ```
@@ -95,17 +96,19 @@ createMonitor({
 
 ## 公开 API
 
-| API                       | 作用                                             |
-| ------------------------- | ------------------------------------------------ |
-| `createMonitor(options)`  | 校验配置并创建统一 Monitor                       |
-| `start()`                 | 安装并启动已启用的监控模块，重复调用不会重复监听 |
-| `stop()`                  | 暂停数据生产并执行受控 Flush，可以再次启动       |
-| `destroy()`               | 永久销毁实例，恢复 SDK 包装的全局 API            |
-| `track(name, properties)` | 记录业务明确表达的自定义事件                     |
-| `setUser(user)`           | 更新白名单用户上下文                             |
-| `setViewName(name)`       | 显式覆盖当前 View 的稳定业务路由名               |
-| `flush()`                 | 主动发送队列中的安全数据                         |
-| `getCapabilities()`       | 查询浏览器实际支持的监控能力                     |
+| API                      | 作用                                             |
+| ------------------------ | ------------------------------------------------ |
+| `createMonitor(options)` | 校验配置并创建统一 Monitor                       |
+| `start()`                | 安装并启动已启用的监控模块，重复调用不会重复监听 |
+| `stop()`                 | 暂停数据生产并执行受控 Flush，可以再次启动       |
+| `destroy()`              | 永久销毁实例，恢复 SDK 包装的全局 API            |
+| `track(name, data)`      | 记录带属性和数值指标的自定义事件                 |
+| `startTrace(name, data)` | 开始自定义 Trace 并返回可结束句柄                |
+| `trace(name, fn, data)`  | 包装同步或异步业务流程并自动结束 Trace           |
+| `setUser(user)`          | 更新白名单用户上下文                             |
+| `setViewName(name)`      | 显式覆盖当前 View 的稳定业务路由名               |
+| `flush()`                | 主动发送队列中的安全数据                         |
+| `getCapabilities()`      | 查询浏览器实际支持的监控能力                     |
 
 缺少 App 信息、采集端点无效或数值配置非法时，`createMonitor()` 会立即抛出配置错误。浏览器不支持某项能力时，对应模块静默降级，不伪造零值。
 
@@ -141,7 +144,7 @@ create → install → start → stop → restart → destroy
 
 Transport 使用有界内存队列，按照数量、字节数和时间组成批次。页面隐藏或离开时会尝试受控 Flush；发送失败只对可恢复状态执行有限重试。队列达到容量上限时优先丢弃低优先级旧数据，不使用 IndexedDB 持久化监控数据。
 
-发送体固定为 `TelemetryBatchV2`：外层包含 `protocolVersion: '2.0'`、`sentAt`、SDK 身份和 `events`。Web Vitals 使用稳定 `sampleId` 与递增 `sequence`，普通回调为 `provisional`，View 结束时发送 `final` 快照。FPS 与 LoAF 每个采样窗口都是独立 final 样本。
+发送体固定为 `TelemetryBatchV3`：外层包含 `protocolVersion: '3.0'`、`sentAt`、SDK 身份和 `events`。Web Vitals 使用稳定 `sampleId` 与递增 `sequence`，普通回调为 `provisional`，View 结束时发送 `final` 快照。FPS 与 LoAF 每个采样窗口都是独立 final 样本。
 
 ## 目录边界
 
@@ -156,7 +159,9 @@ Transport 使用有界内存队列，按照数量、字节数和时间组成批�
 | `transport`       | 队列、批处理、发送、重试和 Flush                     |
 | `shared`          | 无监控领域语义的基础能力                             |
 
-跨 SDK、API 和 Worker 的协议 2.0 类型直接来自 workspace 中的 `@browser-monitor/protocol`。SDK 不保留 `src/protocol` 转发目录，避免本地包装类型与共享 Schema 形成两个协议来源。
+跨 SDK、API 和 Worker 的协议 3.0 类型直接来自 workspace 中的 `@browser-monitor/protocol`。SDK 不保留 `src/protocol` 转发目录，避免本地包装类型与共享 Schema 形成两个协议来源。
+
+自定义事件、页面停留与跨路由链路示例见 [自定义 Trace 与 Span](./docs/07-自定义Trace与Span.md)。`track()` 的第二个参数已改为 `{ attributes, metrics }`。
 
 更完整的目标、设计思想和目录说明见 [Browser Monitor SDK 项目知识梳理](./docs/Browser-Monitor-SDK-项目知识梳理.md)。
 

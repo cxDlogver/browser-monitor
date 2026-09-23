@@ -115,7 +115,7 @@ describe('createMonitor performance vertical slice', () => {
     });
     monitor.start();
     webVitalsMock.callbacks.get('LCP')?.(metric('LCP', 1_800));
-    monitor.track('order_submit', { orderType: 'normal', token: 'secret' });
+    monitor.track('order_submit', { attributes: { orderType: 'normal', token: 'secret' } });
     await monitor.flush();
 
     const events = sender.events();
@@ -123,7 +123,7 @@ describe('createMonitor performance vertical slice', () => {
     const custom = events.find((event) => event.name === 'order_submit');
 
     expect(lcp).toMatchObject({
-      protocolVersion: '2.0',
+      protocolVersion: '3.0',
       type: 'performance',
       app: {
         name: 'checkout',
@@ -153,7 +153,7 @@ describe('createMonitor performance vertical slice', () => {
     expect(custom?.payload).toMatchObject({
       type: 'event',
       name: 'order_submit',
-      properties: { orderType: 'normal', token: '[REDACTED]' },
+      attributes: { orderType: 'normal', token: '[REDACTED]' },
     });
 
     monitor.destroy();

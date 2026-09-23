@@ -1,8 +1,9 @@
 import type { DatabaseHandle } from '@browser-monitor/database';
 import type {
+  CustomSignalPayload,
   PerformanceMetricName,
   PerformancePayload,
-  TelemetryEventV2,
+  TelemetryEventV3,
   ViewPayload,
 } from '@browser-monitor/protocol';
 import {
@@ -25,7 +26,7 @@ interface ThresholdContext {
 export class EventProcessor {
   constructor(private readonly database: DatabaseHandle) {}
 
-  async process(projectId: string, event: TelemetryEventV2): Promise<void> {
+  async process(projectId: string, event: TelemetryEventV3): Promise<void> {
     const client = await this.database.pool.connect();
     try {
       await client.query('BEGIN');
@@ -34,25 +35,7 @@ export class EventProcessor {
       } else if (event.payload.type === 'view') {
         await this.processView(client, projectId, event, event.payload);
       } else {
-        await client.query(
-          `INSERT INTO custom_event_samples(
-            project_id, event_id, occurred_at, name, environment, app_version,
-            route_name, session_id, view_id, properties
-          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb)
-          ON CONFLICT DO NOTHING`,
-          [
-            projectId,
-            event.eventId,
-            new Date(event.occurredAt),
-            event.name,
-            event.app.environment,
-            event.app.version,
-            event.context.routeName,
-            event.context.sessionId,
-            event.context.viewId,
-            JSON.stringify(event.payload.properties ?? {}),
-          ],
-        );
+        await this.processCustomSignal(client, projectId, event, event.payload);
       }
       await client.query(
         `UPDATE telemetry_events SET processed_at = now()
@@ -68,10 +51,76 @@ export class EventProcessor {
     }
   }
 
+  private async processCustomSignal(
+    client: PoolClient,
+    projectId: string,
+    event: TelemetryEventV3,
+    payload: CustomSignalPayload,
+  ): Promise<void> {
+    const timed = payload.type === 'trace' || payload.type === 'span' ? payload : undefined;
+    await client.query(
+      `INSERT INTO custom_signal_samples(
+        project_id, event_id, occurred_at, kind, name, status, started_at, ended_at,
+        duration_ms, trace_id, span_id, parent_span_id, environment, app_version,
+        route_name, session_id, view_id, user_hash, attributes
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19::jsonb)
+      ON CONFLICT DO NOTHING`,
+      [
+        projectId,
+        event.eventId,
+        new Date(event.occurredAt),
+        payload.type,
+        event.name,
+        timed?.status ?? null,
+        timed ? new Date(timed.startedAt) : null,
+        timed ? new Date(timed.endedAt) : null,
+        timed?.durationMs ?? null,
+        event.correlation.traceId ?? null,
+        event.correlation.spanId ?? null,
+        event.correlation.parentSpanId ?? null,
+        event.app.environment,
+        event.app.version,
+        event.context.routeName,
+        event.context.sessionId,
+        event.context.viewId,
+        event.context.user?.id ?? null,
+        JSON.stringify(payload.attributes ?? {}),
+      ],
+    );
+
+    const metrics = [
+      ...Object.entries(payload.metrics ?? {}).map(([name, metric]) => ({ name, ...metric })),
+      ...(timed ? [{ name: 'duration', value: timed.durationMs, unit: 'ms' }] : []),
+    ];
+    for (const metric of metrics) {
+      await client.query(
+        `INSERT INTO custom_metric_samples(
+          project_id, event_id, occurred_at, signal_kind, signal_name, metric_name,
+          unit, value, environment, app_version, route_name, session_id, view_id
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        ON CONFLICT DO NOTHING`,
+        [
+          projectId,
+          event.eventId,
+          new Date(event.occurredAt),
+          payload.type,
+          event.name,
+          metric.name,
+          metric.unit,
+          metric.value,
+          event.app.environment,
+          event.app.version,
+          event.context.routeName,
+          event.context.sessionId,
+          event.context.viewId,
+        ],
+      );
+    }
+  }
   private async processPerformance(
     client: PoolClient,
     projectId: string,
-    event: TelemetryEventV2,
+    event: TelemetryEventV3,
     payload: PerformancePayload,
   ): Promise<void> {
     // Multiple Worker instances may receive provisional/final revisions for the
@@ -166,7 +215,7 @@ export class EventProcessor {
   private async processView(
     client: PoolClient,
     projectId: string,
-    event: TelemetryEventV2,
+    event: TelemetryEventV3,
     payload: ViewPayload,
   ): Promise<void> {
     // Route transitions can enqueue view.start and view.end close together.

@@ -22,7 +22,7 @@ Browser Monitor 是一个完整的浏览器监控系统。仓库把浏览器 SDK
 | 目录 | 包名 | 职责 |
 | --- | --- | --- |
 | `sdk/` | `cx-browser-monitor-sdk` | 在浏览器中采集、加工、排队并发送遥测数据 |
-| `protocol/` | `@browser-monitor/protocol` | 定义 SDK、API 与 Worker 共同遵守的协议 2.0 Schema、类型、枚举和测试夹具 |
+| `protocol/` | `@browser-monitor/protocol` | 定义 SDK、API 与 Worker 共同遵守的协议 3.0 Schema、类型、枚举和测试夹具 |
 | `platform/` | `@browser-monitor/platform` | 提供账号与项目管理、采集 API、异步处理、TimescaleDB 聚合和 React 看板 |
 
 `protocol/` 是线上数据契约的唯一来源。SDK 不再保留 `src/protocol` 转发目录，而是直接依赖 `@browser-monitor/protocol`。SDK 内部尚未形成上报事件的浏览器事实放在 `sdk/src/signals/`；Raw Signal 只在 SDK 进程内流动，不属于跨项目协议。
@@ -42,12 +42,13 @@ browser-monitor/
 │  ├─ tests/                   # SDK 核心链路测试
 │  └─ docs/                    # SDK 架构与各阶段实现说明
 ├─ protocol/
-│  ├─ src/                     # 协议 2.0 Schema、类型、常量与 fixture
+│  ├─ src/                     # 协议 3.0 Schema、类型、常量与 fixture
 │  └─ tests/                   # 合法和非法协议请求测试
 └─ platform/
    ├─ apps/
    │  ├─ api/                  # NestJS + Fastify 采集与管理 API
    │  ├─ worker/               # Outbox 消费、投影和指标计算
+   │  ├─ audit-worker/         # 独立 Chrome + Lighthouse 实验室测试
    │  └─ web/                  # React + Vite 可视化平台
    ├─ packages/
    │  ├─ database/             # Drizzle 模型和 TimescaleDB migrations

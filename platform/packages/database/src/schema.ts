@@ -1,7 +1,8 @@
-import type { TelemetryEventV2 } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 } from '@browser-monitor/protocol';
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  customType,
   doublePrecision,
   index,
   integer,
@@ -16,6 +17,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 const createdAt = timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => 'bytea' });
 
 export const users = pgTable(
   'users',
@@ -174,7 +176,7 @@ export const telemetryEvents = pgTable(
     viewId: varchar('view_id', { length: 256 }).notNull(),
     routeName: varchar('route_name', { length: 160 }).notNull(),
     userHash: varchar('user_hash', { length: 64 }),
-    event: jsonb('event').$type<TelemetryEventV2>().notNull(),
+    event: jsonb('event').$type<TelemetryEventV3>().notNull(),
     processedAt: timestamp('processed_at', { withTimezone: true }),
   },
   (table) => [
@@ -191,7 +193,7 @@ export const outboxTasks = pgTable(
     projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
     eventId: varchar('event_id', { length: 256 }).notNull(),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
-    event: jsonb('event').$type<TelemetryEventV2>().notNull(),
+    event: jsonb('event').$type<TelemetryEventV3>().notNull(),
     status: varchar('status', { length: 24 }).notNull().default('pending'),
     attempts: integer('attempts').notNull().default(0),
     availableAt: timestamp('available_at', { withTimezone: true }).notNull().defaultNow(),
@@ -210,7 +212,7 @@ export const deadLetterTasks = pgTable(
     id: uuid('id').primaryKey(),
     projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
     eventId: varchar('event_id', { length: 256 }).notNull(),
-    event: jsonb('event').$type<TelemetryEventV2>().notNull(),
+    event: jsonb('event').$type<TelemetryEventV3>().notNull(),
     attempts: integer('attempts').notNull(),
     lastError: text('last_error').notNull(),
     failedAt: timestamp('failed_at', { withTimezone: true }).notNull().defaultNow(),
@@ -276,4 +278,118 @@ export const customEventSamples = pgTable(
     properties: jsonb('properties').$type<Record<string, unknown>>().notNull().default({}),
   },
   (table) => [primaryKey({ columns: [table.projectId, table.eventId, table.occurredAt] }), index('custom_event_project_name_time_idx').on(table.projectId, table.name, table.occurredAt)],
+);
+
+export const customSignalSamples = pgTable(
+  'custom_signal_samples',
+  {
+    projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    eventId: varchar('event_id', { length: 256 }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    kind: varchar('kind', { length: 16 }).notNull(),
+    name: varchar('name', { length: 128 }).notNull(),
+    status: varchar('status', { length: 16 }),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    durationMs: doublePrecision('duration_ms'),
+    traceId: varchar('trace_id', { length: 256 }),
+    spanId: varchar('span_id', { length: 256 }),
+    parentSpanId: varchar('parent_span_id', { length: 256 }),
+    environment: varchar('environment', { length: 64 }).notNull(),
+    appVersion: varchar('app_version', { length: 64 }).notNull(),
+    routeName: varchar('route_name', { length: 160 }).notNull(),
+    sessionId: varchar('session_id', { length: 256 }).notNull(),
+    viewId: varchar('view_id', { length: 256 }).notNull(),
+    userHash: varchar('user_hash', { length: 64 }),
+    attributes: jsonb('attributes').$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (table) => [
+    primaryKey({ columns: [table.projectId, table.eventId, table.occurredAt] }),
+    index('custom_signal_project_kind_name_time_idx').on(table.projectId, table.kind, table.name, table.occurredAt),
+    index('custom_signal_project_trace_time_idx').on(table.projectId, table.traceId, table.occurredAt),
+  ],
+);
+
+export const customMetricSamples = pgTable(
+  'custom_metric_samples',
+  {
+    projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    eventId: varchar('event_id', { length: 256 }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    signalKind: varchar('signal_kind', { length: 16 }).notNull(),
+    signalName: varchar('signal_name', { length: 128 }).notNull(),
+    metricName: varchar('metric_name', { length: 64 }).notNull(),
+    unit: varchar('unit', { length: 32 }).notNull(),
+    value: doublePrecision('value').notNull(),
+    environment: varchar('environment', { length: 64 }).notNull(),
+    appVersion: varchar('app_version', { length: 64 }).notNull(),
+    routeName: varchar('route_name', { length: 160 }).notNull(),
+    sessionId: varchar('session_id', { length: 256 }).notNull(),
+    viewId: varchar('view_id', { length: 256 }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.projectId, table.eventId, table.occurredAt, table.metricName, table.unit] }),
+    index('custom_metric_project_signal_metric_time_idx').on(
+      table.projectId,
+      table.signalKind,
+      table.signalName,
+      table.metricName,
+      table.unit,
+      table.occurredAt,
+    ),
+  ],
+);
+export const labAuditSettings = pgTable('lab_audit_settings', {
+  projectId: uuid('project_id').primaryKey().references(() => projects.id, { onDelete: 'cascade' }),
+  headersCiphertext: bytea('headers_ciphertext'),
+  headersIv: bytea('headers_iv'),
+  headersAuthTag: bytea('headers_auth_tag'),
+  updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const labAudits = pgTable(
+  'lab_audits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    targetUrl: text('target_url').notNull(),
+    device: varchar('device', { length: 16 }).notNull(),
+    status: varchar('status', { length: 16 }).notNull().default('queued'),
+    requestedRuns: integer('requested_runs').notNull().default(5),
+    completedRuns: integer('completed_runs').notNull().default(0),
+    successfulRuns: integer('successful_runs').notNull().default(0),
+    attempts: integer('attempts').notNull().default(0),
+    lighthouseVersion: varchar('lighthouse_version', { length: 64 }),
+    chromeVersion: varchar('chrome_version', { length: 128 }),
+    environment: jsonb('environment').$type<Record<string, unknown>>().notNull().default({}),
+    summary: jsonb('summary').$type<Record<string, unknown>>(),
+    analysis: jsonb('analysis').$type<Record<string, unknown>>(),
+    warning: text('warning'),
+    lastError: text('last_error'),
+    lockedBy: varchar('locked_by', { length: 128 }),
+    lockedAt: timestamp('locked_at', { withTimezone: true }),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt,
+  },
+  (table) => [index('lab_audits_project_created_idx').on(table.projectId, table.createdAt)],
+);
+
+export const labAuditRuns = pgTable(
+  'lab_audit_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    auditId: uuid('audit_id').notNull().references(() => labAudits.id, { onDelete: 'cascade' }),
+    runNumber: integer('run_number').notNull(),
+    status: varchar('status', { length: 16 }).notNull(),
+    scores: jsonb('scores').$type<Record<string, number | null>>(),
+    metrics: jsonb('metrics').$type<Record<string, number | null>>(),
+    diagnostics: jsonb('diagnostics').$type<Array<Record<string, unknown>>>(),
+    error: text('error'),
+    durationMs: integer('duration_ms'),
+    createdAt,
+  },
+  (table) => [uniqueIndex('lab_audit_runs_unique').on(table.auditId, table.runNumber), index('lab_audit_runs_audit_idx').on(table.auditId, table.runNumber)],
 );

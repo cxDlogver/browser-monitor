@@ -72,6 +72,32 @@ button, input { font: inherit; }
 .compact-json { max-height: 290px; }
 .threshold-row { display: grid !important; grid-template-columns: 52px 1fr 1fr; width: 100%; }
 .threshold-row .ant-form-item { margin-bottom: 12px; }
+.lab-launch-card { margin-bottom: 18px; }
+.lab-launch-card .ant-form { display: flex; flex-wrap: wrap; gap: 10px; }
+.lab-url-field { flex: 1 1 420px; margin-inline-end: 0 !important; }
+.lab-url-field .ant-input-affix-wrapper { width: 100%; }
+.lab-inline-alert { margin-top: 14px; }
+.lab-content-row { align-items: stretch; }
+.lab-history-item { cursor: pointer; border: 1px solid transparent; border-radius: 10px; margin-bottom: 8px; padding: 12px !important; transition: 160ms ease; }
+.lab-history-item:hover, .lab-history-item.selected { background: rgba(57, 217, 197, 0.07); border-color: rgba(57, 217, 197, 0.24); }
+.lab-history-item .ant-list-item-meta-description { display: grid; min-width: 0; }
+.lab-history-item small { color: #748aa3; margin-top: 5px; }
+.lab-report { width: 100%; }
+.lab-report > .ant-space-item { width: 100%; }
+.lab-score-row { margin: 4px 0 18px; }
+.lab-score { display: grid; justify-items: center; gap: 2px; padding: 16px 8px; border-radius: 14px; background: #081827; border: 1px solid rgba(122, 164, 203, 0.13); }
+.lab-score strong { font-size: 32px; line-height: 1; }
+.lab-score span { color: #c5d5e7; }
+.lab-score small { color: #748aa3; }
+.lab-score.score-good strong { color: #48dc9b; }
+.lab-score.score-warn strong { color: #f5bf55; }
+.lab-score.score-poor strong { color: #ff7373; }
+.lab-analysis-card { height: 100%; background: #091a2a !important; }
+.lab-analysis-card .ant-typography { margin-bottom: 0; }
+.lab-headers-form { margin-top: 18px; }
+.lab-header-row { display: flex !important; width: 100%; }
+.lab-header-row .ant-form-item { flex: 1; }
+.lab-settings-actions { display: flex !important; justify-content: space-between; margin-top: 22px; width: 100%; }
 
 @media (max-width: 800px) {
   .auth-page { grid-template-columns: 1fr; padding: 28px 18px; gap: 28px; }
@@ -83,4 +109,5 @@ button, input { font: inherit; }
   .platform-shell > .ant-layout { margin-left: 76px; }
   .dashboard-content { padding: 20px 14px; }
   .page-heading { align-items: flex-start; flex-direction: column; }
+  .lab-launch-card .ant-form-item, .lab-launch-card .ant-radio-group, .lab-launch-card .ant-btn { width: 100%; }
 }

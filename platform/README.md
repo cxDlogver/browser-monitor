@@ -1,6 +1,6 @@
 # Browser Monitor Platform
 
-Browser Monitor Platform 是 `cx-browser-monitor-sdk` 的服务端和可视化平台。SDK 只负责在浏览器中采集、治理和发送遥测数据；平台负责接收协议 2.0 批次、可靠地生成查询模型、计算服务端指标口径，并向项目成员提供管理后台与监控看板。
+Browser Monitor Platform 是 `cx-browser-monitor-sdk` 的服务端和可视化平台。SDK 只负责在浏览器中采集、治理和发送遥测数据；平台负责接收协议 3.0 批次、可靠地生成查询模型、计算服务端指标口径，并向项目成员提供管理后台与监控看板。
 
 完整链路为：`Monitor SDK → 公开 DSN → Ingestion API → telemetry_events + Outbox → Worker → TimescaleDB 聚合 → Analytics API → React 看板`。
 
@@ -23,7 +23,7 @@ const monitor = createMonitor({
     resolveRouteName: ({ pathname }) => pathname,
   },
   transport: {
-    dsn: "https://monitor.example.com/api/v2/ingest/bm_pk_xxx/envelopes",
+    dsn: "https://monitor.example.com/api/v3/ingest/bm_pk_xxx/envelopes",
   },
 });
 
@@ -46,7 +46,7 @@ platform/
 │  ├─ api/                         # NestJS + Fastify HTTP 服务
 │  │  ├─ src/auth/                # 注册、验证、登录、Session、CSRF、邮件
 │  │  ├─ src/projects/            # 项目、成员、Origin、写入键、阈值和死信重试
-│  │  ├─ src/ingestion/           # 协议 2.0 采集、限流、脱敏、幂等与事务 Outbox
+│  │  ├─ src/ingestion/           # 协议 3.0 采集、限流、脱敏、幂等与事务 Outbox
 │  │  ├─ src/analytics/           # 总览、性能、页面、事件、原始数据和服务状态查询
 │  │  ├─ src/observability/       # Prometheus 指标
 │  │  └─ src/health/              # 存活与就绪检查
@@ -55,6 +55,8 @@ platform/
 │  │     ├─ outbox-worker.ts      # 任务领取、退避重试、死信和后台维护
 │  │     ├─ processor.ts          # Performance/View/Event 投影与服务端评级
 │  │     └─ sequence.ts           # Performance sequence 接受规则
+│  ├─ audit-worker/                # 独立 Lighthouse 实验室测试进程
+│  │  └─ src/                      # Chrome 启动、5 次运行、聚合和中文建议
 │  └─ web/                         # React + Vite + Ant Design + ECharts
 │     └─ src/
 │        ├─ api/                  # Session/CSRF 请求客户端和响应类型
@@ -83,7 +85,7 @@ API 的首要目标是快速、确定地回答“这批数据是否被平台接�
 
 ### 【采集请求】
 
-SDK 向 `POST /api/v2/ingest/:publicKey/envelopes` 发送 `TelemetryBatchV2`。API 接受常规 `application/json`，也接受页面离开时 `sendBeacon` 产生的 `text/plain` JSON 字符串。单个请求体最大 256 KiB，每批最多 100 条事件。
+SDK 向 `POST /api/v3/ingest/:publicKey/envelopes` 发送 `TelemetryBatchV3`。API 接受常规 `application/json`，也接受页面离开时 `sendBeacon` 产生的 `text/plain` JSON 字符串。单个请求体最大 256 KiB，每批最多 100 条事件。
 
 处理顺序为：协议版本检查 → 批次头校验 → 写入键解析 → Origin 校验 → 项目/IP 令牌桶限流 → 逐事件 Schema 校验 → `app.name` 一致性检查 → 时间范围检查 → 服务端二次脱敏 → `eventId` 幂等去重 → 原始事件与 Outbox 同事务入库。
 
@@ -111,7 +113,7 @@ SDK 向 `POST /api/v2/ingest/:publicKey/envelopes` 发送 `TelemetryBatchV2`。A
 
 Worker 使用 `FOR UPDATE SKIP LOCKED` 领取可执行任务，多实例之间不会等待同一行。任务进入 processing 后如果进程退出，超过五分钟的锁会被其他 Worker 重新领取。
 
-不同 payload 的投影目标不同：Performance 进入 `performance_samples`；View 进入 `view_records`；Custom Event 进入 `custom_event_samples`。处理成功后更新原始事件的 `processed_at`，再将 Outbox 标记为 completed，并递增项目查询缓存版本。
+不同 payload 的投影目标不同：Performance 进入 `performance_samples`；View 进入 `view_records`；自定义 Event/Trace/Span 进入 `custom_signal_samples` 和 `custom_metric_samples`。处理成功后更新原始事件的 `processed_at`，再将 Outbox 标记为 completed，并递增项目查询缓存版本。
 
 失败任务执行指数退避，最多尝试八次。超过上限后，Outbox 保留 failed 状态并写入 `dead_letter_tasks`；服务状态页展示最近死信，Owner 可以将任务重新放回 pending 队列。
 
@@ -134,6 +136,18 @@ SDK 传入的 `clientRating` 只作为诊断信息保存。Worker 根据项目�
 React 管理后台每 15 秒刷新主要看板。页面包括项目列表、接入设置、总览、性能趋势、页面排名、自定义事件、原始事件、服务状态和项目设置。原始事件按 `(occurredAt, eventId)` 使用游标分页，避免大偏移分页在时序表上的扫描成本。
 
 服务状态页同时显示最近一分钟接收量、最近一分钟处理量、累计接收/重复/拒绝数量、Outbox 各状态数量和死信明细。它用来区分“SDK 没有上报”“API 拒绝了数据”“Worker 出现积压”和“单条任务持续失败”这几类不同问题。
+
+### 【独立 Lighthouse 实验室测试】
+
+项目菜单中的“实验室测试”只运行主动 Lighthouse 测量，不读取或改写 RUM 数据，也不与线上真实用户指标做对照。Owner 输入项目白名单 Origin 下的 URL 并选择手机端或桌面端后，API 创建独立任务；Audit Worker 为每轮启动新的 Chrome 会话，连续运行 5 次，以中位数和波动度生成 Performance、SEO、Accessibility、Best Practices、FCP、LCP、CLS、TBT 等报告。
+
+需要登录的页面可使用项目级固定请求头。请求头由 `AUDIT_HEADER_ENCRYPTION_KEY` 以 AES-256-GCM 加密保存，管理接口只返回名称和掩码；鉴权值应使用权限最小且短期有效的专用令牌。生产环境默认禁止测试解析到本机、私网、链路本地或保留地址的 URL；Audit Worker 使用独立的非 root、只读容器和任务表，因此 Chrome 资源消耗不会占用 Outbox Worker。
+
+### 【自定义 Event、Trace 与 Span】
+
+协议 3.0 将自定义 Event、Trace、Span 投影到 `custom_signal_samples`，将每个 `{ value, unit }` 数值指标投影到 `custom_metric_samples`。Trace/Span 的 `duration` 指标由 Worker 自动写入，单位固定为 `ms`。分钟、小时连续聚合按类型、埋点名、指标名、单位和路由分别统计，支持 count、sum、avg、min、max 和 p50/p75/p90/p95/p99。原始链路保留 30 天，聚合保留 180 天。
+
+`/events` 展示按“类型 + 埋点名”分组的列表，点击进入该项的统计、趋势、路由分布与事件详情。Trace/Span 记录可查看父子 Span 瀑布图及关联事件。API 使用 `/analytics/custom-signals`、`/analytics/custom-signals/detail`、`/analytics/custom-signals/records` 和 `/analytics/traces/:traceId` 查询这些数据。旧版自定义事件样本不回填。
 
 ## 4. 用户、项目与安全边界
 
@@ -181,10 +195,32 @@ Compose 从整个 `browser-monitor/` 目录构建 API、Worker、迁移和 Web �
 | `DATABASE_URL`、`REDIS_URL`      | TimescaleDB/PostgreSQL 与 Redis 连接  |
 | `COOKIE_SECRET`                  | 登录 Cookie 签名密钥                  |
 | `USER_HASH_SECRET`               | 用户 ID 项目级散列的服务端密钥        |
+| `AUDIT_HEADER_ENCRYPTION_KEY`    | 32 字节 base64url 编码的审计请求头加密密钥；生产必须替换 |
 | `SMTP_*`                         | 验证、重置密码和项目邀请邮件；Compose 开发环境使用 `mailpit:1025` |
 | `INGEST_PROJECT_RATE_PER_SECOND` | 每项目稳定采集速率                    |
 | `INGEST_PROJECT_BURST`           | 每项目允许的短时突发容量              |
 | `WORKER_BATCH_SIZE`              | Worker 每轮最多领取的 Outbox 任务数   |
+| `AUDIT_POLL_INTERVAL_MS`         | Audit Worker 领取 Lighthouse 任务的间隔 |
+| `AUDIT_CHROME_PATH`              | Chrome/Chromium 可执行文件路径；容器内默认为 `/usr/bin/chromium` |
+| `AUDIT_ALLOW_PRIVATE_TARGETS`    | 是否允许测试私网 URL；生产环境应保持 `false` |
+| `DEBIAN_MIRROR_BASE`             | Audit Worker 构建 Chromium 时使用的 Debian HTTPS 镜像根地址 |
+
+如果 Audit Worker 在下载 Chromium 时出现 `Failed to fetch http://deb.debian.org`，说明仍在使用旧的 Docker 构建层。当前 Dockerfile 会强制把 Debian 软件源切换为 HTTPS，并自动重试。请执行：
+
+```bash
+docker compose \
+  --env-file platform/.env \
+  -f platform/infra/docker-compose.yml \
+  build --no-cache audit-worker
+```
+
+若官方源在当前网络不可达，在 `platform/.env` 中设置下面的国内 HTTPS 镜像后重复上述命令：
+
+```dotenv
+DEBIAN_MIRROR_BASE=https://mirrors.tuna.tsinghua.edu.cn
+```
+
+构建成功后再运行 `docker compose --env-file platform/.env --profile dev -f platform/infra/docker-compose.yml up`。`apt-get --fix-missing` 无法修复代理或镜像连接失败，因此不作为这里的解决方案。
 
 ## 6. 查询与管理接口
 
@@ -192,7 +228,7 @@ Compose 从整个 `browser-monitor/` 目录构建 API、Worker、迁移和 Web �
 
 | 方法与路径                                                  | 作用                         |
 | ----------------------------------------------------------- | ---------------------------- |
-| `POST /api/v2/ingest/:publicKey/envelopes`                  | 接收协议 2.0 批次            |
+| `POST /api/v3/ingest/:publicKey/envelopes`                  | 接收协议 3.0 批次            |
 | `POST /api/v1/auth/register`                                | 注册并发送验证邮件           |
 | `POST /api/v1/auth/verify-email`                            | 激活账号                     |
 | `POST /api/v1/auth/login`、`POST /logout`                   | 创建或销毁 Session           |
@@ -213,6 +249,9 @@ Compose 从整个 `browser-monitor/` 目录构建 API、Worker、迁移和 Web �
 | `GET /analytics/events`                 | 自定义事件趋势和页面分布             |
 | `GET /analytics/raw-events`             | 原始事件检索与游标分页               |
 | `GET /analytics/service-status`         | 接收速率、积压、失败与死信明细       |
+| `GET/PUT /lab-settings`                 | 查看掩码请求头或由 Owner 整体替换配置 |
+| `POST/GET /lab-audits`                  | 创建实验室测试或查询项目测试历史     |
+| `GET /lab-audits/:auditId`              | 查询进度、5 次明细和聚合分析报告     |
 | `GET /health/live`、`GET /health/ready` | 存活与依赖就绪检查                   |
 | `GET /internal/metrics`                 | Prometheus 运行指标                  |
 
@@ -242,7 +281,7 @@ docker compose \
   -f platform/infra/docker-compose.load.yml \
   up --build
 
-MONITOR_DSN=http://localhost:8080/api/v2/ingest/bm_pk_xxx/envelopes \
+MONITOR_DSN=http://localhost:8080/api/v3/ingest/bm_pk_xxx/envelopes \
 MONITOR_ORIGIN=http://localhost:8080 \
 MONITOR_APP_NAME=load-test \
 k6 run platform/load/k6-ingestion.js

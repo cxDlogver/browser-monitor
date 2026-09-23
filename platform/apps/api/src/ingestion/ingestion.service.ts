@@ -10,10 +10,10 @@ import {
 import type { DatabaseHandle } from "@browser-monitor/database";
 import {
   PROTOCOL_VERSION,
-  telemetryBatchHeaderV2Schema,
-  telemetryEventV2Schema,
+  telemetryBatchHeaderV3Schema,
+  telemetryEventV3Schema,
   type JsonValue,
-  type TelemetryEventV2,
+  type TelemetryEventV3,
 } from "@browser-monitor/protocol";
 import {
   hashUserId,
@@ -84,7 +84,7 @@ export class IngestionService {
         });
       }
 
-      const header = telemetryBatchHeaderV2Schema.safeParse(decodedBody);
+      const header = telemetryBatchHeaderV3Schema.safeParse(decodedBody);
       if (!header.success) {
         throw new UnprocessableEntityException({
           code: "invalid_batch",
@@ -110,11 +110,11 @@ export class IngestionService {
         );
       }
 
-      const valid: TelemetryEventV2[] = [];
+      const valid: TelemetryEventV3[] = [];
       const rejections: Array<{ index: number; code: string }> = [];
       const now = Date.now();
       header.data.events.forEach((candidate, index) => {
-        const parsed = telemetryEventV2Schema.safeParse(candidate);
+        const parsed = telemetryEventV3Schema.safeParse(candidate);
         if (!parsed.success) {
           rejections.push({ index, code: "invalid_event" });
           return;
@@ -297,9 +297,9 @@ export class IngestionService {
   }
 
   private sanitizeEvent(
-    event: TelemetryEventV2,
+    event: TelemetryEventV3,
     project: IngestionProject,
-  ): TelemetryEventV2 {
+  ): TelemetryEventV3 {
     const user = event.context.user;
     const sanitizedUser = user
       ? {
@@ -323,10 +323,10 @@ export class IngestionService {
         }
       : undefined;
     const payload =
-      event.payload.type === "event" && event.payload.properties
+      (event.payload.type === "event" || event.payload.type === "trace" || event.payload.type === "span") && event.payload.attributes
         ? {
             ...event.payload,
-            properties: redactProperties(event.payload.properties) as Record<
+            attributes: redactProperties(event.payload.attributes) as Record<
               string,
               JsonValue
             >,
@@ -340,6 +340,6 @@ export class IngestionService {
         ...(sanitizedUser ? { user: sanitizedUser } : {}),
       },
       payload,
-    } as TelemetryEventV2;
+    } as TelemetryEventV3;
   }
 }

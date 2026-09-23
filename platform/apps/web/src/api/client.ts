@@ -25,6 +25,9 @@ const apiErrorMessages: Record<string, string> = {
   invalid_credentials: '邮箱或密码错误。',
   email_not_verified: '邮箱尚未验证，请先打开验证邮件完成验证。',
   invalid_or_expired_token: '验证链接无效或已过期，请重新发起操作。',
+  audit_already_running: '当前项目已有实验室测试正在运行。',
+  audit_origin_not_allowed: '测试 URL 必须属于项目设置中的允许来源。',
+  audit_header_not_allowed: '请求头名称不允许用于实验室测试。',
 };
 
 export function resolveApiErrorMessage(body: Record<string, unknown>, status: number): string {
@@ -64,4 +67,3 @@ export function queryString(values: Record<string, string | number | undefined>)
   const text = params.toString();
   return text ? `?${text}` : '';
 }
-

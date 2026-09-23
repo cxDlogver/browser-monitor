@@ -1,6 +1,6 @@
 import { SDK_NAME, type RuntimeContextData } from '@browser-monitor/protocol';
 
-const SDK_VERSION = '0.2.0';
+const SDK_VERSION = '0.3.0';
 
 export class RuntimeContext {
   snapshot(): RuntimeContextData {

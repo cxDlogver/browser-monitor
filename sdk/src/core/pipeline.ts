@@ -25,7 +25,7 @@ import {
   PROTOCOL_VERSION,
   type CorrelationContext,
   type TelemetryContext,
-  type TelemetryEventV2 as TelemetryEnvelope,
+  type TelemetryEventV3 as TelemetryEnvelope,
   type TelemetryPayload,
 } from '@browser-monitor/protocol';
 

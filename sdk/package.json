@@ -1,6 +1,6 @@
 {
   "name": "cx-browser-monitor-sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Framework-agnostic browser telemetry SDK for performance, events, errors, network, and views.",
   "keywords": [
     "browser",

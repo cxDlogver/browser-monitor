@@ -1,5 +1,5 @@
 import type { DatabaseHandle } from '@browser-monitor/database';
-import type { TelemetryEventV2 } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 } from '@browser-monitor/protocol';
 import type { WorkerConfig } from '@browser-monitor/shared';
 import type { Redis } from 'ioredis';
 import { randomUUID } from 'node:crypto';
@@ -10,7 +10,7 @@ interface OutboxTask {
   id: string;
   project_id: string;
   event_id: string;
-  event: TelemetryEventV2;
+  event: TelemetryEventV3;
   attempts: number;
 }
 

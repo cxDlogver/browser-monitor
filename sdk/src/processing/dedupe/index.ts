@@ -13,7 +13,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 import type { ProcessingStage } from '../pipeline';
 
 // timestamp 和 eventId 不参与指纹；同一 View 内语义与 payload 完全相同才视为重复。
@@ -37,10 +37,15 @@ export class DedupeStage implements ProcessingStage {
 
   process(envelope: TelemetryEnvelope): TelemetryEnvelope | undefined {
     if (this.windowMs === 0) return envelope; // 窗口为 0 即关闭去重
+    // Repeated custom events may be distinct business facts with identical values.
+    // The server already uses eventId for idempotent retry handling.
+    if (envelope.type === 'event' || envelope.type === 'trace' || envelope.type === 'span')
+      return envelope;
 
     const key = fingerprint(envelope);
     const previous = this.seen.get(key);
     // 先记录本次时间，再清理、再判断：保证窗口计算始终基于「上一次出现」。
+
     this.seen.set(key, envelope.occurredAt);
     this.prune(envelope.occurredAt);
 

@@ -18,7 +18,7 @@
 
 import type { MonitorModule } from '../../core/module-registry';
 import type { SignalSubscriber } from '../../signals';
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 import { takeBatch } from '../batch';
 import { MemoryQueue } from '../queue';
 import { sendWithRetry, type RetryOptions } from '../retry';

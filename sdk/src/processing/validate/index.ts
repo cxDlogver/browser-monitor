@@ -11,10 +11,12 @@
  * ---------------------------------------------------------------------------
  */
 
-import type {
-  PerformancePayload,
-  TelemetryEventV2 as TelemetryEnvelope,
+import {
+  PROTOCOL_VERSION,
+  type PerformancePayload,
+  type TelemetryEventV3 as TelemetryEnvelope,
 } from '@browser-monitor/protocol';
+
 import type { ProcessingStage } from '../pipeline';
 
 /** 性能指标的领域校验：数值必须有限且非负，单位必须落在协议允许的三类中。 */
@@ -32,7 +34,7 @@ export class ValidateStage implements ProcessingStage {
   process(envelope: TelemetryEnvelope): TelemetryEnvelope | undefined {
     // 公共层：缺少任何一项公共元数据的数据都不具备分析价值，宁缺毋滥。
     if (
-      envelope.protocolVersion !== '2.0' ||
+      envelope.protocolVersion !== PROTOCOL_VERSION ||
       !envelope.eventId ||
       !envelope.name ||
       !Number.isFinite(envelope.occurredAt) ||

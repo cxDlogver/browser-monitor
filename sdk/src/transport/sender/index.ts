@@ -15,7 +15,7 @@
 import {
   PROTOCOL_VERSION,
   SDK_NAME,
-  type TelemetryEventV2 as TelemetryEnvelope,
+  type TelemetryEventV3 as TelemetryEnvelope,
 } from '@browser-monitor/protocol';
 
 export interface SendResult {
@@ -43,7 +43,7 @@ export class HttpSender implements Sender {
     const body = JSON.stringify({
       protocolVersion: PROTOCOL_VERSION,
       sentAt: Date.now(),
-      sdk: batch[0]?.context.runtime.sdk ?? { name: SDK_NAME, version: '0.2.0' },
+      sdk: batch[0]?.context.runtime.sdk ?? { name: SDK_NAME, version: '0.3.0' },
       events: batch,
     });
 

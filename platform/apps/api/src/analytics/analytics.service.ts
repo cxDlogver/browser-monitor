@@ -190,34 +190,6 @@ export class AnalyticsService {
     });
   }
 
-  async customEvents(
-    userId: string,
-    projectId: string,
-    filters: AnalyticsFilters,
-  ) {
-    await this.projects.requireAccess(userId, projectId);
-    if (this.useRollups(filters))
-      return this.eventsFromRollups(projectId, filters);
-    return this.cached(projectId, "custom-events", filters, async () => {
-      const filter = this.filters("c", "occurred_at", projectId, filters);
-      const result = await this.database.pool.query(
-        `SELECT time_bucket(INTERVAL '1 minute', occurred_at) AS bucket,
-           name, route_name, count(*)::bigint AS count
-         FROM custom_event_samples c
-         WHERE ${filter.where}
-         GROUP BY bucket, name, route_name
-         ORDER BY bucket, count DESC`,
-        filter.values,
-      );
-      return result.rows.map((row) => ({
-        bucket: row.bucket,
-        name: row.name,
-        routeName: row.route_name,
-        count: Number(row.count),
-      }));
-    });
-  }
-
   async rawEvents(
     userId: string,
     projectId: string,
@@ -529,27 +501,6 @@ export class AnalyticsService {
           row.name === "LoAF" && Number(row.page_views) > 0
             ? (Number(row.count) * 1_000) / Number(row.page_views)
             : null,
-      }));
-    });
-  }
-
-  private async eventsFromRollups(
-    projectId: string,
-    filters: AnalyticsFilters,
-  ) {
-    return this.cached(projectId, "events-rollup", filters, async () => {
-      const filter = this.filters("c", "bucket", projectId, filters);
-      const result = await this.database.pool.query(
-        `SELECT bucket, name, route_name, sum(event_count)::bigint AS count
-         FROM custom_event_rollup_1h c WHERE ${filter.where}
-         GROUP BY bucket, name, route_name ORDER BY bucket, count DESC`,
-        filter.values,
-      );
-      return result.rows.map((row) => ({
-        bucket: row.bucket,
-        name: row.name,
-        routeName: row.route_name,
-        count: Number(row.count),
       }));
     });
   }

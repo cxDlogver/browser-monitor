@@ -332,6 +332,6 @@ export class ProjectsService {
   }
 
   private toDsn(publicKey: string): string {
-    return new URL(`/api/v2/ingest/${publicKey}/envelopes`, this.config.PUBLIC_BASE_URL).toString();
+    return new URL(`/api/v3/ingest/${publicKey}/envelopes`, this.config.PUBLIC_BASE_URL).toString();
   }
 }

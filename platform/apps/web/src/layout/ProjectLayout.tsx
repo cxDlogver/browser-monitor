@@ -4,6 +4,7 @@ import {
   DatabaseOutlined,
   FundOutlined,
   HeartOutlined,
+  ExperimentOutlined,
   SettingOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
@@ -26,10 +27,11 @@ export function ProjectLayout() {
   });
   if (project.isLoading) return <div className="centered"><Spin size="large" /></div>;
 
-  const section = location.pathname.split('/').at(-1) ?? 'overview';
+  const section = location.pathname.includes('/events/') ? 'events' : location.pathname.split('/').at(-1) ?? 'overview';
   const items = [
     { key: 'overview', icon: <AppstoreOutlined />, label: '总览' },
     { key: 'performance', icon: <FundOutlined />, label: '性能指标' },
+    { key: 'lab-audits', icon: <ExperimentOutlined />, label: '实验室测试' },
     { key: 'routes', icon: <BarChartOutlined />, label: '页面排名' },
     { key: 'events', icon: <ThunderboltOutlined />, label: '自定义事件' },
     { key: 'raw-events', icon: <DatabaseOutlined />, label: '原始事件' },

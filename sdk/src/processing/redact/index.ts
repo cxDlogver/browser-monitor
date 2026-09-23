@@ -15,8 +15,8 @@
  */
 
 import type {
-  CustomEventPayload,
-  TelemetryEventV2 as TelemetryEnvelope,
+  CustomSignalPayload,
+  TelemetryEventV3 as TelemetryEnvelope,
 } from '@browser-monitor/protocol';
 import { isRecord } from '../../shared/type-guards';
 import { sanitizeUrl } from '../../shared/url';
@@ -59,11 +59,14 @@ export class RedactStage implements ProcessingStage {
   process(envelope: TelemetryEnvelope): TelemetryEnvelope {
     let payload = envelope.payload;
     // 只有业务自定义事件带任意属性，结构化 payload 字段固定无需递归。
-    if (payload.type === 'event' && payload.properties) {
+    if (
+      (payload.type === 'event' || payload.type === 'trace' || payload.type === 'span') &&
+      payload.attributes
+    ) {
       payload = {
         ...payload,
-        properties: redactValue(payload.properties, this.keys),
-      } as CustomEventPayload;
+        attributes: redactValue(payload.attributes, this.keys),
+      } as CustomSignalPayload;
     }
 
     // Context 创建时已脱敏，这里再次处理是进入 Transport 前的纵深防护。

@@ -81,6 +81,7 @@ export const correlationContextSchema = z
     requestId: identifier.optional(),
     traceId: identifier.optional(),
     spanId: identifier.optional(),
+    parentSpanId: identifier.optional(),
   })
   .strict();
 
@@ -192,26 +193,83 @@ export const viewPayloadSchema = z
     }
   });
 
-export const customEventPayloadSchema = z
+export const metricUnitSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(32)
+  .regex(/^[a-zA-Z][a-zA-Z0-9_./%-]*$/);
+
+export const customMetricSchema = z
   .object({
-    type: z.literal('event'),
-    name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
-    source: z.literal('custom'),
-    properties: propertiesSchema.optional(),
+    value: z.number().finite(),
+    unit: metricUnitSchema,
   })
   .strict();
+
+const metricNameSchema = z.string().trim().min(1).max(64);
+export const customMetricsSchema = z
+  .record(metricNameSchema, customMetricSchema)
+  .superRefine((metrics, context) => {
+    if (Object.keys(metrics).length > 20) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'metrics may contain at most 20 entries' });
+    }
+    if ('duration' in metrics) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'duration is a reserved metric name' });
+    }
+  });
+
+const customSignalFields = {
+  name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
+  source: z.literal('custom'),
+  attributes: propertiesSchema.optional(),
+  metrics: customMetricsSchema.optional(),
+};
+
+export const customEventPayloadSchema = z
+  .object({ type: z.literal('event'), ...customSignalFields })
+  .strict();
+
+const timedSignalFields = {
+  ...customSignalFields,
+  startedAt: timestamp,
+  endedAt: timestamp,
+  durationMs: finiteNonNegative,
+  status: z.enum(['ok', 'error', 'cancelled']),
+};
+
+function validateTimedSignal(
+  payload: { startedAt: number; endedAt: number },
+  context: z.RefinementCtx,
+): void {
+  if (payload.endedAt < payload.startedAt) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'endedAt precedes startedAt' });
+  }
+}
+
+export const customTracePayloadSchema = z
+  .object({ type: z.literal('trace'), ...timedSignalFields })
+  .strict()
+  .superRefine(validateTimedSignal);
+
+export const customSpanPayloadSchema = z
+  .object({ type: z.literal('span'), ...timedSignalFields })
+  .strict()
+  .superRefine(validateTimedSignal);
 
 export const telemetryPayloadSchema = z.union([
   performancePayloadSchema,
   viewPayloadSchema,
   customEventPayloadSchema,
+  customTracePayloadSchema,
+  customSpanPayloadSchema,
 ]);
 
-export const telemetryEventV2Schema = z
+export const telemetryEventV3Schema = z
   .object({
     protocolVersion: z.literal(PROTOCOL_VERSION),
     eventId: identifier,
-    type: z.enum(['performance', 'view', 'event']),
+    type: z.enum(['performance', 'view', 'event', 'trace', 'span']),
     name: z.string().trim().min(1).max(MAX_EVENT_NAME_LENGTH),
     occurredAt: timestamp,
     app: appContextSchema,
@@ -235,6 +293,20 @@ export const telemetryEventV2Schema = z
         path: ['name'],
       });
     }
+    if (event.payload.type === 'trace' &&
+      (!event.correlation.traceId || event.correlation.spanId || event.correlation.parentSpanId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'trace requires traceId only', path: ['correlation'] });
+    }
+    if (event.payload.type === 'span' &&
+      (!event.correlation.traceId || !event.correlation.spanId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'span requires traceId and spanId', path: ['correlation'] });
+    }
+    if (event.payload.type === 'event' && event.correlation.spanId && !event.correlation.traceId) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'spanId requires traceId', path: ['correlation'] });
+    }
+    if (event.correlation.parentSpanId && !event.correlation.spanId) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'parentSpanId requires spanId', path: ['correlation'] });
+    }
     if (event.payload.type === 'view' && event.context.viewId !== event.payload.viewId) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -245,7 +317,7 @@ export const telemetryEventV2Schema = z
   });
 
 /** Validates the immutable batch metadata while allowing event-level partial acceptance. */
-export const telemetryBatchHeaderV2Schema = z
+export const telemetryBatchHeaderV3Schema = z
   .object({
     protocolVersion: z.literal(PROTOCOL_VERSION),
     sentAt: timestamp,
@@ -259,8 +331,8 @@ export const telemetryBatchHeaderV2Schema = z
   })
   .strict();
 
-export const telemetryBatchV2Schema = telemetryBatchHeaderV2Schema.extend({
-  events: z.array(telemetryEventV2Schema).min(1).max(MAX_BATCH_EVENTS),
+export const telemetryBatchV3Schema = telemetryBatchHeaderV3Schema.extend({
+  events: z.array(telemetryEventV3Schema).min(1).max(MAX_BATCH_EVENTS),
 });
 
 export type AppContextData = z.infer<typeof appContextSchema>;
@@ -286,9 +358,17 @@ export type WebVitalPerformancePayload =
 export type PerformancePayload = z.infer<typeof performancePayloadSchema>;
 export type ViewPayload = z.infer<typeof viewPayloadSchema>;
 export type CustomEventPayload = z.infer<typeof customEventPayloadSchema>;
+export type CustomTracePayload = z.infer<typeof customTracePayloadSchema>;
+export type CustomSpanPayload = z.infer<typeof customSpanPayloadSchema>;
+export type CustomSignalPayload = CustomEventPayload | CustomTracePayload | CustomSpanPayload;
+export type CustomSignalData = Pick<CustomEventPayload, 'attributes' | 'metrics'>;
+export type CustomSignalStatus = CustomTracePayload['status'];
+export type CustomSignalKind = CustomSignalPayload['type'];
+export type CustomMetric = z.infer<typeof customMetricSchema>;
+export type MetricUnit = z.infer<typeof metricUnitSchema>;
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
-export type TelemetryEventV2 = z.infer<typeof telemetryEventV2Schema>;
-export type TelemetryBatchV2 = z.infer<typeof telemetryBatchV2Schema>;
+export type TelemetryEventV3 = z.infer<typeof telemetryEventV3Schema>;
+export type TelemetryBatchV3 = z.infer<typeof telemetryBatchV3Schema>;
 
 export type PerformanceCapabilityMap = Readonly<Record<PerformanceMetricName, boolean>>;
 

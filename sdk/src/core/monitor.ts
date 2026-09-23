@@ -1,4 +1,8 @@
-import { CustomEventCollector } from '../collectors/event/custom';
+import {
+  CustomTelemetryManager,
+  type CustomSignalInput,
+  type TraceHandle,
+} from '../collectors/event/custom';
 import { FPSCollector, LoAFCollector, WebVitalsCollector } from '../collectors/performance';
 import { ViewCollector } from '../collectors/view';
 import { ContextManager } from '../context';
@@ -31,7 +35,9 @@ export interface Monitor {
   start(): void;
   stop(): void;
   destroy(): void;
-  track(name: string, properties?: Readonly<Record<string, unknown>>): void;
+  track(name: string, data?: CustomSignalInput): void;
+  startTrace(name: string, data?: CustomSignalInput): TraceHandle;
+  trace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T;
   setUser(user: UserContextData): void;
   setViewName(name: string): void;
   flush(): Promise<void>;
@@ -57,7 +63,7 @@ class BrowserMonitor implements Monitor {
   private readonly signals = new SignalHub();
   private readonly context: ContextManager;
   private readonly transport: Transport;
-  private readonly customEvents: CustomEventCollector;
+  private readonly customTelemetry: CustomTelemetryManager;
   private readonly capabilities: MonitorCapabilities;
 
   constructor(options: MonitorOptions, dependencies: MonitorDependencies = {}) {
@@ -83,7 +89,7 @@ class BrowserMonitor implements Monitor {
     // 保证任何来源的数据都经过同一套上下文注入与清洗规则。
     const processing = createProcessingPipeline(this.options.processing);
     const pipeline = new MonitorPipeline(this.context, processing, this.transport);
-    this.customEvents = new CustomEventCollector(pipeline);
+    this.customTelemetry = new CustomTelemetryManager(pipeline, this.context, this.signals);
 
     // 总开关关闭时逐项置 false，而非跳过创建，保持能力表的结构完整。
     const enabledMetrics = this.options.performance.enabled
@@ -141,6 +147,7 @@ class BrowserMonitor implements Monitor {
     this.registry.register(viewCollector);
     // Transport installs after lifecycle-aware Collectors so pagehide first
     // emits final metric/View snapshots and only then flushes the queue.
+    this.registry.register(this.customTelemetry);
     this.registry.register(this.transport);
     this.registry.register(pageLifecycle);
     this.registry.register(history);
@@ -176,6 +183,7 @@ class BrowserMonitor implements Monitor {
   // 暂停采集但保留 install 的全局监听，可通过再次 start 快速恢复。
   stop(): void {
     if (!this.lifecycle.isRunning()) return;
+    this.customTelemetry.cancelOpen();
     this.registry.stop();
     this.lifecycle.markStopped();
   }
@@ -191,10 +199,16 @@ class BrowserMonitor implements Monitor {
     this.lifecycle.markDestroyed();
   }
 
-  // 自定义事件上报：非运行态直接丢弃，避免宿主在页面卸载后仍写入内存队列。
-  track(name: string, properties?: Readonly<Record<string, unknown>>): void {
-    if (!this.lifecycle.isRunning()) return;
-    this.customEvents.track(name, properties);
+  track(name: string, data?: CustomSignalInput): void {
+    this.customTelemetry.track(name, data);
+  }
+
+  startTrace(name: string, data?: CustomSignalInput): TraceHandle {
+    return this.customTelemetry.startTrace(name, data);
+  }
+
+  trace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T {
+    return this.customTelemetry.trace(name, callback, data);
   }
 
   // setUser 不要求处于运行态：允许在 start 之前预置用户身份。

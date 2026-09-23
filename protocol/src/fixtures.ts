@@ -1,9 +1,9 @@
 import { PROTOCOL_VERSION, SDK_NAME } from './constants';
-import type { TelemetryBatchV2, TelemetryEventV2 } from './schemas';
+import type { TelemetryBatchV3, TelemetryEventV3 } from './schemas';
 
 export function createPerformanceEventFixture(
-  overrides: Partial<TelemetryEventV2> = {},
-): TelemetryEventV2 {
+  overrides: Partial<TelemetryEventV3> = {},
+): TelemetryEventV3 {
   return {
     protocolVersion: PROTOCOL_VERSION,
     eventId: 'event-fixture-1',
@@ -16,7 +16,7 @@ export function createPerformanceEventFixture(
       viewId: 'view-fixture-1',
       routeName: 'home',
       url: 'https://example.test/home',
-      runtime: { sdk: { name: SDK_NAME, version: '0.2.0' } },
+      runtime: { sdk: { name: SDK_NAME, version: '0.3.0' } },
     },
     correlation: {},
     payload: {
@@ -35,14 +35,14 @@ export function createPerformanceEventFixture(
       navigationId: 0,
     },
     ...overrides,
-  } as TelemetryEventV2;
+  } as TelemetryEventV3;
 }
 
-export function createBatchFixture(events = [createPerformanceEventFixture()]): TelemetryBatchV2 {
+export function createBatchFixture(events = [createPerformanceEventFixture()]): TelemetryBatchV3 {
   return {
     protocolVersion: PROTOCOL_VERSION,
     sentAt: 1_700_000_000_100,
-    sdk: { name: SDK_NAME, version: '0.2.0' },
+    sdk: { name: SDK_NAME, version: '0.3.0' },
     events,
   };
 }

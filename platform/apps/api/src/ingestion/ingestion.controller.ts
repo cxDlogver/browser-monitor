@@ -4,7 +4,7 @@ import type { FastifyRequest } from 'fastify';
 import type { IngestionResult } from './ingestion.service.js';
 import { IngestionService } from './ingestion.service.js';
 
-@Controller('api/v2/ingest')
+@Controller('api/v3/ingest')
 export class IngestionController {
   constructor(private readonly ingestion: IngestionService) {}
 

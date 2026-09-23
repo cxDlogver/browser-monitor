@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { SignalHub } from '../../src/core/signal-hub';
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 import { Transport } from '../../src/transport';
 import { FakeSender } from '../helpers/fake-sender';
 
 function performanceEnvelope(id: string): TelemetryEnvelope {
   return {
-    protocolVersion: '2.0',
+    protocolVersion: '3.0',
     eventId: id,
     type: 'performance',
     name: 'LCP',

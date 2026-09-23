@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV2 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
 
 interface QueueItem {
   envelope: TelemetryEnvelope;

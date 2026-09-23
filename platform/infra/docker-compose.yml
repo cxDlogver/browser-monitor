@@ -53,6 +53,7 @@ services:
       REDIS_URL: redis://redis:6379
       COOKIE_SECRET: ${COOKIE_SECRET:-local-cookie-secret-change-before-production}
       USER_HASH_SECRET: ${USER_HASH_SECRET:-local-user-hash-secret-change-in-production}
+      AUDIT_HEADER_ENCRYPTION_KEY: ${AUDIT_HEADER_ENCRYPTION_KEY:-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
       SMTP_HOST: ${SMTP_HOST:-mailpit}
       SMTP_PORT: ${SMTP_PORT:-1025}
       SMTP_SECURE: ${SMTP_SECURE:-false}
@@ -65,6 +66,9 @@ services:
       INGEST_PROJECT_BURST: ${INGEST_PROJECT_BURST:-500}
       WORKER_POLL_INTERVAL_MS: 1000
       WORKER_BATCH_SIZE: 100
+      AUDIT_POLL_INTERVAL_MS: ${AUDIT_POLL_INTERVAL_MS:-2000}
+      AUDIT_CHROME_PATH: ${AUDIT_CHROME_PATH:-/usr/bin/chromium}
+      AUDIT_ALLOW_PRIVATE_TARGETS: ${AUDIT_ALLOW_PRIVATE_TARGETS:-false}
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -98,6 +102,28 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+    restart: unless-stopped
+
+  audit-worker:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.audit-worker
+      args:
+        # Always use HTTPS. Override this in platform/.env when the official
+        # Debian mirror is slow or unreachable from Docker Desktop.
+        DEBIAN_MIRROR_BASE: ${DEBIAN_MIRROR_BASE:-https://deb.debian.org}
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    shm_size: 1gb
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
   web:

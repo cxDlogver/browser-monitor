@@ -5,6 +5,14 @@ const booleanFromEnv = z
   .default('false')
   .transform((value) => value === 'true');
 
+const encryptionKeySchema = z.string().refine((value) => {
+  try {
+    return Buffer.from(value, 'base64url').length === 32;
+  } catch {
+    return false;
+  }
+}, 'Must be a base64url-encoded 32-byte key.');
+
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().url(),
@@ -26,6 +34,7 @@ const apiSchema = baseSchema.extend({
   ALLOW_ORIGINLESS_INGEST: booleanFromEnv,
   INGEST_PROJECT_RATE_PER_SECOND: z.coerce.number().int().positive().default(100),
   INGEST_PROJECT_BURST: z.coerce.number().int().positive().default(500),
+  AUDIT_HEADER_ENCRYPTION_KEY: encryptionKeySchema,
 });
 
 const workerSchema = baseSchema.extend({
@@ -33,8 +42,16 @@ const workerSchema = baseSchema.extend({
   WORKER_BATCH_SIZE: z.coerce.number().int().positive().max(1_000).default(100),
 });
 
+const auditWorkerSchema = baseSchema.extend({
+  AUDIT_HEADER_ENCRYPTION_KEY: encryptionKeySchema,
+  AUDIT_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(2_000),
+  AUDIT_CHROME_PATH: z.string().optional().default(''),
+  AUDIT_ALLOW_PRIVATE_TARGETS: booleanFromEnv,
+});
+
 export type ApiConfig = z.infer<typeof apiSchema>;
 export type WorkerConfig = z.infer<typeof workerSchema>;
+export type AuditWorkerConfig = z.infer<typeof auditWorkerSchema>;
 
 export function loadApiConfig(environment: NodeJS.ProcessEnv = process.env): ApiConfig {
   return apiSchema.parse(environment);
@@ -44,3 +61,6 @@ export function loadWorkerConfig(environment: NodeJS.ProcessEnv = process.env): 
   return workerSchema.parse(environment);
 }
 
+export function loadAuditWorkerConfig(environment: NodeJS.ProcessEnv = process.env): AuditWorkerConfig {
+  return auditWorkerSchema.parse(environment);
+}
