@@ -6,11 +6,23 @@ import { useParams } from 'react-router-dom';
 import { api, queryString } from '../api/client';
 import { PageHeading } from '../components/PageHeading';
 
+/** 与 protocol 的 telemetryEventV3Schema.type 保持一致，不能只列 performance/view/event。 */
+const rawEventTypes = ['performance', 'view', 'event', 'trace', 'span'] as const;
+export type RawEventType = (typeof rawEventTypes)[number];
+
+const rawEventTypeLabels: Record<RawEventType, string> = {
+  performance: '性能',
+  view: '页面访问',
+  event: '自定义事件',
+  trace: 'Trace',
+  span: 'Span',
+};
+
 interface RawEvent {
   eventId: string;
   occurredAt: string;
   receivedAt: string;
-  type: string;
+  type: RawEventType;
   name: string;
   environment: string;
   version: string;
@@ -22,7 +34,7 @@ interface RawEvent {
 
 export function RawEventsPage() {
   const { projectId = '' } = useParams();
-  const [type, setType] = useState<string>();
+  const [type, setType] = useState<RawEventType>();
   const [name, setName] = useState('');
   const [eventId, setEventId] = useState('');
   const [sessionId, setSessionId] = useState('');
@@ -50,7 +62,7 @@ export function RawEventsPage() {
       <PageHeading title="原始事件" description="按事件、会话和 View 检索经过服务端脱敏的 30 天明细。" />
       <Card>
         <Space className="table-toolbar" wrap>
-          <Select allowClear placeholder="事件类型" value={type} onChange={setType} options={['performance', 'view', 'event'].map((value) => ({ value }))} />
+          <Select allowClear placeholder="事件类型" value={type} onChange={setType} options={rawEventTypes.map((value) => ({ value, label: rawEventTypeLabels[value] }))} />
           <Input.Search allowClear placeholder="事件名称" value={name} onChange={(event) => setName(event.target.value)} style={{ width: 260 }} />
           <Input.Search allowClear placeholder="Event ID" value={eventId} onChange={(event) => setEventId(event.target.value)} style={{ width: 280 }} />
           <Input.Search allowClear placeholder="Session ID" value={sessionId} onChange={(event) => setSessionId(event.target.value)} style={{ width: 280 }} />
@@ -62,7 +74,7 @@ export function RawEventsPage() {
         </Space>
         <Table rowKey="eventId" loading={query.isLoading} dataSource={query.data?.items ?? []} onRow={(row) => ({ onClick: () => setSelected(row) })} columns={[
           { title: '时间', dataIndex: 'occurredAt', render: (value: string) => new Date(value).toLocaleString() },
-          { title: '类型', dataIndex: 'type', render: (value: string) => <Tag>{value}</Tag> },
+          { title: '类型', dataIndex: 'type', render: (value: RawEventType) => <Tag>{rawEventTypeLabels[value] ?? value}</Tag> },
           { title: '名称', dataIndex: 'name' },
           { title: '页面', dataIndex: 'routeName' },
           { title: '环境', dataIndex: 'environment' },
