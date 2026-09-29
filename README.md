@@ -120,8 +120,4 @@ docker compose --env-file platform/.env --profile dev -f platform/infra/docker-c
 ### 【服务端与可视化】
 
 - [Platform 使用与部署说明](platform/README.md)
-- [平台架构与端到端链路](platform/docs/01-平台架构与端到端链路.md)
-- [采集 API 与事务 Outbox](platform/docs/02-采集API与事务Outbox.md)
-- [Worker 投影与性能指标计算](platform/docs/03-Worker投影与性能指标计算.md)
-- [TimescaleDB 聚合与查询链路](platform/docs/04-TimescaleDB聚合与查询链路.md)
-- [可视化平台与运行排查](platform/docs/05-可视化平台与运行排查.md)
+- [浏览器监控平台 · 服务端全链路](platform/docs/浏览器监控平台-服务端全链路.md)

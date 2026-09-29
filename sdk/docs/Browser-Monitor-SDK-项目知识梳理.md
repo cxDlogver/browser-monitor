@@ -1923,7 +1923,7 @@ LoAF 不强行套用 Good/Poor。它统计发生次数、每千次页面访问�
 
 如果第 6 步没有 accepted，检查 DSN、Origin、`app.name`、协议版本和限流；如果 accepted 增长但第 7 步不增长，检查 Outbox pending、Worker 日志和 dead-letter；如果处理正常但页面为空，再检查时间范围、环境、版本、routeName 和指标筛选。这个排查顺序与数据实际经过的边界一致。
 
-平台目录、运行命令、接口列表和环境变量见 [Browser Monitor Platform README](../../platform/README.md)，端到端处理细节见 [Platform 完整链路报告](../../platform/docs/01-平台架构与端到端链路.md)。
+平台目录、运行命令、接口列表和环境变量见 [Browser Monitor Platform README](../../platform/README.md)，端到端处理细节见 [浏览器监控平台 · 服务端全链路](../../platform/docs/浏览器监控平台-服务端全链路.md)。
 
 ## 6. 参考文献
 
