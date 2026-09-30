@@ -11213,7 +11213,2080 @@ Standard Schema, *What schema libraries implement the spec?*：<https://standard
 Zod, *TypeScript-first schema validation with static type inference*：<https://zod.dev/>
 
 
-## 8. 后续学习顺序
+## 8. Service 与业务编排负责把一次业务操作组织成完整执行过程
+
+前面已经走到了：
+
+```text
+HTTP Request
+    ↓
+Guard
+    ↓
+Interceptor
+    ↓
+Validation
+    ↓
+Controller
+```
+
+下一层真正开始处理业务：
+
+```text
+Controller
+    ↓
+Service
+    ↓
+Authorization
+Business Rules
+Database
+Redis
+Mailer
+Transaction
+Other Service
+```
+
+这里最先建立一个核心认识：
+
+> **NestJS 中的 Service 本质上仍然是 Provider（提供者），并不是像 Guard、Pipe、Interceptor 那样属于固定的 Request Lifecycle 组件。Controller 只是主动调用 Service，而 Service 负责组织真正的应用业务。**
+
+Nest 官方把 Service 作为最常见的 Provider 使用；Provider 默认采用 Singleton Scope（单例作用域），由 DI Container 创建和复用。
+
+### 【当前项目需要 Service，是因为 Controller 只负责 HTTP 边界】
+
+例如当前 `ProjectsController`：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Body()
+  body: unknown,
+) {
+  const input =
+    parseBody(
+      createProjectSchema,
+      body,
+    );
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+Controller 做完：
+
+```text
+用户身份提取
+    ↓
+HTTP Body 提取
+    ↓
+输入校验
+```
+
+之后没有继续写：
+
+```text
+BEGIN
+INSERT projects
+INSERT members
+INSERT ingestion_keys
+INSERT origins
+INSERT audit_logs
+COMMIT
+```
+
+而是：
+
+```ts
+this.projects.create(...)
+```
+
+因为这些已经不属于 HTTP 层。
+
+可以先把两个边界理解成：
+
+```text
+Controller
+────────────────
+HTTP 世界
+
+Route
+Body
+Query
+Param
+Status Code
+Request / Reply
+
+
+Service
+────────────────
+业务世界
+
+业务步骤
+权限
+状态
+事务
+数据库
+Redis
+外部系统
+```
+
+### 【Service 的核心不是“封装 SQL”，而是表达一个 Use Case】
+
+这里容易产生一个误区：
+
+```text
+Service
+=
+把 Controller 里的 SQL
+搬到另一个文件
+```
+
+并不准确。
+
+例如：
+
+```ts
+ProjectsService.create(...)
+```
+
+代表的是一个完整业务动作：
+
+```text
+Create Project
+```
+
+而不是：
+
+```text
+Insert Project Row
+```
+
+因为创建一个 Project 实际上要同时完成：
+
+```text
+创建 Project
++
+创建 Owner Membership
++
+创建默认 Ingestion Key
++
+创建默认 Allowed Origin
++
+记录 Audit Log
+```
+
+所以 Service Method 更接近：
+
+```text
+Use Case（用例 / 应用操作）
+```
+
+也就是：
+
+```text
+用户要完成什么业务动作？
+```
+
+而不是：
+
+```text
+我要执行哪一句 SQL？
+```
+
+### 【ProjectsService.create 是当前项目最典型的业务编排】
+
+源码开头：
+
+```ts
+async create(
+  userId: string,
+  displayName: string,
+  appName: string,
+) {
+  const publicKey =
+    createOpaqueToken('bm_pk_');
+
+  const userHashSalt =
+    createOpaqueToken();
+
+  const defaultOrigin =
+    new URL(
+      this.config.PUBLIC_BASE_URL,
+    ).origin;
+
+  const client =
+    await this.database.pool
+      .connect();
+
+  // ...
+}
+```
+
+第一阶段不是立即写数据库，而是在准备整个 Use Case 所需要的数据：
+
+```text
+userId
+displayName
+appName
+    ↓
+生成 publicKey
+    ↓
+生成 userHashSalt
+    ↓
+计算 defaultOrigin
+```
+
+然后：
+
+```ts
+await client.query('BEGIN');
+```
+
+开始 Transaction（事务）。
+
+### 【一个“创建项目”实际上包含多张表的一致性修改】
+
+第一步：
+
+```ts
+INSERT INTO projects(...)
+RETURNING id
+```
+
+获得：
+
+```text
+projectId
+```
+
+接着：
+
+```ts
+INSERT INTO project_members(
+  project_id,
+  user_id,
+  role
+)
+VALUES (..., 'owner')
+```
+
+说明：
+
+```text
+创建 Project
+    ↓
+创建者自动成为 Owner
+```
+
+然后：
+
+```ts
+INSERT INTO ingestion_keys(...)
+```
+
+创建默认采集 Key。
+
+再：
+
+```ts
+INSERT INTO allowed_origins(...)
+```
+
+创建默认 Origin。
+
+最后：
+
+```ts
+INSERT INTO audit_logs(...)
+```
+
+记录：
+
+```text
+project.created
+```
+
+所以完整流程：
+
+```text
+ProjectsService.create()
+        ↓
+生成 Public Key
+        ↓
+生成 User Hash Salt
+        ↓
+计算默认 Origin
+        ↓
+BEGIN
+        ↓
+INSERT project
+        ↓
+INSERT owner membership
+        ↓
+INSERT ingestion key
+        ↓
+INSERT allowed origin
+        ↓
+INSERT audit log
+        ↓
+COMMIT
+        ↓
+返回 Project + DSN
+```
+
+这就是 Business Orchestration（业务编排）。
+
+### 【Business Orchestration 是把多个能力按照业务顺序组合起来】
+
+它重点解决：
+
+```text
+先做什么？
+后做什么？
+哪些必须一起成功？
+失败以后怎么办？
+需要调用哪些依赖？
+最终返回什么？
+```
+
+例如创建 Project 的业务规则实际上隐含：
+
+```text
+没有 Project
+就不能存在 Membership
+
+没有 Project
+就不能创建 Ingestion Key
+
+没有 Project
+就不能创建 Origin
+
+创建成功
+应该留下 Audit Log
+```
+
+所以这些操作不是五个互不相关的数据库调用。
+
+它们共同组成：
+
+```text
+Create Project Use Case
+```
+
+### 【Transaction Boundary 通常也是 Service 的重要职责】
+
+当前：
+
+```ts
+try {
+  await client.query('BEGIN');
+
+  // 多个数据库修改
+
+  await client.query('COMMIT');
+} catch (error) {
+  await client.query('ROLLBACK');
+  throw error;
+} finally {
+  client.release();
+}
+```
+
+表示：
+
+```text
+这些数据库修改
+必须作为一个整体成功
+```
+
+例如执行到：
+
+```text
+projects             ✅
+project_members      ✅
+ingestion_keys       ❌
+```
+
+如果没有事务：
+
+```text
+Project 已经创建
+Owner 已经创建
+但是没有采集 Key
+```
+
+系统进入：
+
+```text
+Partial State
+```
+
+也就是部分成功状态。
+
+事务把它改成：
+
+```text
+任何一步失败
+    ↓
+ROLLBACK
+    ↓
+所有修改一起撤销
+```
+
+所以：
+
+> **Service 不只是调用 Database，它还决定“哪些操作属于同一个业务原子操作”。**
+
+后面的 Database / Transaction 章节会继续深入这一层。
+
+### 【requireAccess 和 requireOwner 是业务授权能力】
+
+当前：
+
+```ts
+async requireAccess(
+  userId: string,
+  projectId: string,
+): Promise<ProjectAccess> {
+  const result =
+    await this.database.pool.query(
+      `SELECT ...
+       FROM projects p
+       JOIN project_members pm
+       ...
+       WHERE
+         p.id = $1
+         AND pm.user_id = $2`,
+      [projectId, userId],
+    );
+
+  const row = result.rows[0];
+
+  if (!row) {
+    throw new NotFoundException({
+      code:
+        'project_not_found',
+    });
+  }
+
+  return row;
+}
+```
+
+这里验证：
+
+```text
+当前 user
+是否是当前 project 的 member
+```
+
+然后：
+
+```ts
+async requireOwner(
+  userId: string,
+  projectId: string,
+) {
+  const access =
+    await this.requireAccess(
+      userId,
+      projectId,
+    );
+
+  if (
+    access.role !== 'owner'
+  ) {
+    throw new ForbiddenException({
+      code:
+        'owner_role_required',
+    });
+  }
+
+  return access;
+}
+```
+
+又进一步验证：
+
+```text
+Member
+    ↓
+是不是 Owner
+```
+
+因此：
+
+```text
+SessionGuard
+    ↓
+Authentication
+用户是谁？
+
+
+ProjectsService.requireAccess()
+    ↓
+Resource Authorization
+这个用户属于这个 Project 吗？
+
+
+ProjectsService.requireOwner()
+    ↓
+Role Authorization
+是不是 Owner？
+```
+
+三层不能混淆。
+
+### 【requireAccess 放在 Service，是因为它属于 Project 业务域授权】
+
+理论上当然可以设计：
+
+```text
+ProjectGuard
+```
+
+但当前权限检查依赖：
+
+```text
+userId
++
+projectId
++
+project_members
++
+具体业务语义
+```
+
+而且很多 Service 都需要复用。
+
+例如：
+
+```ts
+AnalyticsService
+```
+
+直接：
+
+```ts
+await this.projects.requireAccess(
+  userId,
+  projectId,
+);
+```
+
+`LabAuditsService`：
+
+```ts
+await this.projects.requireOwner(
+  userId,
+  projectId,
+);
+```
+
+所以当前设计是：
+
+```text
+SessionGuard
+    → 通用 HTTP Authentication
+
+
+ProjectsService
+    → Project Domain Authorization
+```
+
+这个划分很合理。
+
+因为：
+
+```text
+是否登录
+```
+
+是整个 HTTP 应用的横向问题。
+
+但：
+
+```text
+是不是某个 Project Owner
+```
+
+是 Project 业务域规则。
+
+### 【Service 之间也可以组合，而不只是 Controller 调用 Service】
+
+当前 `AnalyticsService`：
+
+```ts
+@Injectable()
+export class AnalyticsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database:
+      DatabaseHandle,
+
+    @Inject(REDIS)
+    private readonly redis:
+      Redis,
+
+    private readonly projects:
+      ProjectsService,
+  ) {}
+}
+```
+
+它依赖：
+
+```text
+DATABASE
+REDIS
+ProjectsService
+```
+
+其中：
+
+```text
+ProjectsService
+```
+
+不是基础设施，而是另一个业务 Provider。
+
+于是：
+
+```ts
+async overview(
+  userId: string,
+  projectId: string,
+  filters: AnalyticsFilters,
+) {
+  await this.projects.requireAccess(
+    userId,
+    projectId,
+  );
+
+  // Analytics 查询
+}
+```
+
+形成：
+
+```text
+AnalyticsController
+        ↓
+AnalyticsService
+        ↓
+ProjectsService.requireAccess()
+        ↓
+Project Authorization
+        ↓
+Analytics Database Query
+```
+
+这也是 Service Composition（服务组合）。
+
+### 【统一复用 Project Access Policy，避免多个 Service 各写一套权限规则】
+
+理论上可以：
+
+```ts
+AnalyticsService {
+  SELECT project_members ...
+}
+```
+
+`LabAuditsService` 再写：
+
+```ts
+SELECT project_members ...
+```
+
+`CustomSignalsService` 再写一次。
+
+这样很快就会变成：
+
+```text
+Analytics
+    → 自己一套权限规则
+
+LabAudits
+    → 自己一套权限规则
+
+CustomSignals
+    → 自己一套权限规则
+```
+
+容易产生：
+
+```text
+规则不一致
+遗漏
+后续修改要改很多地方
+```
+
+当前通过：
+
+```text
+ProjectsService.requireAccess()
+ProjectsService.requireOwner()
+```
+
+统一：
+
+```text
+Project Access Policy
+```
+
+这体现了一个重要设计原则：
+
+> **属于某个业务域的规则，尽量由该业务域提供统一能力，其他 Service 调用，而不是复制规则。**
+
+### 【Service Composition 需要保持清晰依赖方向，避免循环依赖】
+
+如果出现：
+
+```text
+ProjectsService
+    ↓
+AnalyticsService
+    ↓
+ProjectsService
+```
+
+就形成：
+
+```text
+Circular Dependency
+（循环依赖）
+```
+
+当前结构整体更接近：
+
+```text
+             ProjectsService
+              ↑          ↑
+              │          │
+AnalyticsService    LabAuditsService
+              ↑
+              │
+CustomSignalsService
+```
+
+即：
+
+```text
+Project Access
+```
+
+作为较底层、可复用的业务能力。
+
+这种依赖方向比：
+
+```text
+所有 Service 随意互相调用
+```
+
+更清晰。
+
+### 【AnalyticsService 展示的是查询型业务编排】
+
+`ProjectsService.create()` 更偏：
+
+```text
+Command
+写操作
+```
+
+而 `AnalyticsService.overview()`：
+
+```ts
+async overview(...) {
+  await this.projects.requireAccess(
+    userId,
+    projectId,
+  );
+
+  if (this.useRollups(filters)) {
+    return this.overviewFromRollups(
+      projectId,
+      filters,
+    );
+  }
+
+  return this.cached(
+    projectId,
+    'overview',
+    filters,
+    async () => {
+      // ...
+    },
+  );
+}
+```
+
+它的业务编排是：
+
+```text
+先检查 Project Access
+        ↓
+判断查询时间范围
+        ↓
+选择 Rollup 还是 Raw Query
+        ↓
+检查 / 使用 Cache
+        ↓
+并发查询多个指标
+        ↓
+聚合结果
+        ↓
+转换为 API Model
+```
+
+所以 Service 并不一定：
+
+```text
+必须有事务
+```
+
+查询型 Service 的职责可能是：
+
+```text
+权限
++
+查询策略
++
+缓存策略
++
+多个 Query 聚合
++
+Result Mapping
+```
+
+### 【Promise.all 是查询编排中的并行执行手段】
+
+例如：
+
+```ts
+const [
+  views,
+  events,
+  metrics,
+] = await Promise.all([
+  this.database.pool.query(...),
+  this.database.pool.query(...),
+  this.database.pool.query(...),
+]);
+```
+
+说明：
+
+```text
+views query
+events query
+metrics query
+```
+
+互相没有依赖。
+
+所以没必要：
+
+```text
+串行：
+
+views
+ ↓
+events
+ ↓
+metrics
+```
+
+而可以：
+
+```text
+          ┌→ views
+          │
+Service ──┼→ events
+          │
+          └→ metrics
+              ↓
+          等全部完成
+              ↓
+          聚合结果
+```
+
+这是 Service 层常见的 Parallel Orchestration（并行编排）。
+
+### 【Service 还负责选择实际的数据来源和查询策略】
+
+当前：
+
+```ts
+if (this.useRollups(filters)) {
+  return this.overviewFromRollups(
+    projectId,
+    filters,
+  );
+}
+```
+
+说明：
+
+```text
+Controller
+```
+
+并不知道：
+
+```text
+查询 Raw Table
+还是
+查询 Rollup Table
+```
+
+这是业务 / 查询策略。
+
+因此 Controller 只表达：
+
+```text
+我要 overview
+```
+
+Service 决定：
+
+```text
+overview 应该怎样实现
+```
+
+这个边界非常重要。
+
+### 【Controller 不需要知道 Redis Cache 如何实现】
+
+同样：
+
+```ts
+return this.cached(
+  projectId,
+  'overview',
+  filters,
+  async () => {
+    // Database Query
+  },
+);
+```
+
+Controller 不需要：
+
+```text
+先 redis.get
+没有再 SQL
+查询完 redis.set
+```
+
+因为：
+
+```text
+Cache
+```
+
+是 Analytics 查询实现策略的一部分。
+
+所以可以先建立：
+
+```text
+Controller
+    → What
+
+Service
+    → How
+```
+
+这个判断不是绝对规则，但非常适合作为入门心智模型。
+
+### 【LabAuditsService 展示了业务规则、安全规则与持久化的组合】
+
+例如：
+
+```ts
+async create(
+  userId: string,
+  projectId: string,
+  rawUrl: string,
+  device: AuditDevice,
+) {
+  const access =
+    await this.projects
+      .requireOwner(
+        userId,
+        projectId,
+      );
+
+  if (!access.enabled) {
+    throw new ConflictException({
+      code:
+        'project_disabled',
+    });
+  }
+
+  const targetUrl =
+    this.normalizeUrl(rawUrl);
+
+  // ...
+}
+```
+
+第一步：
+
+```text
+requireOwner
+```
+
+是 Authorization。
+
+第二步：
+
+```text
+project.enabled
+```
+
+是 Business State Validation。
+
+第三步：
+
+```text
+normalizeUrl()
+```
+
+是 Domain Input Normalization。
+
+随后查：
+
+```text
+allowed_origins
+```
+
+确认：
+
+```text
+目标 URL Origin
+属于当前 Project
+```
+
+之后才：
+
+```text
+INSERT lab_audits
+```
+
+所以一个 Service Method 往往不是：
+
+```text
+数据库 CRUD
+```
+
+而是：
+
+```text
+Authorization
+    ↓
+Business State
+    ↓
+Domain Validation
+    ↓
+Persistence
+    ↓
+Audit
+```
+
+### 【Zod 校验成功以后，Service 中仍然可以继续执行 Domain Validation】
+
+上一节提到：
+
+```ts
+z.string().url()
+```
+
+已经验证 URL。
+
+但是 `LabAuditsService` 还会：
+
+```ts
+const url =
+  new URL(raw);
+
+if (
+  !['http:', 'https:']
+    .includes(url.protocol)
+  ||
+  url.username
+  ||
+  url.password
+) {
+  throw new BadRequestException(...);
+}
+```
+
+因为这已经不是简单：
+
+```text
+是不是合法 URL 字符串
+```
+
+而是：
+
+```text
+当前 Lighthouse Audit 业务
+允许什么 URL
+```
+
+例如：
+
+```text
+ftp://...
+```
+
+可能从 URL 语法上成立，但业务不允许。
+
+又比如：
+
+```text
+https://user:password@example.com
+```
+
+也可能是合法 URL，但当前审计业务明确拒绝。
+
+所以：
+
+```text
+Zod
+    → Structural Validation
+
+Service
+    → Domain Validation
+```
+
+再次得到验证。
+
+### 【ProjectsService.invite 展示了数据库与外部副作用的编排】
+
+当前：
+
+```ts
+async invite(...) {
+  const project =
+    await this.requireOwner(...);
+
+  const email =
+    emailInput
+      .trim()
+      .toLowerCase();
+
+  const token =
+    createOpaqueToken(
+      'bm_invite_',
+    );
+
+  await this.database.pool.query(
+    `INSERT INTO
+     project_invitations ...`,
+  );
+
+  await this.mailer
+    .sendInvitation(
+      email,
+      token,
+      project.display_name,
+    );
+}
+```
+
+完整过程：
+
+```text
+Owner Authorization
+    ↓
+Normalize Email
+    ↓
+Generate Invitation Token
+    ↓
+Persist Invitation
+    ↓
+Send Email
+```
+
+这里：
+
+```text
+MailerService
+```
+
+不是 Controller 调用，而是：
+
+```text
+ProjectsService
+```
+
+作为业务编排者调用。
+
+因为：
+
+```text
+发送邀请邮件
+```
+
+本来就是：
+
+```text
+Invite User
+```
+
+这个 Use Case 的一部分。
+
+### 【MailerService 更像一个 Supporting Service】
+
+`MailerService`：
+
+```ts
+@Injectable()
+export class MailerService {
+  constructor(
+    @Inject(API_CONFIG)
+    private readonly config:
+      ApiConfig,
+  ) {
+    this.transporter =
+      nodemailer
+        .createTransport(...);
+  }
+
+  async sendInvitation(...) {
+    // ...
+  }
+}
+```
+
+它主要负责：
+
+```text
+构造邮件 URL
+构造邮件 Subject
+调用 SMTP
+```
+
+所以这里可以看到两类 Service：
+
+```text
+Application / Business Service
+────────────────────
+ProjectsService
+AuthService
+AnalyticsService
+LabAuditsService
+IngestionService
+
+
+Supporting / Infrastructure-oriented Service
+────────────────────
+MailerService
+IngestionRateLimiter
+MetricsService
+```
+
+它们都是 Nest Provider，但职责层次不同。
+
+### 【IngestionRateLimiter 是可以单独复用的技术能力 Provider】
+
+例如：
+
+```ts
+@Injectable()
+export class IngestionRateLimiter {
+  constructor(
+    @Inject(REDIS)
+    private readonly redis:
+      Redis,
+
+    @Inject(API_CONFIG)
+    private readonly config:
+      ApiConfig,
+  ) {}
+
+  async consume(...) {
+    // Token Bucket
+  }
+}
+```
+
+`IngestionService` 不需要自己关心：
+
+```text
+Redis Lua Script
+Token Bucket Calculation
+Project Rate
+IP Rate
+```
+
+只需要：
+
+```ts
+if (
+  !(await this.limiter.consume(
+    projectId,
+    ip,
+    eventCount,
+  ))
+) {
+  throw ...
+}
+```
+
+这就是：
+
+```text
+Business Orchestrator
+        ↓
+调用专门能力 Provider
+```
+
+### 【IngestionService 是当前项目最明显的 Application Workflow Orchestrator】
+
+当前核心链：
+
+```text
+ingest()
+    ↓
+Transport Decode
+    ↓
+Protocol Validation
+    ↓
+Batch Validation
+    ↓
+resolveProject()
+    ↓
+assertOrigin()
+    ↓
+Rate Limiter
+    ↓
+逐 Event Validation
+    ↓
+Sanitization
+    ↓
+Deduplication
+    ↓
+Transaction
+    ↓
+Telemetry Insert
++
+Outbox Insert
+    ↓
+Commit
+    ↓
+Metrics
+    ↓
+Redis Statistics
+    ↓
+Response
+```
+
+这已经不是简单：
+
+```text
+Service = DAO
+```
+
+而是完整：
+
+```text
+Application Workflow
+（应用业务流程）
+```
+
+### 【当前 Service 中同时存在业务编排、领域规则和基础设施交互】
+
+当前源码大致可以分成三类代码。
+
+第一种：Business Orchestration。
+
+例如：
+
+```ts
+await this.projects.requireOwner(...);
+
+const target =
+  this.normalizeUrl(...);
+
+const origins =
+  await database.query(...);
+
+if (!allowed) throw ...;
+
+await database.query(...);
+```
+
+它表达：
+
+```text
+业务步骤的顺序
+```
+
+第二种：Domain Rule。
+
+例如：
+
+```ts
+if (!access.enabled) {
+  throw ...
+}
+```
+
+或者：
+
+```ts
+if (
+  parsed.data.app.name
+  !== project.app_name
+)
+```
+
+表达：
+
+```text
+业务规则
+```
+
+第三种：Infrastructure Interaction。
+
+例如：
+
+```ts
+database.pool.query(...)
+redis.set(...)
+mailer.sendInvitation(...)
+```
+
+表达：
+
+```text
+与基础设施交互
+```
+
+当前项目把这三类职责主要集中在 Service。
+
+### 【当前项目没有额外 Repository Layer，而是 Service 直接访问 Database】
+
+现在：
+
+```ts
+ProjectsService
+```
+
+自己执行：
+
+```ts
+this.database.pool.query(...)
+```
+
+`AnalyticsService` 也是：
+
+```ts
+this.database.pool.query(...)
+```
+
+所以当前结构是：
+
+```text
+Controller
+    ↓
+Service
+    ↓
+Database
+```
+
+而不是：
+
+```text
+Controller
+    ↓
+Application Service
+    ↓
+Domain
+    ↓
+Repository
+    ↓
+Database
+```
+
+这并不是错误。
+
+对于当前项目规模：
+
+```text
+直接 SQL
++
+Service
+```
+
+会更简单、更容易跟踪。
+
+### 【Repository 应该在数据访问复杂度真实出现后再抽象】
+
+例如未来 `ProjectsService` 越来越大：
+
+```text
+ProjectsService
+├── create
+├── list
+├── detail
+├── member
+├── owner
+├── invite
+├── key
+├── origin
+├── threshold
+├── audit
+├── ...
+```
+
+并出现大量重复：
+
+```text
+SELECT project...
+SELECT project member...
+INSERT audit...
+```
+
+这时可以考虑：
+
+```text
+ProjectsService
+    ↓
+ProjectRepository
+    ↓
+Database
+```
+
+例如：
+
+```ts
+class ProjectRepository {
+  findAccess(...)
+  create(...)
+  findMembers(...)
+}
+```
+
+Service 继续负责：
+
+```text
+业务流程
+```
+
+Repository 负责：
+
+```text
+数据访问
+```
+
+但如果项目还没有这种复杂度，提前抽 Repository 可能只是：
+
+```text
+Service
+    ↓
+Repository
+    ↓
+一行 query()
+```
+
+增加层级，却没有真正增加抽象价值。
+
+所以仍然遵循：
+
+> **抽象应该来自真实复用和复杂度，而不是为了“架构看起来完整”。**
+
+### 【Service 默认 Singleton，因此不能保存当前请求的可变状态】
+
+Nest Provider 默认使用 Singleton Scope。
+
+当前：
+
+```ts
+@Injectable()
+export class ProjectsService {
+  // ...
+}
+```
+
+没有声明：
+
+```ts
+Scope.REQUEST
+```
+
+所以可以先理解成：
+
+```text
+Application Startup
+    ↓
+创建 ProjectsService
+    ↓
+Request A ─┐
+Request B ─┼→ 同一个 Service Instance
+Request C ─┘
+```
+
+因此不能写：
+
+```ts
+class ProjectsService {
+  currentUserId: string;
+
+  async create(
+    userId: string,
+  ) {
+    this.currentUserId =
+      userId;
+  }
+}
+```
+
+因为可能：
+
+```text
+Request A
+currentUserId = A
+
+与此同时 Request B
+currentUserId = B
+
+Request A 再继续
+却看到 B
+```
+
+当前项目正确地采用：
+
+```ts
+create(
+  userId,
+  ...
+)
+```
+
+把 Request-specific Data（请求级数据）作为参数传进去。
+
+### 【Database Pool、Redis Client 和 Config 适合被 Singleton Service 共享】
+
+与：
+
+```text
+currentUserId
+```
+
+不同：
+
+```text
+Database Pool
+Redis Client
+Config
+Mailer Transporter
+```
+
+本身就是：
+
+```text
+跨 Request 共享的基础设施资源
+```
+
+所以：
+
+```ts
+constructor(
+  @Inject(DATABASE)
+  private readonly database:
+    DatabaseHandle,
+
+  @Inject(REDIS)
+  private readonly redis:
+    Redis,
+) {}
+```
+
+很适合 Singleton Provider。
+
+### 【Thin Controller 不代表 Service 也必须非常薄】
+
+Controller 通常希望较薄：
+
+```text
+Request Mapping
+    ↓
+Validation
+    ↓
+Service Call
+```
+
+但 Service 如果只是：
+
+```ts
+create(...) {
+  return database.insert(...);
+}
+```
+
+不一定说明设计优秀。
+
+真正关键的是：
+
+```text
+业务复杂度应该存在在哪里？
+```
+
+如果一个 Use Case 本身就是：
+
+```text
+权限检查
++
+多个写操作
++
+事务
++
+审计
++
+邮件
+```
+
+那么 Service 自然会比 Controller 长。
+
+因此：
+
+```text
+Thin Controller
+```
+
+不等于：
+
+```text
+Tiny Service
+```
+
+应该是：
+
+```text
+Controller 不承担业务复杂度
+
+Service 承担并组织真实业务复杂度
+```
+
+### 【Service 过度扩张后也可能变成 God Service】
+
+例如 `ProjectsService` 已经同时处理：
+
+```text
+Project CRUD
+Membership
+Ingestion Key
+Origin
+Threshold
+Invitation
+Dead Letter Retry
+Audit
+```
+
+目前还能理解。
+
+但如果未来再继续加入：
+
+```text
+Billing
+Alert
+Dashboard
+Deploy
+Team
+Notification
+```
+
+就可能变成：
+
+```text
+God Service（上帝服务）
+```
+
+也就是：
+
+```text
+一个 Service
+知道并负责太多东西
+```
+
+这时可以按业务能力继续拆：
+
+```text
+ProjectsService
+ProjectAccessService
+ProjectInvitationService
+IngestionKeyService
+ThresholdService
+```
+
+是否拆分，不应该只看：
+
+```text
+文件有多少行
+```
+
+而要看：
+
+```text
+职责是否已经出现独立业务边界
+是否独立变化
+是否被其他模块复用
+```
+
+### 【当前项目的 Service 可以先分成四类】
+
+| 类型 | 当前例子 | 主要职责 |
+| --- | --- | --- |
+| Command / Business Service | `ProjectsService`、`AuthService` | 改变业务状态、事务、业务规则 |
+| Query Service | `AnalyticsService`、`CustomSignalsService` | 权限检查、查询策略、聚合、缓存 |
+| Workflow / Processing Service | `IngestionService`、`LabAuditsService` | 多步骤业务流程和状态控制 |
+| Supporting Service | `MailerService`、`IngestionRateLimiter`、`MetricsService` | 提供专门技术能力 |
+
+它们在 Nest 看来全部仍然只是：
+
+```text
+Provider
+```
+
+区别来自：
+
+```text
+应用赋予它们的职责
+```
+
+而不是 Nest 提供了一个单独的：
+
+```ts
+@Service()
+```
+
+装饰器。
+
+当前 Nest 代码实际使用的是：
+
+```ts
+@Injectable()
+```
+
+### 【Controller 到 Service 的完整职责边界可以重新画出来】
+
+例如：
+
+```text
+POST /api/v1/projects
+```
+
+现在完整链路：
+
+```text
+HTTP Request
+    ↓
+SessionGuard
+Authentication
+    ↓
+CsrfGuard
+CSRF Protection
+    ↓
+Interceptor
+Request Context / Logging
+    ↓
+Zod Validation
+Input Contract
+    ↓
+ProjectsController
+HTTP → Application
+    ↓
+ProjectsService.create()
+Business Use Case
+    ↓
+生成 Key / Salt
+    ↓
+Transaction Boundary
+    ↓
+projects
+project_members
+ingestion_keys
+allowed_origins
+audit_logs
+    ↓
+Commit
+    ↓
+构造 Result
+    ↓
+Controller
+    ↓
+HTTP Response
+```
+
+这条链已经把前面几章连接起来。
+
+### 【脱离当前项目后可以用六个问题分析任意 Service】
+
+以后看到任意后端 Service，可以先问：
+
+```text
+1. 这个 Service 代表什么业务能力？
+
+2. 它的方法是不是一个明确 Use Case？
+
+3. 它需要哪些依赖？
+   Database / Redis / Other Service / External API
+
+4. 哪些步骤必须按顺序执行？
+
+5. 哪些修改必须放在同一个 Transaction？
+
+6. 哪些规则属于：
+   Input Validation
+   Authorization
+   Business Rule
+   Infrastructure Detail
+```
+
+然后再判断：
+
+```text
+Service 是否过重？
+是否需要 Repository？
+是否应该拆子 Service？
+是否存在重复规则？
+依赖方向是否清晰？
+```
+
+### 【当前项目这一层的整体架构可以收敛成一个业务执行图】
+
+最终可以形成：
+
+```text
+Controller
+│
+│ 接收已经完成认证和输入校验的数据
+│
+▼
+Application / Business Service
+│
+├── Authorization
+│
+├── Business Rule
+│
+├── Workflow / Orchestration
+│
+├── Transaction Boundary
+│
+├── Result Mapping
+│
+│
+├────→ Other Business Service
+│       例如 ProjectsService.requireAccess()
+│
+├────→ Supporting Service
+│       Mailer / RateLimiter / Metrics
+│
+├────→ Database
+│
+└────→ Redis
+```
+
+当前代码并没有严格采用：
+
+```text
+Controller
+→ Application Service
+→ Domain Service
+→ Repository
+→ Infrastructure
+```
+
+这种完整 DDD 分层。
+
+而是更务实的：
+
+```text
+Controller
+    ↓
+Service
+    ↓
+Database / Redis / Supporting Provider
+```
+
+同时通过：
+
+```text
+ProjectsService.requireAccess()
+MailerService
+IngestionRateLimiter
+```
+
+抽出真正具有复用价值的能力。
+
+### 【这一层最终形成五个核心认识】
+
+第一：
+
+> **Service 在 NestJS 中本质上仍然是 Provider，不是一个固定的 Request Lifecycle Hook；Controller 通过 DI 获得 Service 并主动调用它。**
+
+第二：
+
+> **Service 的核心职责不是简单“封装数据库”，而是表达并编排一个完整 Use Case：权限、业务规则、事务、数据库、缓存和外部能力按照正确顺序组成一个业务操作。**
+
+第三：
+
+```text
+Controller
+    → HTTP Boundary
+
+Service
+    → Application / Business Boundary
+
+Database / Redis / Mail
+    → Infrastructure
+```
+
+第四：
+
+> **当前项目没有额外 Repository Layer，而是在 Service 中直接执行 SQL。这对当前规模是可接受的；只有当数据访问重复、复杂度或独立演进需求真实出现时，才值得继续抽 Repository。**
+
+第五，当前项目最值得记住的一条 Service 链：
+
+```text
+ProjectsController
+    ↓
+ProjectsService.create()
+    ↓
+Business Orchestration
+    ↓
+Transaction
+    ↓
+Project
+Membership
+Ingestion Key
+Origin
+Audit Log
+    ↓
+Commit
+```
+
+这就是 Service 与业务编排在当前项目中的核心含义。
+
+### 【参考资料】
+
+NestJS, *Providers*, 官方文档：<https://docs.nestjs.com/providers>
+
+NestJS, *Injection scopes*, 官方文档：<https://docs.nestjs.com/fundamentals/injection-scopes>
+
+
+## 9. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
