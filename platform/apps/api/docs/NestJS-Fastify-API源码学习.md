@@ -3689,7 +3689,1994 @@ HTTP Response
 > **Controller（控制器）是 NestJS 的 HTTP 边界：`@Controller()` 与 `@Get()` / `@Post()` 等装饰器负责声明 Route（路由），`@Param()` / `@Body()` / `@Query()` 等参数装饰器负责把 HTTP Request 转成方法参数，Controller 再调用 Service；Nest 最终通过 FastifyAdapter 把这些声明映射成 Fastify 真正执行的 HTTP Route。**
 
 
-## 5. 后续学习顺序
+## 5. Request Lifecycle 描述一次请求从进入应用到返回响应的完整处理过程
+
+前面已经建立了：
+
+```text
+Fastify
+    ↓
+Route Mapping
+    ↓
+Controller
+    ↓
+Service
+```
+
+但实际运行时，一个 HTTP Request（HTTP 请求）匹配到 Controller 之后，并不会立刻执行 Controller Method（控制器方法）。
+
+NestJS 会让请求经过一组不同职责的处理阶段。这个整体过程称为 Request Lifecycle（请求生命周期）。
+
+先建立通用主线：
+
+```text
+HTTP Request
+    ↓
+Middleware（中间件）
+    ↓
+Guard（守卫）
+    ↓
+Interceptor Before（拦截器前置阶段）
+    ↓
+Pipe（管道）
+    ↓
+Controller
+    ↓
+Service
+    ↓
+Interceptor After（拦截器后置阶段）
+    ↓
+Exception Filter（异常过滤器，发生未处理异常时）
+    ↓
+HTTP Response
+```
+
+这些组件并不是几个功能相似的 Hook，而是分别解决不同问题：
+
+| 机制 | 中文理解 | 核心职责 |
+| --- | --- | --- |
+| Middleware | 中间件 | 请求进入 Nest 路由处理前需要统一做什么 |
+| Guard | 守卫 | 当前请求是否允许继续执行 |
+| Interceptor | 拦截器 | Controller 执行前后需要统一包裹什么逻辑 |
+| Pipe | 管道 | Controller 参数是否合法、是否需要转换 |
+| Exception Filter | 异常过滤器 | 未处理异常怎样转换成 HTTP Response |
+
+Nest 官方 Request Lifecycle 文档说明，请求阶段整体按照 Middleware → Guard → Interceptor → Pipe → Controller Handler 的方向进入；Interceptor 在响应阶段以相反方向展开。  
+参考：<https://docs.nestjs.com/faq/request-lifecycle>
+
+### 【通用 Nest Request Lifecycle 与当前项目真实链路需要分开理解】
+
+NestJS 框架提供的完整机制包括：
+
+```text
+Middleware
+Guard
+Interceptor
+Pipe
+Controller
+Exception Filter
+```
+
+但具体项目不一定会同时使用所有机制。
+
+从当前 `browser-monitor/platform/apps/api` 源码看，主要实际使用的是：
+
+```text
+Fastify Plugin
+    ↓
+Guard
+    ↓
+Global Interceptor
+    ↓
+Parameter Decorator
+    ↓
+Controller
+    ↓
+手动 Zod Validation
+    ↓
+Service
+    ↓
+Global Interceptor 后置逻辑
+    ↓
+Nest 默认异常处理
+```
+
+当前 API 没有看到自己注册的 Nest Pipe（管道）或自定义 Exception Filter（异常过滤器）；输入校验主要通过 Controller 内部调用 `parseBody()` 完成。
+
+因此学习时要始终区分：
+
+```text
+NestJS 框架能够提供什么
+```
+
+和：
+
+```text
+当前 browser-monitor API 实际选择使用了什么
+```
+
+### 【先用 POST /api/v1/projects 走一遍当前项目真实请求链】
+
+当前 `ProjectsController`：
+
+```ts
+@Controller('api/v1')
+@UseGuards(SessionGuard, CsrfGuard)
+export class ProjectsController {
+  @Post('projects')
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: unknown,
+  ) {
+    const input = parseBody(
+      createProjectSchema,
+      body,
+    );
+
+    return this.projects.create(
+      user.id,
+      input.displayName,
+      input.appName,
+    );
+  }
+}
+```
+
+对于：
+
+```text
+POST /api/v1/projects
+```
+
+当前项目的主要执行链可以先画成：
+
+```text
+POST /api/v1/projects
+        ↓
+Fastify
+        ↓
+Nest 已经匹配到 ProjectsController.create()
+        ↓
+SessionGuard
+        ↓
+CsrfGuard
+        ↓
+RequestIdInterceptor 前置逻辑
+        ↓
+@CurrentUser() / @Body()
+解析 Controller 参数
+        ↓
+ProjectsController.create()
+        ↓
+parseBody()
+        ↓
+ProjectsService.create()
+        ↓
+返回结果
+        ↓
+RequestIdInterceptor finalize()
+        ↓
+HTTP Response
+```
+
+这条链是理解当前 API Request Lifecycle 的主线。
+
+### 【Guard 决定当前请求能不能继续执行】
+
+Guard（守卫）的核心职责是：
+
+> **根据当前请求上下文决定是否允许继续执行后面的 Controller。**
+
+Nest Guard 通常实现：
+
+```ts
+CanActivate
+```
+
+当前 `SessionGuard`：
+
+```ts
+@Injectable()
+export class SessionGuard
+  implements CanActivate {
+
+  constructor(
+    @Inject(REDIS)
+    private readonly redis: Redis,
+  ) {}
+
+  async canActivate(
+    context: ExecutionContext,
+  ): Promise<boolean> {
+    // ...
+  }
+}
+```
+
+这里第一次出现的 ExecutionContext（执行上下文）可以理解为：
+
+> **Nest 提供给 Guard、Interceptor、Custom Decorator 等框架组件的当前执行环境。**
+
+通过它可以取得：
+
+```text
+当前 HTTP Request
+当前 HTTP Response
+当前 Controller
+当前 Handler
+```
+
+当前代码：
+
+```ts
+const request =
+  context
+    .switchToHttp()
+    .getRequest<FastifyRequest>();
+```
+
+可以翻译成：
+
+```text
+ExecutionContext
+    ↓
+切换到 HTTP 执行上下文
+    ↓
+取得底层 Fastify Request
+```
+
+### 【SessionGuard 负责 Authentication，也就是确认“你是谁”】
+
+当前源码：
+
+```ts
+@Injectable()
+export class SessionGuard
+  implements CanActivate {
+
+  constructor(
+    @Inject(REDIS)
+    private readonly redis: Redis,
+  ) {}
+
+  async canActivate(
+    context: ExecutionContext,
+  ): Promise<boolean> {
+
+    const request =
+      context
+        .switchToHttp()
+        .getRequest<FastifyRequest>();
+
+    const token =
+      request.cookies?.bm_session;
+
+    if (!token) {
+      throw new UnauthorizedException({
+        code: 'authentication_required',
+      });
+    }
+
+    const session =
+      await this.redis.get(
+        `session:${hashToken(token)}`,
+      );
+
+    if (!session) {
+      throw new UnauthorizedException({
+        code: 'session_expired',
+      });
+    }
+
+    (
+      request as AuthenticatedRequest
+    ).auth =
+      JSON.parse(session) as AuthenticatedUser;
+
+    return true;
+  }
+}
+```
+
+Authentication（身份认证）解决的是：
+
+```text
+这个请求是谁发出的？
+```
+
+完整执行链：
+
+```text
+Request
+    ↓
+读取 bm_session Cookie
+    ↓
+没有 Cookie
+    → UnauthorizedException
+    → 401
+    ↓
+存在 Cookie
+    ↓
+hashToken(token)
+    ↓
+Redis 查询 Session
+    ↓
+Session 不存在
+    → UnauthorizedException
+    → 401
+    ↓
+Session 存在
+    ↓
+解析 AuthenticatedUser
+    ↓
+写入 request.auth
+    ↓
+return true
+    ↓
+请求继续
+```
+
+这里还没有判断：
+
+```text
+这个用户是否有权限操作某个 projectId
+```
+
+那属于更具体的 Authorization（授权），当前项目主要在 `ProjectsService.requireAccess()`、`requireOwner()` 等业务方法中处理。
+
+所以：
+
+```text
+Authentication
+    → 你是谁
+
+Authorization
+    → 你是否可以操作这个具体资源
+```
+
+需要分开理解。
+
+### 【Guard 不只可以做判断，也可以给 Request Context 补充数据】
+
+SessionGuard 不是只执行：
+
+```ts
+return true;
+```
+
+它还执行：
+
+```ts
+request.auth = ...
+```
+
+于是 Request 在生命周期中被补充了新的信息：
+
+```text
+原始 Request
+
+{
+  cookies,
+  headers,
+  ...
+}
+
+        ↓ SessionGuard
+
+Authenticated Request
+
+{
+  cookies,
+  headers,
+  auth: {
+    id,
+    email,
+    displayName,
+    sessionId,
+    csrfToken
+  }
+}
+```
+
+这里形成了 Request Context（请求上下文）。
+
+Request Context 可以理解为：
+
+> **一次请求在处理过程中逐步积累、供后续组件共享的上下文信息。**
+
+后面的 CsrfGuard 和 `@CurrentUser()` 都会继续消费这个上下文。
+
+### 【SessionGuard 与 CsrfGuard 存在明确的顺序依赖】
+
+当前：
+
+```ts
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+```
+
+这两个 Guard 不是两个完全独立的检查。
+
+`CsrfGuard`：
+
+```ts
+@Injectable()
+export class CsrfGuard
+  implements CanActivate {
+
+  canActivate(
+    context: ExecutionContext,
+  ): boolean {
+
+    const request =
+      context
+        .switchToHttp()
+        .getRequest<AuthenticatedRequest>();
+
+    if (
+      ['GET', 'HEAD', 'OPTIONS']
+        .includes(request.method)
+    ) {
+      return true;
+    }
+
+    const supplied =
+      request.headers['x-csrf-token'];
+
+    if (
+      typeof supplied !== 'string' ||
+      supplied !== request.auth.csrfToken
+    ) {
+      throw new ForbiddenException({
+        code: 'invalid_csrf_token',
+      });
+    }
+
+    return true;
+  }
+}
+```
+
+它依赖：
+
+```ts
+request.auth.csrfToken
+```
+
+而：
+
+```text
+request.auth
+```
+
+是前面的 `SessionGuard` 写进去的。
+
+因此真实关系是：
+
+```text
+SessionGuard
+    ↓
+验证 Session
+    ↓
+request.auth = AuthenticatedUser
+    ↓
+CsrfGuard
+    ↓
+读取 request.auth.csrfToken
+    ↓
+校验 x-csrf-token
+```
+
+如果顺序反过来：
+
+```text
+CsrfGuard
+    ↓
+request.auth 尚未建立
+```
+
+后面的逻辑就无法成立。
+
+因此这里形成了一条 Request Context Dependency（请求上下文依赖）：
+
+```text
+SessionGuard
+    → 生产 request.auth
+
+CsrfGuard
+    → 消费 request.auth
+```
+
+Nest 对同一级别的 Guard 按绑定顺序执行，所以当前：
+
+```ts
+@UseGuards(SessionGuard, CsrfGuard)
+```
+
+的顺序本身具有业务意义。
+
+### 【GET 请求同样进入 CsrfGuard，但会根据 Method 直接放行】
+
+因为：
+
+```ts
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+```
+
+声明在整个 Controller 上，所以：
+
+```ts
+@Get('projects')
+```
+
+也会执行两个 Guard。
+
+但 `CsrfGuard`：
+
+```ts
+if (
+  ['GET', 'HEAD', 'OPTIONS']
+    .includes(request.method)
+) {
+  return true;
+}
+```
+
+因此：
+
+```text
+GET /projects
+    ↓
+SessionGuard
+    ↓
+必须存在合法 Session
+    ↓
+CsrfGuard
+    ↓
+发现是 GET
+    ↓
+直接通过
+```
+
+而：
+
+```text
+POST /projects
+    ↓
+SessionGuard
+    ↓
+必须存在合法 Session
+    ↓
+CsrfGuard
+    ↓
+校验 x-csrf-token
+```
+
+这里可以看出：
+
+```text
+Authentication
+    → 所有受保护请求都需要
+
+CSRF Validation
+    → 主要保护会产生状态修改的请求
+```
+
+### 【Guard 拒绝请求后，后面的正常 Controller 流程不会继续执行】
+
+Guard 的本质是：
+
+```text
+Request
+    ↓
+canActivate()
+    ↓
+当前请求是否允许继续？
+```
+
+当前项目不是简单：
+
+```ts
+return false;
+```
+
+而是主要直接抛出 HTTP Exception：
+
+```ts
+throw new UnauthorizedException(...)
+```
+
+或者：
+
+```ts
+throw new ForbiddenException(...)
+```
+
+此时：
+
+```text
+Guard
+    ↓
+抛异常
+    ↓
+正常请求链停止
+    ↓
+后续 Interceptor / Pipe / Controller
+不会进入正常执行流程
+    ↓
+异常进入 Nest Exception Handling
+```
+
+这也是为什么 Guard 非常适合：
+
+```text
+Authentication
+Authorization
+请求是否允许继续
+```
+
+而不适合承担 Controller 执行后的响应包装逻辑。
+
+### 【RequestIdInterceptor 是 Global Interceptor，但执行位置仍然在 Guard 之后】
+
+当前 `AppModule`：
+
+```ts
+providers: [
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: RequestIdInterceptor,
+  },
+]
+```
+
+这里：
+
+```text
+APP_INTERCEPTOR
+```
+
+是 Nest 的 Application-level Provider Token（应用级 Provider 标识），表示：
+
+```text
+RequestIdInterceptor
+作为 Global Interceptor（全局拦截器）
+作用于整个 Application 的 Controller 请求
+```
+
+但是：
+
+```text
+Global
+```
+
+并不意味着：
+
+```text
+一定是 HTTP 请求进入应用后第一个执行的组件
+```
+
+Nest Request Lifecycle 中：
+
+```text
+Guard
+    ↓
+Interceptor
+```
+
+所以当前受保护业务接口实际是：
+
+```text
+SessionGuard
+    ↓
+CsrfGuard
+    ↓
+RequestIdInterceptor
+```
+
+而不是：
+
+```text
+RequestIdInterceptor
+    ↓
+SessionGuard
+    ↓
+CsrfGuard
+```
+
+这意味着：
+
+> **如果请求在 SessionGuard 或 CsrfGuard 阶段就被拒绝，当前 RequestIdInterceptor 还没有进入执行。**
+
+因此源码注释中：
+
+```text
+所有请求生成 / 透传 x-request-id
+并在响应完成时打一条日志
+```
+
+从严格的 Request Lifecycle 来看，需要增加边界说明。
+
+更准确应该理解成：
+
+```text
+所有成功进入 Interceptor 阶段的 Nest Route 请求
+会生成 / 透传 requestId，并记录完成日志
+```
+
+如果目标要求：
+
+```text
+401
+403
+甚至更早阶段失败的请求
+
+也必须拥有统一 Request ID
+```
+
+那么 Request ID 创建逻辑通常需要放到生命周期更靠前的位置，例如：
+
+```text
+Fastify Hook
+或者
+Middleware
+```
+
+这不是说明当前实现一定错误，而是说明：
+
+```text
+Interceptor 适合 Handler Lifecycle Observability
+Middleware / Fastify Hook 更适合更完整的 HTTP Request Observability
+```
+
+需要根据目标选择位置。
+
+### 【Interceptor 是包住 Controller 执行过程的横向机制】
+
+Interceptor（拦截器）与 Guard 的思路不同。
+
+Guard 回答：
+
+```text
+能不能继续？
+```
+
+Interceptor 回答：
+
+```text
+Controller 执行前后，我是否需要统一做一些事情？
+```
+
+当前：
+
+```ts
+@Injectable()
+export class RequestIdInterceptor
+  implements NestInterceptor {
+
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<unknown> {
+    // ...
+  }
+}
+```
+
+这里涉及几个术语。
+
+NestInterceptor（Nest 拦截器接口）表示：
+
+> **这个 Class 可以参与 Controller 前后的请求执行流程。**
+
+CallHandler（调用处理器）可以先理解成：
+
+> **代表“后续 Controller 执行链”的对象。**
+
+最关键的方法：
+
+```ts
+next.handle()
+```
+
+可以理解为：
+
+```text
+继续执行后面的请求处理流程
+```
+
+它返回 Observable（可观察流）。
+
+Observable 是 RxJS 提供的异步数据流抽象。当前阶段不需要深入 RxJS，只需要知道：
+
+```text
+next.handle()
+    ↓
+代表后续 Controller / Service 执行产生的异步结果
+```
+
+### 【Interceptor 使用“包裹”模型同时执行前置和后置逻辑】
+
+当前源码：
+
+```ts
+intercept(
+  context: ExecutionContext,
+  next: CallHandler,
+): Observable<unknown> {
+
+  const startedAt = performance.now();
+
+  // 其他前置逻辑
+
+  return next.handle().pipe(
+    finalize(() => {
+      // 后置逻辑
+    }),
+  );
+}
+```
+
+可以理解成：
+
+```text
+Interceptor Before
+      ↓
+next.handle()
+      ↓
+Controller
+      ↓
+Service
+      ↓
+Controller return
+      ↓
+Interceptor After
+```
+
+因此 Interceptor 不只是：
+
+```text
+请求前执行一个 Hook
+```
+
+而是：
+
+> **包裹整个 Controller Handler 的执行过程。**
+
+这非常适合：
+
+```text
+Logging（日志）
+Duration（耗时）
+Tracing（链路追踪）
+Response Transformation（响应转换）
+Caching（缓存）
+```
+
+等横向能力。
+
+### 【RequestIdInterceptor 的前置阶段建立 Request ID 和计时上下文】
+
+当前：
+
+```ts
+const request =
+  context
+    .switchToHttp()
+    .getRequest<FastifyRequest>();
+
+const response =
+  context
+    .switchToHttp()
+    .getResponse<FastifyReply>();
+```
+
+先取得当前：
+
+```text
+Fastify Request
+Fastify Reply
+```
+
+然后：
+
+```ts
+const incoming =
+  request.headers['x-request-id'];
+```
+
+读取客户端可能已经提供的：
+
+```text
+x-request-id
+```
+
+接着：
+
+```ts
+const requestId =
+  typeof incoming === 'string' &&
+  incoming.length <= 128
+    ? incoming
+    : randomUUID();
+```
+
+逻辑：
+
+```text
+客户端传入合法 requestId
+    ↓
+继续沿用
+
+没有传入或格式不满足要求
+    ↓
+randomUUID()
+    ↓
+生成新的 requestId
+```
+
+随后：
+
+```ts
+(
+  request as FastifyRequest & {
+    requestId: string
+  }
+).requestId = requestId;
+```
+
+将它放入 Request Context。
+
+再：
+
+```ts
+response.header(
+  'x-request-id',
+  requestId,
+);
+```
+
+把同一个 Request ID 返回给客户端。
+
+形成：
+
+```text
+Incoming Request
+x-request-id: abc
+        ↓
+request.requestId = abc
+        ↓
+Controller / Service
+        ↓
+Response
+x-request-id: abc
+```
+
+这种能力称为 Request Correlation（请求关联）：
+
+> **使用一个统一标识把客户端请求、服务端日志、响应以及可能的下游调用关联起来。**
+
+### 【finalize 在请求执行结束后记录访问日志】
+
+当前：
+
+```ts
+return next.handle().pipe(
+  finalize(() => {
+    process.stdout.write(
+      `${JSON.stringify({
+        level:
+          response.statusCode >= 500
+            ? 'error'
+            : 'info',
+        message: 'request_completed',
+        requestId,
+        method: request.method,
+        path:
+          request.url.split('?', 1)[0],
+        statusCode: response.statusCode,
+        durationMs:
+          Math.round(
+            (performance.now() - startedAt) * 100,
+          ) / 100,
+      })}\n`,
+    );
+  }),
+);
+```
+
+`finalize()` 来自 RxJS。
+
+当前阶段可以理解为：
+
+> **后续 Observable 结束时执行的收尾逻辑，不论正常完成还是异常终止。**
+
+因此只要请求已经进入这个 Interceptor：
+
+```text
+Interceptor Before
+    ↓
+startedAt
+    ↓
+next.handle()
+    ↓
+Controller / Service
+    ↓
+正常完成或发生异常
+    ↓
+finalize()
+    ↓
+记录 request_completed
+```
+
+这使它适合记录：
+
+```text
+method
+path
+statusCode
+durationMs
+requestId
+```
+
+### 【请求日志主动去掉 Query String，避免把敏感信息写入日志】
+
+当前源码专门写：
+
+```ts
+path:
+  request.url.split('?', 1)[0]
+```
+
+并注明：
+
+```text
+Query strings can contain reset tokens
+or dashboard filters
+```
+
+例如：
+
+```text
+/api/reset-password?token=SECRET
+```
+
+如果直接记录完整 URL：
+
+```text
+token=SECRET
+```
+
+就可能进入日志系统。
+
+当前做法只记录：
+
+```text
+/api/reset-password
+```
+
+而不记录：
+
+```text
+?token=SECRET
+```
+
+这里体现一个可以脱离项目复用的原则：
+
+> **Observability（可观测性）不能为了方便排查问题而无条件记录请求中的敏感输入。**
+
+日志设计本身也是安全设计的一部分。
+
+### 【@CurrentUser 在 Guard 之后消费 request.auth】
+
+当前项目定义：
+
+```ts
+export const CurrentUser =
+  createParamDecorator(
+    (
+      _data: unknown,
+      context: ExecutionContext,
+    ): AuthenticatedUser =>
+      context
+        .switchToHttp()
+        .getRequest<AuthenticatedRequest>()
+        .auth,
+  );
+```
+
+`createParamDecorator()` 用来创建 Custom Parameter Decorator（自定义参数装饰器）。
+
+它最终允许 Controller 写：
+
+```ts
+@CurrentUser()
+user: AuthenticatedUser
+```
+
+本质执行：
+
+```text
+Request Context
+    ↓
+request.auth
+    ↓
+@CurrentUser()
+    ↓
+Controller 参数 user
+```
+
+之所以此时能够取得：
+
+```text
+request.auth
+```
+
+是因为生命周期前面已经发生：
+
+```text
+SessionGuard
+    ↓
+request.auth = AuthenticatedUser
+    ↓
+CsrfGuard
+    ↓
+Interceptor
+    ↓
+Controller 参数解析
+    ↓
+@CurrentUser()
+读取 request.auth
+```
+
+因此：
+
+```text
+SessionGuard
+    → Request Context Producer（上下文生产者）
+
+@CurrentUser()
+    → Request Context Consumer（上下文消费者）
+```
+
+这说明 Request Lifecycle 不只是组件按顺序执行，还可能存在上下文数据在不同阶段之间传递。
+
+### 【Nest 通用 Pipe 负责参数校验与转换，但当前项目主要没有采用这一方案】
+
+Nest Request Lifecycle 中还存在 Pipe（管道）。
+
+Pipe 主要解决：
+
+```text
+Validation（参数校验）
+Transformation（参数转换）
+```
+
+典型思想：
+
+```text
+原始 HTTP 参数
+    ↓
+Pipe
+    ↓
+校验 / 转换
+    ↓
+Controller Parameter
+```
+
+但当前 browser-monitor API 主要采用：
+
+```ts
+@Body()
+body: unknown
+```
+
+然后 Controller 内部：
+
+```ts
+const input =
+  parseBody(
+    createProjectSchema,
+    body,
+  );
+```
+
+`parseBody()`：
+
+```ts
+export function parseBody<T>(
+  schema: ZodType<T>,
+  value: unknown,
+): T {
+  const parsed =
+    schema.safeParse(value);
+
+  if (!parsed.success) {
+    throw new BadRequestException({
+      code: 'invalid_request',
+      message:
+        'Request validation failed.',
+      issues:
+        parsed.error.issues.map(
+          (issue) => ({
+            path:
+              issue.path.join('.'),
+            message:
+              issue.message,
+          }),
+        ),
+    });
+  }
+
+  return parsed.data;
+}
+```
+
+所以当前真实链路是：
+
+```text
+@Body()
+    ↓
+取得 unknown
+    ↓
+Controller
+    ↓
+parseBody()
+    ↓
+Zod Schema
+    ↓
+合法数据
+```
+
+而不是：
+
+```text
+@Body()
+    ↓
+Nest Validation Pipe
+    ↓
+Controller
+```
+
+这两种方式都可以建立输入校验边界，但架构位置不同。
+
+后续 Validation（输入校验）章节再专门比较。
+
+### 【Controller 与 Service 是生命周期中的核心业务执行阶段】
+
+例如：
+
+```ts
+@Post('projects')
+create(...) {
+  const input = ...;
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+Controller 主要负责：
+
+```text
+HTTP 输入
+    ↓
+提取
+校验
+转换
+    ↓
+业务参数
+```
+
+Service 继续负责：
+
+```text
+业务规则
+权限判断
+数据库操作
+事务
+外部能力调用
+```
+
+因此：
+
+```text
+Controller
+    ↓
+Service
+```
+
+虽然经常出现在 Request Lifecycle 图中，但要注意：
+
+```text
+Controller
+    → Nest Framework 的 HTTP Handler
+
+Service
+    → 当前应用自己定义的业务 Provider
+```
+
+Service 并不是 Nest Request Lifecycle 的一个固定 Hook 类型，而是由 Controller 主动调用的业务层对象。
+
+### 【Exception 可以在 Guard、Validation、Controller、Service 等多个阶段产生】
+
+当前项目已经存在：
+
+Guard：
+
+```ts
+throw new UnauthorizedException(...)
+```
+
+```ts
+throw new ForbiddenException(...)
+```
+
+Validation：
+
+```ts
+throw new BadRequestException(...)
+```
+
+Service 中还会使用：
+
+```text
+NotFoundException
+ConflictException
+UnprocessableEntityException
+HttpException
+...
+```
+
+因此异常来源可以是：
+
+```text
+Guard
+Validation
+Controller
+Service
+Database
+其他 Provider
+```
+
+一旦出现没有在业务代码里捕获并处理的异常：
+
+```text
+当前正常执行链停止
+    ↓
+进入 Nest Exception Handling（异常处理）
+```
+
+### 【Exception Filter 负责把未处理异常映射成最终 HTTP Response】
+
+Exception Filter（异常过滤器）是 Nest 的异常处理扩展机制。
+
+它解决的是：
+
+```text
+发生异常以后
+最终应该返回什么 HTTP Status
+什么 Response Body
+怎样记录或统一格式
+```
+
+通用关系：
+
+```text
+Guard / Pipe / Controller / Service
+        ↓
+      throw
+        ↓
+Exception Handling
+        ↓
+Exception Filter
+        ↓
+HTTP Response
+```
+
+当前 `browser-monitor/platform/apps/api` 中没有看到自己注册：
+
+```ts
+@Catch()
+class XxxFilter
+```
+
+或者：
+
+```text
+APP_FILTER
+```
+
+因此当前：
+
+```ts
+throw new BadRequestException(...)
+throw new ForbiddenException(...)
+throw new UnauthorizedException(...)
+```
+
+主要交给 Nest 自带的异常处理层。
+
+例如：
+
+```text
+UnauthorizedException
+    ↓
+Nest Exception Handling
+    ↓
+401 HTTP Response
+```
+
+而不会让整个 Node.js Process 因为一次普通业务异常退出。
+
+### 【当前 POST /api/v1/projects 的完整链路可以重新画出来】
+
+结合真实源码：
+
+```text
+Browser
+   ↓
+HTTP Request
+   ↓
+Fastify
+   ↓
+@fastify/cookie
+Cookie 已经可以从 request.cookies 读取
+   ↓
+Nest Route Match
+   ↓
+找到 ProjectsController.create
+   ↓
+SessionGuard
+   │
+   ├─ bm_session 不存在
+   │      ↓
+   │     401
+   │
+   ├─ Redis Session 不存在
+   │      ↓
+   │     401
+   │
+   └─ Session 有效
+          ↓
+      request.auth = user
+          ↓
+CsrfGuard
+   │
+   ├─ x-csrf-token 不正确
+   │      ↓
+   │     403
+   │
+   └─ 正确
+          ↓
+RequestIdInterceptor Before
+   ↓
+读取 / 生成 requestId
+   ↓
+response.header('x-request-id', ...)
+   ↓
+记录 startedAt
+   ↓
+next.handle()
+   ↓
+@CurrentUser()
+   ↓
+读取 request.auth
+   ↓
+@Body()
+   ↓
+读取 Request Body
+   ↓
+ProjectsController.create()
+   ↓
+parseBody(createProjectSchema, body)
+   │
+   ├─ Zod 校验失败
+   │      ↓
+   │     BadRequestException
+   │      ↓
+   │     400
+   │
+   └─ 校验成功
+          ↓
+ProjectsService.create()
+   ↓
+业务规则 / Database Transaction
+   ↓
+返回结果
+   ↓
+RequestIdInterceptor finalize()
+   ↓
+记录 method / path / statusCode / durationMs
+   ↓
+Nest Response Handling
+   ↓
+Fastify Reply
+   ↓
+HTTP Response
+```
+
+这已经非常接近当前 API 一次登录态业务请求的真实处理过程。
+
+### 【Ingestion Route 的 Request Lifecycle 与后台业务 Route 不同】
+
+再看：
+
+```text
+POST /api/v3/ingest/:publicKey/envelopes
+```
+
+对应：
+
+```ts
+@Controller('api/v3/ingest')
+export class IngestionController {
+  @Post(':publicKey/envelopes')
+  @HttpCode(202)
+  ingestBatch(...) {
+    // ...
+  }
+}
+```
+
+这里没有：
+
+```ts
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+```
+
+因此它不会经过后台管理接口的：
+
+```text
+SessionGuard
+CsrfGuard
+```
+
+主要链路变成：
+
+```text
+Browser SDK
+    ↓
+Fastify
+    ↓
+Nest Route Match
+    ↓
+RequestIdInterceptor
+    ↓
+@Param / @Body / @Headers / @Ip / @Req
+    ↓
+IngestionController
+    ↓
+IngestionService
+    ↓
+Protocol Validation
+    ↓
+Project Resolution
+    ↓
+Origin Validation
+    ↓
+Rate Limit
+    ↓
+数据处理与写入
+    ↓
+Response
+```
+
+这是因为：
+
+```text
+Projects / Analytics / LabAudits
+    → 后台登录用户操作
+
+Ingestion
+    → Browser SDK 公共采集入口
+```
+
+它们采用的安全模型不同。
+
+因此：
+
+> **同一个 Nest Application 中，不同 Route 可以拥有不同的 Request Lifecycle。**
+
+Guard、Interceptor、Pipe 等机制通过 Controller / Route Metadata 灵活组合，而不是要求所有接口使用完全相同的处理链。
+
+### 【Middleware、Guard、Interceptor、Pipe、Exception Filter 要根据职责选择】
+
+这些机制最容易混淆，可以先按照“它在回答什么问题”判断：
+
+```text
+需要在路由处理前统一操作 Request / Response
+    ↓
+Middleware
+
+需要决定“这个请求允许继续吗”
+    ↓
+Guard
+
+需要包住 Controller 前后
+    ↓
+Interceptor
+
+需要校验 / 转换某个 Controller 参数
+    ↓
+Pipe
+
+需要把未处理异常统一变成 Response
+    ↓
+Exception Filter
+```
+
+对应表：
+
+| 机制 | 最适合解决的问题 | 常见例子 |
+| --- | --- | --- |
+| Middleware | 路由处理前的通用请求预处理 | Request Context、兼容 Express/Fastify 中间件 |
+| Guard | 是否允许请求继续 | 登录认证、角色权限 |
+| Interceptor | Controller 前后统一逻辑 | 日志、耗时、Trace、响应包装 |
+| Pipe | 参数校验与转换 | DTO Validation、字符串转数字 |
+| Exception Filter | 异常响应 | 统一错误结构、异常日志 |
+
+关键不是：
+
+```text
+这些组件都能写代码，
+放在哪里都一样
+```
+
+而是：
+
+> **框架把不同职责安排在不同生命周期位置，正确选择位置可以让代码边界更清晰。**
+
+### 【Fastify Plugin 不属于 Nest Request Lifecycle，需要放到更外层理解】
+
+当前：
+
+```ts
+app.register(cookie)
+```
+
+属于：
+
+```text
+Fastify Plugin System
+```
+
+而：
+
+```ts
+@UseGuards(...)
+```
+
+属于：
+
+```text
+Nest Request Lifecycle
+```
+
+因此完整层次应该是：
+
+```text
+HTTP Request
+    ↓
+Node.js HTTP Server
+    ↓
+Fastify Platform
+    ↓
+Fastify Plugin / Hook
+例如 Cookie Parsing
+    ↓
+Nest Application
+    ↓
+Middleware
+    ↓
+Guard
+    ↓
+Interceptor
+    ↓
+Pipe / Parameter Resolution
+    ↓
+Controller
+    ↓
+Service
+```
+
+也就是说：
+
+> **Nest Request Lifecycle 是运行在底层 HTTP Platform 之上的应用级生命周期，它并不包含所有 Fastify 自己的 Plugin / Hook 阶段。**
+
+这与第一章建立的：
+
+```text
+Fastify
+    → HTTP Platform
+
+NestJS
+    → Application Framework
+```
+
+完全一致。
+
+### 【RequestIdInterceptor 的位置适合 Handler 级观测，但不是最早的请求观测位置】
+
+现在可以更准确地分析当前设计。
+
+`RequestIdInterceptor` 很适合：
+
+```text
+Controller / Service 执行耗时
+Handler 完成日志
+Response Header
+Controller 请求链 Trace Context
+```
+
+因为：
+
+```text
+Interceptor
+    ↓
+包裹 Controller Handler
+```
+
+但是如果目标变成：
+
+```text
+任何进入 API 的 HTTP Request
+包括：
+
+401
+403
+Guard 阶段失败
+更早阶段失败
+
+都必须拥有 Request ID 和统一日志
+```
+
+那么：
+
+```text
+Interceptor
+```
+
+的位置就偏晚。
+
+更靠前的：
+
+```text
+Fastify Hook
+或
+Middleware
+```
+
+通常更适合这一目标。
+
+因此并不是：
+
+```text
+Interceptor 一定优于 Middleware
+```
+
+或者：
+
+```text
+Middleware 一定优于 Interceptor
+```
+
+而是要看需要覆盖哪个生命周期范围：
+
+```text
+Controller Handler 生命周期
+    → Interceptor
+
+更完整的 HTTP Request 生命周期
+    → Middleware / Fastify Hook
+```
+
+### 【脱离当前项目后形成通用 Request Lifecycle 心智模型】
+
+以后分析任何 NestJS API，都可以先画：
+
+```text
+HTTP Platform
+    ↓
+Middleware
+    ↓
+Guard
+    ↓
+Interceptor Before
+    ↓
+Pipe / Parameter Resolution
+    ↓
+Controller
+    ↓
+Business Service
+    ↓
+Interceptor After
+    ↓
+Exception Handling
+    ↓
+Exception Filter
+    ↓
+HTTP Response
+```
+
+然后逐个问题检查：
+
+```text
+Middleware
+    → 有没有全局请求预处理？
+
+Guard
+    → 谁负责认证和授权？
+
+Interceptor
+    → 有没有日志、Tracing、响应包装？
+
+Pipe
+    → 输入校验在哪里？
+
+Controller
+    → HTTP 参数怎样转换成业务参数？
+
+Service
+    → 业务规则在哪里？
+
+Exception Filter
+    → 错误响应怎样统一？
+```
+
+当前 browser-monitor API 实际更接近：
+
+```text
+Fastify Plugin
+    ↓
+SessionGuard
+    ↓
+CsrfGuard
+    ↓
+RequestIdInterceptor
+    ↓
+Custom Parameter Decorator
+    ↓
+Controller
+    ↓
+手动 Zod Validation
+    ↓
+Service
+    ↓
+RequestIdInterceptor finalize
+    ↓
+Nest 默认 Exception Handling
+```
+
+### 【当前项目最重要的是“请求上下文逐步建立并被后续阶段消费”】
+
+把最关键的上下文关系单独画出来：
+
+```text
+SessionGuard
+    ↓
+验证 Cookie + Redis Session
+    ↓
+request.auth = user
+    ↓
+CsrfGuard
+    ↓
+读取 request.auth.csrfToken
+    ↓
+RequestIdInterceptor
+    ↓
+request.requestId = requestId
+    ↓
+@CurrentUser()
+    ↓
+读取 request.auth
+    ↓
+Controller
+    ↓
+把 userId / body / param 等传给 Service
+```
+
+所以 Request Lifecycle 不只是：
+
+```text
+一堆组件按照固定顺序执行
+```
+
+还可以理解成：
+
+```text
+Request
+    ↓
+逐步验证
+    ↓
+逐步补充 Context
+    ↓
+逐步转换输入
+    ↓
+最后进入业务逻辑
+```
+
+这就是当前项目真正体现出来的 Request Lifecycle 设计。
+
+### 【这一层最终形成三个核心认识】
+
+第一：
+
+> **Request Lifecycle（请求生命周期）描述的是一个已经进入 HTTP 应用的请求，在真正完成 Controller / Service 执行和返回 Response 之前，会经过哪些框架阶段。**
+
+第二：
+
+> **Guard 负责“能不能继续”，Interceptor 负责“包裹执行过程”，Pipe 负责“参数是否合法或是否需要转换”，Exception Filter 负责“未处理异常最终怎样转换成响应”。这些机制位置不同、职责也不同。**
+
+第三，结合当前项目：
+
+```text
+SessionGuard
+    ↓
+建立 request.auth
+
+CsrfGuard
+    ↓
+消费 request.auth
+
+RequestIdInterceptor
+    ↓
+建立 requestId 和耗时上下文
+
+@CurrentUser()
+    ↓
+再次消费 request.auth
+
+Controller
+    ↓
+输入校验 / 业务参数转换
+
+Service
+    ↓
+真正业务逻辑
+```
+
+因此当前 API 的请求处理不能简单理解成：
+
+```text
+Request
+    ↓
+Controller
+```
+
+而应该理解成：
+
+```text
+Request
+    ↓
+验证
+    ↓
+建立 Request Context
+    ↓
+补充横向能力
+    ↓
+提取 / 转换参数
+    ↓
+Controller
+    ↓
+Service
+    ↓
+Response
+```
+
+
+## 6. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
