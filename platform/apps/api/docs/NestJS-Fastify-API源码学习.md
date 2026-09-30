@@ -5676,7 +5676,2525 @@ Response
 ```
 
 
-## 6. 后续学习顺序
+## 6. Auth、Session、CSRF 与 Request ID 共同组成用户访问时的身份、安全与追踪链路
+
+这一章在上一章 Request Lifecycle 的基础上，把当前项目真实存在的几条链完整拆开：
+
+```text
+Auth / Session
+    → 当前用户是谁、是否已经登录
+
+CSRF Token
+    → 当前修改请求是否由已经进入应用上下文的客户端主动发起
+
+Authorization
+    → 当前用户是否有权访问某个具体 Project / Resource
+
+Request ID
+    → 当前这一条 HTTP Request 如何被日志和链路追踪
+```
+
+这几条链经常同时出现在一次请求中，但解决的问题完全不同。
+
+先建立最重要的整体关系：
+
+| 能力 | 当前项目中的主要载体 | 核心问题 | 生命周期 |
+| --- | --- | --- | --- |
+| Authentication（身份认证） | `bm_session` Cookie + Redis Session | 当前用户是谁、是否已经登录 | 一次登录会话 |
+| CSRF Protection（跨站请求伪造保护） | `csrfToken` + `x-csrf-token` | 写请求是否具有当前 Session 对应的附加凭证 | 与 Session 绑定 |
+| Authorization（资源授权） | `user.id + projectId` 等业务判断 | 已登录用户能否操作具体资源 | 单次业务操作 |
+| Request Correlation（请求关联） | `x-request-id` | 当前是哪一条 HTTP 请求 | 单次 HTTP Request |
+
+最重要的一层区分是：
+
+```text
+Session Token
+    → Authentication Credential（身份认证凭证）
+
+CSRF Token
+    → CSRF Protection Credential（CSRF 防护凭证）
+
+sessionId
+    → Session Identifier（会话内部标识）
+
+requestId
+    → Request Identifier（请求追踪标识）
+```
+
+它们名字里虽然都可能出现 Token / ID，但角色完全不同。
+
+---
+
+### 【用户登录之前先完成账号注册与邮箱验证】
+
+当前注册入口：
+
+```text
+POST /api/v1/auth/register
+```
+
+Controller：
+
+```ts
+@Post('register')
+@HttpCode(202)
+async register(
+  @Body() body: unknown,
+): Promise<{ message: string }> {
+  const input =
+    parseBody(registerSchema, body);
+
+  await this.auth.register(
+    input.email,
+    input.password,
+    input.displayName,
+  );
+
+  return {
+    message:
+      'Verification email sent.',
+  };
+}
+```
+
+`AuthService.register()` 会先规范化邮箱并 Hash Password（密码哈希）：
+
+```ts
+const email =
+  emailInput
+    .trim()
+    .toLowerCase();
+
+const passwordHash =
+  await hashPassword(password);
+```
+
+随后把用户写入：
+
+```text
+users
+```
+
+数据库保存的是：
+
+```text
+password_hash
+```
+
+而不是原始 Password。
+
+注册后还会生成：
+
+```ts
+token =
+  createOpaqueToken(
+    'bm_verify_',
+  );
+```
+
+也就是 Email Verification Token（邮箱验证令牌）。
+
+数据库同样不保存原始 Token，而是：
+
+```ts
+hashToken(token)
+```
+
+然后原始 Token 通过邮件发送给用户。
+
+验证入口：
+
+```text
+POST /api/v1/auth/verify-email
+```
+
+服务端：
+
+```text
+原始 verify token
+    ↓
+hashToken()
+    ↓
+查询 account_tokens
+    ↓
+校验：
+purpose = verify-email
+未 consumed
+未 expired
+    ↓
+标记 consumed_at
+    ↓
+users.email_verified_at = now()
+```
+
+所以用户登录前的账号状态链是：
+
+```text
+Register
+    ↓
+Password Hash
+    ↓
+users
+    ↓
+Verification Token
+    ↓
+Email
+    ↓
+Verify Email
+    ↓
+email_verified_at
+    ↓
+允许 Login
+```
+
+这一阶段主要属于账号身份体系，还没有进入 Session / CSRF / Request ID 的核心流程。
+
+---
+
+### 【登录成功时同时创建 Session Token、Session Record 和 CSRF Token】
+
+用户登录：
+
+```text
+POST /api/v1/auth/login
+```
+
+Controller：
+
+```ts
+@Post('login')
+@HttpCode(200)
+async login(
+  @Body() body: unknown,
+  @Res({ passthrough: true })
+  reply: FastifyReply,
+) {
+  const input =
+    parseBody(loginSchema, body);
+
+  const session =
+    await this.auth.login(
+      input.email,
+      input.password,
+    );
+
+  // ...
+}
+```
+
+`AuthService.login()` 首先查询：
+
+```text
+email
+    ↓
+users
+    ↓
+password_hash
+```
+
+再调用：
+
+```ts
+verifyPassword(
+  password,
+  row.password_hash,
+)
+```
+
+并检查：
+
+```ts
+row.email_verified_at
+```
+
+只有账号存在、密码正确、邮箱已验证，才会进入 Session 创建阶段。
+
+随后同时产生：
+
+```ts
+const token =
+  createOpaqueToken(
+    'bm_session_',
+  );
+
+const tokenHash =
+  hashToken(token);
+
+const csrfToken =
+  createOpaqueToken(
+    'bm_csrf_',
+  );
+
+const expiresAt =
+  new Date(
+    Date.now()
+      + this.config
+          .SESSION_TTL_SECONDS
+          * 1_000,
+  );
+```
+
+因此一次登录真正产生了：
+
+```text
+Session Token
+    → bm_session_xxx
+
+Session Token Hash
+    → hash(session token)
+
+CSRF Token
+    → bm_csrf_xxx
+
+Session Expiration
+    → expiresAt
+```
+
+同时数据库：
+
+```sql
+INSERT INTO user_sessions(
+  user_id,
+  token_hash,
+  csrf_token,
+  expires_at
+)
+VALUES (...)
+RETURNING id
+```
+
+会再产生一个：
+
+```text
+sessionId
+```
+
+所以：
+
+```text
+一次登录会话
+├── sessionId
+├── userId
+├── Session Token
+├── Session Token Hash
+├── CSRF Token
+└── expiresAt
+```
+
+这些字段虽然属于同一 Session，但角色不同。
+
+---
+
+### 【Session Token 是真正的登录 Credential，sessionId 只是内部 Identifier】
+
+当前项目没有把：
+
+```text
+user_sessions.id
+```
+
+直接作为浏览器登录凭证。
+
+而是额外生成：
+
+```text
+bm_session_xxx
+```
+
+作为 Session Token。
+
+核心区别：
+
+```text
+Credential（凭证）
+    → 持有它就可以证明某种身份或权限
+
+Identifier（标识符）
+    → 主要用于识别某个对象或记录
+```
+
+在当前设计中：
+
+```text
+Session Token
+    → Credential
+
+sessionId
+    → Identifier
+```
+
+所以：
+
+```text
+Browser
+    ↓
+保存原始 Session Token
+
+Server
+    ↓
+保存 token_hash
+    ↓
+Session 内部还有 sessionId
+```
+
+服务端数据库不需要保存原始 Session Token。
+
+这形成：
+
+```text
+Browser
+
+bm_session_secret_ABC
+        ↓
+        │ hash
+        ↓
+
+Database / Redis lookup key
+
+hash(ABC)
+```
+
+如果数据库只泄漏：
+
+```text
+token_hash
+```
+
+攻击者不能直接把这个 Hash 当成 Cookie 原始 Session Token 使用，因为服务端收到 Cookie 后还会再执行：
+
+```ts
+hashToken(cookieToken)
+```
+
+所以：
+
+```text
+hash(originalToken)
+≠
+hash(tokenHash)
+```
+
+这里体现的是：
+
+> **数据库只保存认证凭证的派生值，而不是原始会话凭证。**
+
+---
+
+### 【sessionId 技术上也可以放进 Cookie，但前提是它本身承担 Session Credential 角色】
+
+这里需要区分“字段名字”和“安全角色”。
+
+完全可以设计：
+
+```text
+Browser Cookie
+    ↓
+随机、高熵、不可预测的 Session ID
+    ↓
+Server Session Store
+```
+
+很多传统 Server-side Session Framework（服务端会话框架）就是这样实现的。
+
+如果 Cookie 中的 Session ID：
+
+```text
+高熵
+随机
+不可预测
+必须保密
+拿到后即可恢复登录态
+```
+
+那么它在安全模型中实际上已经是：
+
+```text
+Session Credential
+```
+
+即使变量名仍然叫：
+
+```text
+sessionId
+```
+
+因此真正应该判断的不是：
+
+```text
+Session ID 还是 Token？
+```
+
+而是：
+
+```text
+这个值是不是认证凭证？
+
+是否高熵随机？
+是否不可预测？
+是否必须保密？
+拿到它是否可以直接认证？
+服务端是否只保存 Hash？
+是否可撤销？
+是否有过期时间？
+```
+
+当前项目进一步把：
+
+```text
+内部 sessionId
+```
+
+和：
+
+```text
+外部 Session Credential
+```
+
+拆开，职责更加明确。
+
+sessionId 可以继续用于：
+
+```text
+会话记录标识
+安全审计
+Session 管理
+未来设备管理
+撤销某次登录
+```
+
+而不需要把真正的原始登录凭证暴露给这些内部业务逻辑。
+
+---
+
+### 【登录后的 Session Context 同时写入 Database 和 Redis】
+
+数据库创建 Session 后，当前代码建立：
+
+```ts
+const user:
+  AuthenticatedUser = {
+    id: row.id,
+    email: row.email,
+    displayName:
+      row.display_name,
+    sessionId:
+      inserted.rows[0]!.id,
+    csrfToken,
+  };
+```
+
+然后写 Redis：
+
+```ts
+await this.redis.set(
+  `session:${tokenHash}`,
+  JSON.stringify(user),
+  'EX',
+  this.config
+    .SESSION_TTL_SECONDS,
+);
+```
+
+因此 Redis 中大致形成：
+
+```text
+Key
+
+session:<session-token-hash>
+
+
+Value
+
+{
+  id,
+  email,
+  displayName,
+  sessionId,
+  csrfToken
+}
+```
+
+后续登录态请求主要不需要每次重新查询完整 users 表，而是：
+
+```text
+Session Cookie
+    ↓
+hashToken()
+    ↓
+Redis Session
+    ↓
+AuthenticatedUser
+```
+
+这里 Redis 承担的是：
+
+```text
+在线 Session Store（在线会话存储）
+```
+
+而 PostgreSQL 的 `user_sessions` 则保留持久 Session Record。
+
+---
+
+### 【Session Token 与 CSRF Token 通过不同渠道交给浏览器】
+
+登录完成后：
+
+```ts
+reply.setCookie(
+  'bm_session',
+  session.token,
+  {
+    httpOnly: true,
+    secure:
+      this.config.NODE_ENV
+        === 'production',
+    sameSite: 'lax',
+    path: '/',
+    expires:
+      session.expiresAt,
+  },
+);
+```
+
+Session Token 进入：
+
+```text
+HttpOnly Cookie
+
+bm_session=<session-token>
+```
+
+其中：
+
+```text
+HttpOnly = true
+```
+
+意味着普通页面 JavaScript 无法通过：
+
+```js
+document.cookie
+```
+
+读取这个 Cookie 的值。
+
+与此同时 Controller Response Body 返回：
+
+```ts
+return {
+  user: session.user,
+  csrfToken:
+    session.user.csrfToken,
+};
+```
+
+所以浏览器端收到两种不同凭证：
+
+```text
+Session Token
+    ↓
+HttpOnly Cookie
+    ↓
+JavaScript 不直接读取
+    ↓
+Browser 自动携带
+
+
+CSRF Token
+    ↓
+Response Body
+    ↓
+JavaScript 可以读取
+    ↓
+由应用主动放进请求 Header
+```
+
+这两个 Token 的存储方式不同，是当前安全设计的核心之一。
+
+---
+
+### 【Web 前端把 CSRF Token 放入 sessionStorage】
+
+当前 Web：
+
+```ts
+let csrfToken =
+  sessionStorage.getItem(
+    'browser-monitor-csrf',
+  ) ?? '';
+```
+
+登录成功后：
+
+```ts
+setCsrfToken(
+  result.csrfToken,
+);
+```
+
+实现：
+
+```ts
+export function setCsrfToken(
+  value: string,
+): void {
+  csrfToken = value;
+
+  sessionStorage.setItem(
+    'browser-monitor-csrf',
+    value,
+  );
+}
+```
+
+所以浏览器中形成：
+
+```text
+Cookie
+────────────────────
+bm_session
+
+HttpOnly
+JavaScript 不可直接读取
+Browser 自动发送
+
+
+sessionStorage
+────────────────────
+browser-monitor-csrf
+
+JavaScript 可读取
+由前端主动放入 Header
+```
+
+这也是后面理解 CSRF 与 XSS 区别的关键。
+
+---
+
+### 【所有前端 API 请求通过 credentials: include 自动携带 Session Cookie】
+
+当前 Web API Client：
+
+```ts
+const response =
+  await fetch(path, {
+    ...init,
+
+    credentials: 'include',
+
+    headers: {
+      // ...
+    },
+  });
+```
+
+因此前端业务代码不需要：
+
+```ts
+const sessionToken = ...
+```
+
+也不需要：
+
+```text
+Authorization:
+Bearer <token>
+```
+
+浏览器会按照 Cookie 规则自动携带：
+
+```text
+bm_session
+```
+
+所以当前项目采用的是：
+
+```text
+Cookie-based Server Session
+（基于 Cookie 的服务端 Session）
+```
+
+而不是：
+
+```text
+Bearer Access Token
+```
+
+模式。
+
+---
+
+### 【SessionGuard 根据 Cookie 恢复当前用户身份】
+
+受保护 Controller：
+
+```ts
+@Controller('api/v1')
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+export class ProjectsController {
+  // ...
+}
+```
+
+请求进入后先由：
+
+```text
+SessionGuard
+```
+
+处理。
+
+核心源码：
+
+```ts
+const token =
+  request.cookies?.bm_session;
+
+if (!token) {
+  throw new UnauthorizedException({
+    code:
+      'authentication_required',
+  });
+}
+```
+
+没有 Cookie：
+
+```text
+Request
+    ↓
+没有 bm_session
+    ↓
+401 Unauthorized
+```
+
+存在 Cookie：
+
+```ts
+const session =
+  await this.redis.get(
+    `session:${hashToken(token)}`,
+  );
+```
+
+链路：
+
+```text
+bm_session Cookie
+        ↓
+原始 Session Token
+        ↓
+hashToken()
+        ↓
+session:<token-hash>
+        ↓
+Redis
+        ↓
+AuthenticatedUser
+```
+
+Redis 查不到：
+
+```text
+Session invalid / expired
+    ↓
+401
+```
+
+查到后：
+
+```ts
+(
+  request
+    as AuthenticatedRequest
+).auth =
+  JSON.parse(session)
+    as AuthenticatedUser;
+```
+
+于是原始 Request 被补充：
+
+```text
+request
+├── cookies
+├── headers
+├── ...
+└── auth
+     ├── id
+     ├── email
+     ├── displayName
+     ├── sessionId
+     └── csrfToken
+```
+
+因此 Auth / Session 这一层完成的是：
+
+> **把一个匿名 HTTP Request，通过 Session Cookie 恢复成带有明确用户身份的 Authenticated Request（已认证请求）。**
+
+---
+
+### 【@CurrentUser 只是读取 SessionGuard 已经建立好的 request.auth】
+
+当前：
+
+```ts
+export const CurrentUser =
+  createParamDecorator(
+    (
+      _data: unknown,
+      context:
+        ExecutionContext,
+    ):
+      AuthenticatedUser =>
+      context
+        .switchToHttp()
+        .getRequest<
+          AuthenticatedRequest
+        >()
+        .auth,
+  );
+```
+
+所以：
+
+```text
+SessionGuard
+    ↓
+request.auth = user
+    ↓
+@CurrentUser()
+    ↓
+Controller 参数 user
+```
+
+Controller 不需要再次：
+
+```text
+解析 Cookie
+查询 Redis
+恢复 Session
+```
+
+身份恢复已经在 Guard 阶段完成。
+
+---
+
+### 【CSRF Protection 解决的是 Cookie 自动携带带来的跨站伪造问题】
+
+Cookie 的便利之处在于：
+
+```text
+Browser
+    ↓
+自动携带符合条件的 Cookie
+```
+
+但这也形成 CSRF（Cross-Site Request Forgery，跨站请求伪造）的基础风险模型。
+
+可以概念化为：
+
+```text
+用户已经登录 monitor.example.com
+    ↓
+Browser 中有 bm_session Cookie
+    ↓
+用户访问 evil.example
+    ↓
+攻击页面尝试诱导 Browser
+向 monitor.example.com 发请求
+    ↓
+Browser 可能按照 Cookie 规则
+自动携带 monitor.example.com 的 Cookie
+```
+
+所以单独验证：
+
+```text
+bm_session
+```
+
+只能证明：
+
+```text
+浏览器拥有合法登录 Session
+```
+
+不能单独证明：
+
+```text
+这个写请求确实是当前应用前端主动构造的
+```
+
+因此当前项目增加第二份：
+
+```text
+CSRF Token
+```
+
+作为修改类请求的附加验证条件。
+
+---
+
+### 【前端只对修改类请求主动增加 x-csrf-token】
+
+当前 `api()`：
+
+```ts
+const method =
+  init.method
+    ?.toUpperCase()
+  ?? 'GET';
+
+headers: {
+  ...(
+    init.body
+      ? {
+          'content-type':
+            'application/json',
+        }
+      : {}
+  ),
+
+  ...(
+    ![
+      'GET',
+      'HEAD',
+      'OPTIONS',
+    ].includes(method)
+    && csrfToken
+      ? {
+          'x-csrf-token':
+            csrfToken,
+        }
+      : {}
+  ),
+
+  ...init.headers,
+}
+```
+
+因此普通读取请求：
+
+```text
+GET /api/v1/projects
+
+Cookie:
+bm_session=...
+```
+
+而修改类请求：
+
+```text
+POST /api/v1/projects
+
+Cookie:
+bm_session=...
+
+x-csrf-token:
+bm_csrf_xxx
+```
+
+也就是说写请求携带两份不同来源的凭证：
+
+```text
+bm_session
+    ↓
+Browser 自动携带
+
+
+x-csrf-token
+    ↓
+Web JavaScript 主动读取 CSRF Token 后添加
+```
+
+---
+
+### 【CsrfGuard 对比 Header Token 与当前 Session 内保存的 CSRF Token】
+
+因为 Controller：
+
+```ts
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+```
+
+所以先：
+
+```text
+SessionGuard
+    ↓
+恢复 request.auth
+```
+
+再：
+
+```text
+CsrfGuard
+```
+
+核心代码：
+
+```ts
+const supplied =
+  request.headers[
+    'x-csrf-token'
+  ];
+
+if (
+  typeof supplied !== 'string'
+  ||
+  supplied
+    !== request.auth.csrfToken
+) {
+  throw new ForbiddenException({
+    code:
+      'invalid_csrf_token',
+  });
+}
+```
+
+因此比对的是：
+
+```text
+Request Header
+
+x-csrf-token
+        ↓
+客户端提交的 CSRF Token
+
+
+request.auth.csrfToken
+        ↓
+Redis Session 中保存的 CSRF Token
+```
+
+只有：
+
+```text
+Header CSRF Token
+        ==
+Current Session CSRF Token
+```
+
+才继续执行。
+
+否则：
+
+```text
+403 Forbidden
+```
+
+这也是为什么 `SessionGuard` 必须先于 `CsrfGuard`：
+
+```text
+SessionGuard
+    ↓
+建立 request.auth
+
+CsrfGuard
+    ↓
+读取 request.auth.csrfToken
+```
+
+---
+
+### 【GET / HEAD / OPTIONS 不要求 CSRF Token，但仍然可以要求 Session】
+
+当前：
+
+```ts
+if (
+  ['GET', 'HEAD', 'OPTIONS']
+    .includes(request.method)
+) {
+  return true;
+}
+```
+
+因此：
+
+```text
+GET /api/v1/projects
+    ↓
+SessionGuard
+    ↓
+必须已经登录
+    ↓
+CsrfGuard
+    ↓
+发现 GET
+    ↓
+直接通过
+```
+
+而：
+
+```text
+POST /api/v1/projects
+    ↓
+SessionGuard
+    ↓
+验证 Session
+    ↓
+CsrfGuard
+    ↓
+验证 x-csrf-token
+```
+
+所以：
+
+```text
+Authentication
+    → 受保护读取和写入请求都可能需要
+
+CSRF Validation
+    → 当前项目主要保护会产生状态修改的请求
+```
+
+---
+
+### 【页面刷新后可以通过 /auth/me 恢复 User 与 CSRF Token】
+
+当前 `AuthProvider`：
+
+```ts
+const session =
+  useQuery({
+    queryKey: ['session'],
+
+    queryFn: async () => {
+      const response =
+        await api<{
+          user: User;
+          csrfToken: string;
+        }>(
+          '/api/v1/auth/me',
+        );
+
+      setCsrfToken(
+        response.csrfToken,
+      );
+
+      return response.user;
+    },
+
+    retry: false,
+    staleTime: 60_000,
+  });
+```
+
+`/auth/me`：
+
+```ts
+@Get('me')
+@UseGuards(SessionGuard)
+me(
+  @CurrentUser()
+  user: AuthenticatedUser,
+): {
+  user: AuthenticatedUser;
+  csrfToken: string;
+} {
+  return {
+    user,
+    csrfToken:
+      user.csrfToken,
+  };
+}
+```
+
+所以用户刷新页面后：
+
+```text
+Browser
+    ↓
+GET /api/v1/auth/me
+    ↓
+credentials: include
+    ↓
+自动携带 bm_session
+    ↓
+SessionGuard
+    ↓
+Redis Session
+    ↓
+request.auth
+    ↓
+@CurrentUser()
+    ↓
+返回 user + csrfToken
+    ↓
+Web
+    ↓
+setCsrfToken()
+    ↓
+恢复 sessionStorage
+```
+
+因此 Session Cookie 是恢复登录态的根凭证，而 CSRF Token 可以从当前有效 Session 重新获取。
+
+---
+
+### 【Auth 与 Authorization 不是一回事】
+
+例如：
+
+```text
+GET
+/api/v1/projects/project-123
+```
+
+SessionGuard 只能证明：
+
+```text
+当前请求来自 user-001
+```
+
+但它不能证明：
+
+```text
+user-001 是否属于 project-123
+```
+
+Controller：
+
+```ts
+return this.projects.detail(
+  user.id,
+  projectId,
+);
+```
+
+继续把：
+
+```text
+user.id
++
+projectId
+```
+
+交给 `ProjectsService`。
+
+后续 Service 中的：
+
+```text
+requireAccess()
+requireOwner()
+项目成员关系检查
+```
+
+才属于 Authorization（资源授权）。
+
+因此当前安全链应该分成：
+
+```text
+第一层
+Authentication
+────────────────────
+SessionGuard
+
+回答：
+你是谁？
+
+
+第二层
+CSRF Protection
+────────────────────
+CsrfGuard
+
+回答：
+这个修改请求是否具有
+当前 Session 对应的附加凭证？
+
+
+第三层
+Authorization
+────────────────────
+ProjectsService 等业务 Service
+
+回答：
+你是否可以操作
+这个 Project / Resource？
+```
+
+---
+
+### 【Request ID 完全不属于身份认证体系】
+
+当前 `RequestIdInterceptor`：
+
+```ts
+const incoming =
+  request.headers[
+    'x-request-id'
+  ];
+
+const requestId =
+  typeof incoming === 'string'
+  && incoming.length <= 128
+    ? incoming
+    : randomUUID();
+```
+
+Request ID 的作用不是：
+
+```text
+证明用户身份
+验证 Session
+验证 CSRF
+判断 Project 权限
+```
+
+它只是在回答：
+
+```text
+当前是哪一条 HTTP Request？
+```
+
+所以：
+
+```text
+User
+    ≠ Request ID
+
+Session
+    ≠ Request ID
+
+CSRF Token
+    ≠ Request ID
+
+单次 Request
+    → Request ID
+```
+
+当前 Web Client 没有主动生成 `x-request-id`，因此普通 Web 请求通常会：
+
+```text
+Request
+    ↓
+没有 incoming x-request-id
+    ↓
+RequestIdInterceptor
+    ↓
+randomUUID()
+```
+
+如果未来上游主动传：
+
+```http
+x-request-id: abc123
+```
+
+且满足当前长度判断，则服务端会继续沿用。
+
+---
+
+### 【Request ID 同时写入 Request Context、Response Header 和日志】
+
+当前：
+
+```ts
+request.requestId =
+  requestId;
+
+response.header(
+  'x-request-id',
+  requestId,
+);
+```
+
+最后：
+
+```ts
+process.stdout.write(
+  JSON.stringify({
+    message:
+      'request_completed',
+    requestId,
+    method:
+      request.method,
+    path:
+      request.url
+        .split('?', 1)[0],
+    statusCode:
+      response.statusCode,
+    durationMs:
+      ...
+  }),
+);
+```
+
+所以：
+
+```text
+Request ID
+    ├──→ request.requestId
+    │
+    ├──→ Response x-request-id
+    │
+    └──→ request_completed Log
+```
+
+最终可以形成：
+
+```text
+用户或前端拿到 requestId
+    ↓
+日志平台搜索 requestId
+    ↓
+找到：
+method
+path
+statusCode
+durationMs
+相关 Trace / downstream log
+```
+
+这属于 Observability（可观测性），而不是 Authentication。
+
+---
+
+### 【当前 RequestIdInterceptor 无法覆盖在 Guard 阶段直接失败的请求】
+
+这一点与上一章 Request Lifecycle 直接相关。
+
+Nest 生命周期：
+
+```text
+Guard
+    ↓
+Interceptor
+```
+
+当前受保护接口：
+
+```text
+SessionGuard
+    ↓
+CsrfGuard
+    ↓
+RequestIdInterceptor
+```
+
+因此如果：
+
+```text
+SessionGuard
+    → 401
+
+或者
+
+CsrfGuard
+    → 403
+```
+
+请求会在进入 Interceptor 之前结束。
+
+所以当前 `RequestIdInterceptor` 不能严格覆盖：
+
+```text
+所有进入 HTTP Server 的请求
+```
+
+它覆盖的是：
+
+```text
+成功进入 Nest Interceptor 阶段的 Route 请求
+```
+
+如果设计目标要求：
+
+```text
+401
+403
+Guard Failure
+甚至更早错误
+```
+
+也必须有统一 Request ID，则 Request ID 建立逻辑应考虑放到：
+
+```text
+Fastify Hook
+或
+Middleware
+```
+
+更靠前的位置。
+
+---
+
+### 【Access Token + Refresh Token 并不会因为是“双 Token”就自动解决 CSRF】
+
+这里进入通用安全分析，不是当前项目源码事实。
+
+常见“双 Token”通常指：
+
+```text
+Access Token
++
+Refresh Token
+```
+
+它主要解决：
+
+```text
+Access Token
+    → 短期访问凭证
+
+Refresh Token
+    → 用于延长登录状态 / 获取新的 Access Token
+```
+
+核心问题是：
+
+```text
+Token 生命周期
+登录续期
+凭证泄漏后的影响窗口
+```
+
+它本身并不是 CSRF Protection。
+
+如果：
+
+```text
+Access Token
+Refresh Token
+```
+
+都放进浏览器自动携带的 Cookie：
+
+```text
+Cross-Site Request
+    ↓
+Browser 仍可能自动发送认证 Cookie
+```
+
+传统 CSRF 风险仍然存在。
+
+所以：
+
+> **CSRF 是否成立，关键不是“有几个 Token”，而是认证凭证是否会被 Browser 自动携带。**
+
+---
+
+### 【Authorization Header 模式降低传统 CSRF 风险，是因为认证 Header 需要 JavaScript 主动添加】
+
+另一种常见方案：
+
+```text
+Access Token
+    ↓
+JavaScript Memory / Storage
+    ↓
+请求时主动添加
+
+Authorization:
+Bearer <access-token>
+```
+
+Browser 不会因为访问某个 Origin 自动添加：
+
+```http
+Authorization:
+Bearer ...
+```
+
+因此攻击站点无法仅依靠：
+
+```text
+诱导 Browser 发送请求
+```
+
+就获得合法 Authorization Header。
+
+这也是为什么：
+
+```text
+Authorization Header Token
+```
+
+通常不像 Cookie Session 一样依赖传统 CSRF Token。
+
+但代价是：
+
+```text
+如果 Access Token 暴露给 JavaScript
+    ↓
+XSS 成功时
+    ↓
+Token 可能直接被读取和窃取
+```
+
+所以这只是安全模型的变化，不是“天然更安全”。
+
+---
+
+### 【当前 HttpOnly Session Cookie + CSRF Token 是一组配套设计】
+
+当前 Session Token：
+
+```text
+HttpOnly Cookie
+```
+
+带来的好处：
+
+```text
+普通 JavaScript
+不能直接读取 Session Credential
+```
+
+但代价是：
+
+```text
+Browser 自动携带 Cookie
+    ↓
+需要考虑 CSRF
+```
+
+所以增加：
+
+```text
+CSRF Token
+```
+
+形成：
+
+```text
+HttpOnly Session Cookie
+        +
+CSRF Token
+```
+
+这两部分不是重复，而是互相补足：
+
+```text
+HttpOnly
+    → 降低 Session Token 被 JavaScript 直接读取的风险
+
+CSRF Token
+    → 弥补 Cookie 自动发送带来的跨站请求伪造风险
+```
+
+---
+
+### 【当前 Web + Nest API + Redis 场景下，Server-side Session 是自然选择】
+
+当前系统主要是：
+
+```text
+React Web
+    ↓
+Nest API
+    ↓
+Redis + PostgreSQL
+```
+
+并不是一个主要面向：
+
+```text
+大量第三方 API Client
+多个独立 Mobile Client
+OAuth Consumer
+跨组织 API 使用方
+```
+
+的认证平台。
+
+而当前基础设施已经存在：
+
+```text
+Redis
+```
+
+因此：
+
+```text
+Cookie
+    ↓
+Session Token
+    ↓
+Redis
+    ↓
+AuthenticatedUser
+```
+
+是一条简单直接的 Server-side Session 模型。
+
+如果改成：
+
+```text
+Access Token
++
+Refresh Token Rotation
+```
+
+则还需要额外设计：
+
+```text
+Access Token TTL
+Refresh Token TTL
+Refresh Endpoint
+Refresh Rotation
+Reuse Detection
+并发刷新
+多 Tab 刷新竞争
+Token Revocation
+Token Storage
+```
+
+是否值得引入这些复杂度，需要由客户端类型、跨服务架构、Token 自包含需求等实际业务目标决定，而不能只因为“双 Token”听起来更现代。
+
+---
+
+### 【CSRF Token 可以被 XSS 获取，因此 CSRF Protection 不等于 XSS Protection】
+
+当前 Web 把 CSRF Token 放在：
+
+```text
+sessionStorage
+```
+
+所以正常 JavaScript 可以：
+
+```js
+sessionStorage.getItem(
+  'browser-monitor-csrf',
+)
+```
+
+读取。
+
+如果攻击者通过 XSS（Cross-Site Scripting，跨站脚本攻击）成功让恶意 JavaScript 在当前应用 Origin 内执行，那么恶意脚本与正常 React 代码拥有相同的页面 JavaScript 权限。
+
+因此它同样可能读取：
+
+```text
+browser-monitor-csrf
+```
+
+所以：
+
+```text
+正常 App JavaScript 能读取
+        ↓
+同 Origin 的 XSS JavaScript
+通常也能读取
+```
+
+这说明：
+
+> **CSRF Token 主要用来防跨站请求伪造，并不是用来防 XSS。**
+
+---
+
+### 【HttpOnly 能阻止 XSS 直接读取 Session Token，但不能阻止恶意脚本借用当前 Session】
+
+由于：
+
+```text
+bm_session
+    → HttpOnly
+```
+
+XSS JavaScript 通常不能：
+
+```js
+document.cookie
+```
+
+直接得到原始：
+
+```text
+bm_session=<secret>
+```
+
+但是：
+
+```text
+不能读取 Cookie
+≠
+不能使用 Cookie
+```
+
+只要恶意脚本已经运行在当前应用 Origin，它仍然可以：
+
+```js
+fetch(
+  '/api/v1/projects',
+  {
+    credentials: 'include',
+  },
+)
+```
+
+Browser 会正常附带：
+
+```text
+bm_session
+```
+
+因此：
+
+```text
+XSS
+    ↓
+无法直接读取 Session Token
+    ↓
+但可以借 Browser
+使用当前 Session
+```
+
+这就是为什么 HttpOnly 的价值应该理解为：
+
+```text
+Credential Theft Protection
+（降低凭证直接被盗风险）
+```
+
+而不是：
+
+```text
+让 XSS 无法执行任何登录态操作
+```
+
+---
+
+### 【XSS 可以读取同源 API Response，也可以执行用户权限范围内的写操作】
+
+如果 XSS 已经运行在：
+
+```text
+monitor.example.com
+```
+
+那么它向：
+
+```text
+monitor.example.com/api/...
+```
+
+发请求，本身就是 Same-Origin Request（同源请求）。
+
+例如：
+
+```js
+const response =
+  await fetch(
+    '/api/v1/projects',
+    {
+      credentials: 'include',
+    },
+  );
+
+const data =
+  await response.json();
+```
+
+只要 Session 有效：
+
+```text
+XSS
+    ↓
+Browser 自动带 Session Cookie
+    ↓
+SessionGuard 通过
+    ↓
+API 返回数据
+    ↓
+XSS 可以读取 Response
+```
+
+对于写操作，XSS 还能读取：
+
+```text
+sessionStorage 中的 CSRF Token
+```
+
+并主动添加：
+
+```http
+x-csrf-token: ...
+```
+
+例如概念上：
+
+```text
+XSS
+    ↓
+读取 csrfToken
+    ↓
+POST /api/v1/projects
+    ↓
+Browser 自动携带 bm_session
+    ↓
+JS 主动添加 x-csrf-token
+    ↓
+SessionGuard 通过
+    ↓
+CsrfGuard 通过
+    ↓
+Controller / Service
+```
+
+服务端无法仅从这两个凭证判断：
+
+```text
+请求来自正常 React 代码
+还是
+同 Origin 中已经执行成功的 XSS 代码
+```
+
+因为两者处于相同的浏览器安全上下文。
+
+---
+
+### 【CSRF 与 XSS 的安全边界不同】
+
+可以把两类攻击区别画成：
+
+```text
+CSRF
+────────────────────
+攻击代码在站外
+
+evil.example
+    ↓
+试图借用户 Browser
+自动携带 monitor.example Cookie
+    ↓
+通常拿不到当前应用中的 CSRF Token
+    ↓
+CSRF Token 可以发挥作用
+```
+
+而：
+
+```text
+XSS
+────────────────────
+攻击代码已经进入站内
+
+monitor.example
+    ↓
+恶意 JavaScript 与正常 App
+处于同 Origin
+    ↓
+可以读取 JS 可访问的数据
+    ↓
+可以调用同源 API
+    ↓
+可以读取同源 Response
+```
+
+所以：
+
+> **CSRF 的攻击者通常在应用 Origin 外部，而 XSS 的攻击代码已经进入应用 Origin 内部。**
+
+这也是为什么：
+
+```text
+CSRF Token
+SameSite
+CORS
+```
+
+都不能被当作主要 XSS 防线。
+
+---
+
+### 【SameSite 与 CORS 可以辅助限制跨站行为，但不能解决当前 Origin 内的 XSS】
+
+当前 Session Cookie：
+
+```ts
+sameSite: 'lax'
+```
+
+可以进一步约束某些 Cross-Site Cookie 行为，因此属于 CSRF 防御的一部分。
+
+但是 XSS 已经运行在：
+
+```text
+当前 Site / Origin
+```
+
+所以：
+
+```text
+SameSite
+```
+
+不能阻止它使用当前站点 Session。
+
+同理 CORS（Cross-Origin Resource Sharing，跨源资源共享）主要约束浏览器对跨 Origin 请求 / Response 的访问。
+
+如果恶意脚本已经运行在：
+
+```text
+当前 Origin
+```
+
+那么：
+
+```text
+Same-Origin API
+```
+
+本身就不受 CORS 跨源限制。
+
+因此：
+
+```text
+CORS
+    ≠ XSS Protection
+
+SameSite
+    ≠ XSS Protection
+
+CSRF Token
+    ≠ XSS Protection
+```
+
+---
+
+### 【XSS 需要由独立的前端内容执行安全体系防御】
+
+XSS 的核心问题是：
+
+```text
+攻击者 JavaScript
+能否进入并执行在当前应用 Origin
+```
+
+所以需要从另外一套安全边界处理。
+
+React 默认文本渲染：
+
+```tsx
+<div>{userInput}</div>
+```
+
+会对普通文本做转义。
+
+需要重点警惕：
+
+```tsx
+dangerouslySetInnerHTML={{
+  __html: userInput,
+}}
+```
+
+以及：
+
+```js
+element.innerHTML =
+  userInput;
+```
+
+这类把不可信 HTML 直接送入 DOM 的路径。
+
+如果业务确实需要渲染 HTML，则需要：
+
+```text
+HTML Sanitization
+（HTML 内容净化）
+```
+
+另外可以通过 CSP（Content Security Policy，内容安全策略）进一步限制：
+
+```text
+哪些 Script 可以执行
+是否允许 Inline Script
+是否允许 eval
+允许连接哪些数据目标
+允许加载哪些第三方资源
+```
+
+例如安全方向上通常会避免宽松的：
+
+```text
+'unsafe-inline'
+'unsafe-eval'
+```
+
+复杂高安全场景还可以进一步使用：
+
+```text
+Trusted Types
+```
+
+约束：
+
+```text
+innerHTML
+insertAdjacentHTML
+等 DOM XSS Sink
+```
+
+同时需要关注：
+
+```text
+第三方 Script
+npm Dependency
+CDN
+供应链依赖
+```
+
+因为 XSS / Script Injection 不一定只来自业务表单输入。
+
+---
+
+### 【当前安全体系可以拆成四个相互独立的防线】
+
+最终可以把 Browser Monitor 的 Web 安全模型整理成：
+
+```text
+第一层
+Authentication
+────────────────────────
+Session Token
+HttpOnly Cookie
+Redis Session
+
+回答：
+你是谁？
+
+
+第二层
+CSRF Protection
+────────────────────────
+SameSite Cookie
++
+CSRF Token
++
+x-csrf-token
+
+回答：
+其他站点能否仅利用
+Browser 自动 Cookie
+伪造修改请求？
+
+
+第三层
+XSS Protection
+────────────────────────
+React Output Escaping
+HTML Sanitization
+CSP
+Trusted Types
+Dependency Security
+
+回答：
+攻击者 JavaScript
+能否进入当前 Origin 执行？
+
+
+第四层
+Authorization
+────────────────────────
+ProjectsService
+requireAccess()
+requireOwner()
+业务资源权限判断
+
+回答：
+即使已经登录，
+当前用户可以访问哪些具体资源？
+```
+
+Request ID 则是另一条横向能力：
+
+```text
+Observability
+────────────────────────
+Request ID
+Request Log
+Duration
+Status Code
+
+回答：
+这一条 HTTP Request
+在系统里发生了什么？
+```
+
+所以 Request ID 不属于上面的四层安全授权体系。
+
+---
+
+### 【用户从打开页面到执行写操作的完整链路】
+
+把当前所有逻辑最终串成一条真实用户访问链：
+
+```text
+用户打开 Browser Monitor
+        ↓
+React AuthProvider
+        ↓
+GET /api/v1/auth/me
+        ↓
+credentials: include
+        ↓
+Browser 自动携带 bm_session
+        ↓
+SessionGuard
+        ↓
+hashToken(session token)
+        ↓
+Redis Session
+        ↓
+request.auth = user
+        ↓
+@CurrentUser()
+        ↓
+返回 user + csrfToken
+        ↓
+Web setCsrfToken()
+        ↓
+sessionStorage 保存 csrfToken
+        ↓
+用户进入 Projects 页面
+        ↓
+GET /api/v1/projects
+        ↓
+Browser 自动携带 bm_session
+        ↓
+SessionGuard
+        ↓
+恢复 request.auth
+        ↓
+CsrfGuard
+        ↓
+GET 直接通过
+        ↓
+RequestIdInterceptor
+        ↓
+建立 requestId
+        ↓
+Controller
+        ↓
+ProjectsService
+        ↓
+Authorization / Database
+        ↓
+Response
+        ↓
+Request Log
+```
+
+如果用户执行写操作：
+
+```text
+用户点击“创建项目”
+        ↓
+POST /api/v1/projects
+        ↓
+api()
+        ↓
+credentials: include
+        ↓
+Browser 自动携带 bm_session
+        +
+前端主动加入 x-csrf-token
+        ↓
+SessionGuard
+        ↓
+恢复 request.auth
+        ↓
+CsrfGuard
+        ↓
+Header CSRF Token
+        ==
+Session CSRF Token ?
+        ↓
+通过
+        ↓
+RequestIdInterceptor
+        ↓
+requestId / startedAt
+        ↓
+@CurrentUser + @Body
+        ↓
+Controller
+        ↓
+Zod Validation
+        ↓
+ProjectsService
+        ↓
+Authorization
+        ↓
+Database / Transaction
+        ↓
+Response
+        ↓
+RequestIdInterceptor finalize
+        ↓
+Request Log
+```
+
+这就是当前项目从用户访问层看到的完整认证、安全、业务授权和请求追踪链。
+
+---
+
+### 【Logout 同时销毁服务端 Session、Cookie 与前端 CSRF 状态】
+
+当前 Web：
+
+```ts
+await api(
+  '/api/v1/auth/logout',
+  {
+    method: 'POST',
+  },
+);
+
+clearCsrfToken();
+
+queryClient.clear();
+```
+
+因为 Logout 是 POST，所以前端会发送：
+
+```text
+bm_session
++
+x-csrf-token
+```
+
+服务端先：
+
+```text
+SessionGuard
+    ↓
+CsrfGuard
+```
+
+通过后：
+
+```ts
+await this.auth.logout(
+  request.cookies
+    ?.bm_session,
+);
+```
+
+`AuthService.logout()`：
+
+```text
+Session Token
+    ↓
+hashToken()
+    ↓
+Redis DEL
+        +
+DELETE user_sessions
+```
+
+Controller 再：
+
+```ts
+reply.clearCookie(
+  'bm_session',
+  {
+    path: '/',
+  },
+);
+```
+
+前端：
+
+```text
+clearCsrfToken()
+    ↓
+sessionStorage 删除
+browser-monitor-csrf
+```
+
+所以完整 Logout：
+
+```text
+Server Redis Session 删除
++
+Database Session Record 删除
++
+Browser Session Cookie 清除
++
+Browser CSRF Token 清除
+```
+
+---
+
+### 【这一层最终形成的统一判断框架】
+
+以后遇到 Session / Token / ID 设计，不要先从名字判断，而是依次问：
+
+```text
+这个值是谁生成的？
+
+它存在哪里？
+
+Browser 会不会自动发送？
+
+JavaScript 能不能读取？
+
+它是 Identifier 还是 Credential？
+
+拿到它是否可以直接认证？
+
+服务端保存原值还是 Hash？
+
+有效期由谁控制？
+
+如何撤销？
+
+它防的是 Authentication、
+CSRF、XSS、Authorization
+还是只做 Observability？
+```
+
+当前项目可以最终压缩成：
+
+```text
+bm_session
+    → Authentication Credential
+    → HttpOnly Cookie
+    → Browser 自动发送
+    → Redis Session 恢复用户身份
+
+csrfToken
+    → CSRF Protection Credential
+    → sessionStorage
+    → JS 主动发送 x-csrf-token
+    → 与当前 Session 中 csrfToken 比对
+
+sessionId
+    → Session 内部 Identifier
+    → 不直接承担 Browser Authentication
+
+requestId
+    → Request Observability Identifier
+    → 不参与 Authentication / Authorization
+
+ProjectsService 等
+    → Resource Authorization
+
+CSP / Sanitization / React Escaping 等
+    → XSS Protection
+```
+
+因此当前项目最重要的安全边界不是“用了几个 Token”，而是：
+
+> **认证凭证由谁持有、Browser 是否自动发送、JavaScript 是否能够读取、服务端怎样恢复身份、写请求如何防跨站伪造，以及即使身份合法后如何继续做资源授权。CSRF Token 解决不了 XSS；HttpOnly 能降低 Session Credential 被直接窃取的风险，但也不能阻止已经运行在当前 Origin 中的恶意 JavaScript 借用当前 Session 调用同源 API。**
+
+
+## 7. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
@@ -5691,9 +8209,7 @@ Controller 与 Route 映射
     ↓
 Request Lifecycle
     ↓
-Guard / Session / CSRF
-    ↓
-Interceptor / RequestId / Logging
+Auth / Session / CSRF / RequestId
     ↓
 Zod Validation
     ↓
