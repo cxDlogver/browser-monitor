@@ -2558,6 +2558,61 @@ Provider Object Graph
 > **Module 决定 Provider 在哪里、对谁可见；Token 决定要找哪个 Provider；Provider Definition 决定它怎样创建；Class Provider 的依赖通常从 constructor 与 `@Inject()` 中解析，Factory Provider 的依赖通过 `inject: []` 显式声明；最终由 DI Container 构建完整的 Provider Object Graph。**
 
 
+### 【这一层可以压缩成六条判断规则】
+
+阅读 Nest Provider 代码时，可以按下面顺序判断：
+
+```text
+1. 这个对象有没有注册进 providers？
+   ↓
+   决定它是否成为当前 Module 的 Provider
+
+2. 它使用什么 Token？
+   ↓
+   Class / Symbol / String
+
+3. Token 和实现 Class 是否相同？
+   ↓
+   相同：
+   providers: [SomeService]
+   可以作为 useClass 的简写
+
+   不同：
+   必须保留 provide + useClass
+
+4. 如果是 useClass，依赖写在哪里？
+   ↓
+   constructor
+
+   普通 Class 参数
+   → 直接使用 Class Token
+
+   @Inject(TOKEN)
+   → 显式指定 Runtime Token
+
+5. 如果是 useFactory，依赖写在哪里？
+   ↓
+   inject: [TOKEN]
+
+   Nest 先解析 inject 中的 Provider，
+   再按顺序传给 useFactory 参数
+
+6. @Injectable() 做什么？
+   ↓
+   让 Class 参与 Nest DI 并提供构造函数依赖元数据，
+   它本身既不是 Provider 注册动作，也不是 Provider Token
+```
+
+最容易混淆的三组概念可以最后再对照一次：
+
+| 容易混淆的概念 | 正确区别 |
+| --- | --- |
+| `@Injectable()` vs `providers: []` | 前者让 Class 参与 DI；后者真正把它注册为 Provider |
+| TypeScript Type vs DI Token | Type 给编译器做类型检查；Token 给 Nest 在运行时查找 Provider |
+| `@Inject(TOKEN)` vs `inject: [TOKEN]` | 前者用于 Class constructor 参数；后者用于 Factory Provider 的工厂函数参数 |
+
+
+
 ## 4. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
