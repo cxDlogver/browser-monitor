@@ -1633,7 +1633,932 @@ DI Container
 > **Module Graph 不是目录关系图，而是 NestJS 用 `imports / exports` 建立的能力边界与 Provider 可见性图；Root Module 负责把这些能力装配成完整 Application，DI Container 再在这张图允许的范围内解析具体对象依赖。**
 
 
-## 3. 后续学习顺序
+## 3. Provider 与 Dependency Injection 负责把对象创建和依赖关系交给 Nest 管理
+
+这一层继续回答上一章留下的问题：
+
+```text
+Module Graph 已经告诉 Nest：
+“哪些 Provider 在哪里、对谁可见”
+
+下一步还需要回答：
+
+这些 Provider 到底怎样被识别？
+怎样创建？
+怎样知道自己依赖谁？
+Nest 又怎样把它们连接起来？
+```
+
+核心主线是：
+
+```text
+Provider
+    ↓
+Token
+    ↓
+Provider Definition
+    ↓
+constructor / inject
+    ↓
+DI Container
+    ↓
+Provider Object Graph
+```
+
+第一次出现的几个专业术语先统一：
+
+| 术语 | 中文理解 |
+| --- | --- |
+| Provider | 提供者；交给 Nest 容器管理的对象或能力 |
+| Dependency Injection（DI） | 依赖注入；对象只声明自己需要什么，由容器把依赖传进来 |
+| DI Container | 依赖注入容器；负责记录、创建、查找和连接 Provider |
+| Token | 依赖标识；Nest 在运行时用来定位某个 Provider 的“名字” |
+| Provider Definition | Provider 定义；告诉 Nest 一个 Token 对应的实例怎样创建 |
+| Provider Object Graph | Provider 对象依赖图；运行时各个 Provider 实例之间的依赖关系 |
+
+### 【Provider 是交给 Nest DI Container 管理的对象或能力】
+
+当前项目里这些对象都属于 Provider：
+
+```text
+ProjectsService
+AnalyticsService
+MetricsService
+SessionGuard
+API_CONFIG
+DATABASE
+REDIS
+InfrastructureShutdown
+```
+
+它们虽然形态不同，但共同点是：
+
+> **都由 Nest 的 DI Container 负责管理，而不是由业务代码在使用处手工创建。**
+
+例如：
+
+```ts
+@Injectable()
+export class ProjectsService {
+  // ...
+}
+```
+
+注册：
+
+```ts
+@Module({
+  providers: [ProjectsService],
+})
+export class ProjectsModule {}
+```
+
+可以理解成：
+
+```text
+ProjectsService
+      ↓
+注册到当前 Module 的 DI Context
+      ↓
+Nest 负责创建实例
+      ↓
+Nest 负责把实例注入到需要它的对象
+```
+
+所以 Provider 不等于 Service。Service 只是最常见的一类 Provider。
+
+### 【Dependency Injection 的核心是“声明依赖”，不是自己创建依赖】
+
+没有 DI 时，一个对象可能自己创建所有依赖：
+
+```ts
+const config = loadApiConfig();
+const database = createDatabase(config.DATABASE_URL);
+const redis = new Redis(config.REDIS_URL);
+
+const projects = new ProjectsService(database, config, mailer);
+const analytics = new AnalyticsService(database, redis, projects);
+```
+
+随着依赖变多：
+
+```text
+AnalyticsService
+    ↓
+ProjectsService
+    ↓
+MailerService
+
+AnalyticsService
+    ↓
+DATABASE
+    ↓
+API_CONFIG
+```
+
+业务代码就需要知道：
+
+```text
+每个对象怎么创建
+创建顺序是什么
+还要给它传哪些依赖
+```
+
+NestJS 的做法是：
+
+```ts
+@Injectable()
+export class AnalyticsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(REDIS)
+    private readonly redis: Redis,
+
+    private readonly projects: ProjectsService,
+  ) {}
+}
+```
+
+`AnalyticsService` 只表达：
+
+```text
+我需要：
+
+DATABASE
+REDIS
+ProjectsService
+```
+
+至于这些对象从哪里来、怎样创建，由 DI Container 负责。
+
+因此 Dependency Injection（依赖注入）可以先理解成：
+
+> **对象只声明“我依赖什么”，容器负责把真正的依赖实例传进来。**
+
+### 【Token 是 Nest 在运行时识别 Provider 的依赖标识】
+
+DI Container 中存在很多 Provider，Nest 必须能够区分：
+
+```text
+当前 constructor 要的是哪一个 Provider？
+```
+
+这就是 Token（依赖标识）的作用。
+
+可以抽象成：
+
+```text
+Token
+    ↓
+在 DI Container 中查找
+    ↓
+Provider Definition
+    ↓
+Provider Instance
+```
+
+当前项目里既存在 Class Token（类作为依赖标识），也存在 Symbol Token（Symbol 类型依赖标识）。
+
+### 【Class 本身可以作为 Token，@Injectable() 不是 Token】
+
+例如：
+
+```ts
+@Injectable()
+export class MetricsService {}
+```
+
+Module 中：
+
+```ts
+providers: [MetricsService]
+```
+
+这里真正作为 Token 的是：
+
+```text
+MetricsService 这个 Class 本身
+```
+
+因为 JavaScript 运行时中的 Class 仍然是一个真实存在的对象引用，Nest 可以直接把它作为 DI Container 中的 Key。
+
+可以理解成：
+
+```text
+Token
+MetricsService Class
+      ↓
+Provider
+MetricsService
+      ↓
+Instance
+MetricsService instance
+```
+
+因此：
+
+```ts
+constructor(
+  private readonly metrics: MetricsService,
+) {}
+```
+
+Nest 可以直接根据 Class Token 找到对应实例。
+
+这里要特别区分：
+
+```text
+@Injectable()
+    ≠ Provider Token
+```
+
+`@Injectable()` 是 Nest 的装饰器，用来标记这个 Class 参与依赖注入，并配合 TypeScript 的装饰器元数据让 Nest 能识别其构造函数依赖。
+
+真正把它注册进 DI Container 的是：
+
+```ts
+providers: [MetricsService]
+```
+
+而真正作为依赖标识的是：
+
+```text
+MetricsService Class
+```
+
+所以可以记成：
+
+```text
+@Injectable()
+    ↓
+让 Class 参与 Nest DI，并提供构造函数依赖元数据
+
+providers: [MetricsService]
+    ↓
+把它注册为 Provider
+
+MetricsService Class
+    ↓
+作为 Runtime Token（运行时依赖标识）
+```
+
+### 【providers: [XXX] 是 useClass 的一种简写，但只在 Token 与 Class 相同时成立】
+
+普通 Provider：
+
+```ts
+providers: [MetricsService]
+```
+
+可以理解成完整形式：
+
+```ts
+providers: [
+  {
+    provide: MetricsService,
+    useClass: MetricsService,
+  },
+]
+```
+
+这里：
+
+```text
+provide
+    → Provider 使用哪个 Token
+
+useClass
+    → Nest 实际实例化哪个 Class
+```
+
+因为：
+
+```text
+Token = MetricsService
+Class = MetricsService
+```
+
+两者相同，所以可以简写：
+
+```ts
+providers: [MetricsService]
+```
+
+但如果：
+
+```ts
+{
+  provide: PAYMENT_SERVICE,
+  useClass: StripePaymentService,
+}
+```
+
+就不能改成：
+
+```ts
+providers: [StripePaymentService]
+```
+
+因为两者表达的 Token 已经不同：
+
+```text
+原写法：
+
+Token
+PAYMENT_SERVICE
+    ↓
+StripePaymentService instance
+
+
+简写后：
+
+Token
+StripePaymentService
+    ↓
+StripePaymentService instance
+```
+
+因此规则是：
+
+> **只有 `provide` 和 `useClass` 指向同一个 Class 时，才能简写成 `providers: [Class]`。**
+
+当前项目中一个不能简写的真实例子是：
+
+```ts
+{
+  provide: APP_INTERCEPTOR,
+  useClass: RequestIdInterceptor,
+}
+```
+
+这里：
+
+```text
+Token
+APP_INTERCEPTOR
+
+实际 Class
+RequestIdInterceptor
+```
+
+两者不同，所以必须保留完整 Provider Definition（Provider 定义）。
+
+### 【Symbol Token 用于运行时没有合适 Class 作为标识的依赖】
+
+当前项目：
+
+```ts
+export const DATABASE = Symbol('DATABASE');
+export const REDIS = Symbol('REDIS');
+export const API_CONFIG = Symbol('API_CONFIG');
+```
+
+这里的：
+
+```text
+DATABASE
+REDIS
+API_CONFIG
+```
+
+都是 Symbol Token（Symbol 类型依赖标识）。
+
+原因是这些依赖不适合直接使用普通 Class Token：
+
+```text
+API_CONFIG
+    → loadApiConfig() 返回的普通配置对象
+
+DATABASE
+    → createDatabase() 工厂函数创建出的 DatabaseHandle
+
+REDIS
+    → 项目希望用显式 REDIS Token 表达基础设施能力
+```
+
+这时就要区分：
+
+```text
+TypeScript Type
+    → 编译阶段描述变量有什么属性和方法
+
+Runtime Token
+    → Nest 运行时真正用来查找 Provider
+```
+
+例如：
+
+```ts
+@Inject(DATABASE)
+private readonly database: DatabaseHandle
+```
+
+实际同时表达两件事：
+
+```text
+DATABASE
+    → Runtime Token
+    → Nest 运行时通过它查找 Provider
+
+DatabaseHandle
+    → TypeScript Type
+    → 编译器用它检查 database 的类型
+```
+
+因此 `@Inject(DATABASE)` 不是在声明 TypeScript 类型，而是在显式告诉 Nest：
+
+> **这个构造函数参数应该从 Token = DATABASE 的 Provider 中取得。**
+
+### 【Provider Definition 决定一个 Token 对应的实例怎样创建】
+
+只有 Token 还不够。
+
+Nest 还需要知道：
+
+```text
+找到这个 Token 以后，
+它对应的实例应该怎么产生？
+```
+
+这就是 Provider Definition（Provider 定义）。
+
+常见方式可以先建立整体认知：
+
+```text
+useClass
+    → 通过 Class 创建实例
+
+useValue
+    → 直接提供一个现成值
+
+useFactory
+    → 调用一个函数创建实例
+
+useExisting
+    → 复用另一个已经存在的 Provider
+```
+
+当前项目主要使用：
+
+```text
+useClass
+useFactory
+```
+
+其中 `useFactory` 可以理解为：
+
+> **Factory Function（工厂函数）创建方式：Nest 调用这个函数，函数返回什么，就把什么作为这个 Token 对应的 Provider Instance（Provider 实例）。**
+
+### 【当前 API_CONFIG 使用 useFactory 创建普通配置对象】
+
+源码：
+
+```ts
+{
+  provide: API_CONFIG,
+  useFactory: (): ApiConfig =>
+    loadApiConfig(),
+}
+```
+
+可以逐步翻译：
+
+```text
+provide: API_CONFIG
+    ↓
+这个 Provider 的 Token 是 API_CONFIG
+
+useFactory
+    ↓
+Nest 调用 loadApiConfig()
+
+loadApiConfig()
+    ↓
+返回一个 ApiConfig 配置对象
+
+最终：
+
+API_CONFIG
+    ↓
+对应这个配置对象实例
+```
+
+因此 `useFactory` 并不是一套新的依赖注入机制，只是 Provider 的一种创建方式。
+
+### 【useClass 通常不需要 inject，因为依赖写在 Class constructor 中】
+
+例如：
+
+```ts
+@Injectable()
+export class AnalyticsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(REDIS)
+    private readonly redis: Redis,
+
+    private readonly projects: ProjectsService,
+  ) {}
+}
+```
+
+如果它注册成：
+
+```ts
+providers: [AnalyticsService]
+```
+
+或者完整写成：
+
+```ts
+{
+  provide: AnalyticsService,
+  useClass: AnalyticsService,
+}
+```
+
+通常都不需要再写：
+
+```ts
+inject: [
+  DATABASE,
+  REDIS,
+  ProjectsService,
+]
+```
+
+因为 Nest 在实例化 `AnalyticsService` 时，会读取 Class constructor（类构造函数）的依赖信息：
+
+```text
+AnalyticsService
+    ↓
+读取 constructor
+
+@Inject(DATABASE)
+    ↓
+需要 DATABASE
+
+@Inject(REDIS)
+    ↓
+需要 REDIS
+
+projects: ProjectsService
+    ↓
+需要 ProjectsService Class Token
+```
+
+因此：
+
+```text
+useClass
+    ↓
+依赖主要写在 Class constructor
+    ↓
+Class 类型 + @Inject(Token)
+    ↓
+Nest 自动解析
+```
+
+这里 `@Injectable()` 与 `@Inject()` 分工不同：
+
+```text
+@Injectable()
+    → 让当前 Class 参与 Nest DI，并携带可供框架读取的依赖元数据
+
+@Inject(TOKEN)
+    → 当某个参数不能只靠 Class Token 表达时，
+      显式指定该参数要使用哪个 Runtime Token
+```
+
+### 【useFactory 没有 Class constructor，因此通过 inject 显式声明工厂函数依赖】
+
+再看当前项目：
+
+```ts
+{
+  provide: DATABASE,
+
+  inject: [API_CONFIG],
+
+  useFactory: (
+    config: ApiConfig,
+  ): DatabaseHandle =>
+    createDatabase(
+      config.DATABASE_URL,
+    ),
+}
+```
+
+这里的 `inject` 可以理解为：
+
+> **工厂函数依赖列表：告诉 Nest 在执行 `useFactory` 之前，要先解析哪些 Provider。**
+
+执行链：
+
+```text
+Nest 准备创建 DATABASE
+
+        ↓
+
+看到 inject: [API_CONFIG]
+
+        ↓
+
+先从 DI Container 解析 API_CONFIG
+
+        ↓
+
+得到配置对象
+
+        ↓
+
+把它作为 useFactory 第一个参数
+
+        ↓
+
+useFactory(config)
+
+        ↓
+
+createDatabase(config.DATABASE_URL)
+
+        ↓
+
+得到 DatabaseHandle
+
+        ↓
+
+把这个实例注册为 DATABASE
+```
+
+所以：
+
+```text
+inject
+    → 声明 useFactory 需要哪些 Provider
+
+useFactory 参数
+    → 接收已经解析好的 Provider Instance
+```
+
+如果存在多个依赖：
+
+```ts
+{
+  provide: SOME_PROVIDER,
+
+  inject: [
+    API_CONFIG,
+    DATABASE,
+  ],
+
+  useFactory: (
+    config: ApiConfig,
+    database: DatabaseHandle,
+  ) => {
+    // ...
+  },
+}
+```
+
+它们按顺序对应：
+
+```text
+inject[0]
+API_CONFIG
+    ↓
+useFactory 第 1 个参数
+config
+
+inject[1]
+DATABASE
+    ↓
+useFactory 第 2 个参数
+database
+```
+
+### 【useClass 与 useFactory 的依赖声明方式不同】
+
+这一点可以直接形成规则：
+
+| Provider 创建方式 | 依赖主要声明在哪里 | 是否通常需要 `inject: []` |
+| --- | --- | --- |
+| `useClass` | Class constructor（类构造函数） | 通常不需要 |
+| `useFactory` | Provider Definition 中的 `inject` | 需要显式声明工厂函数依赖 |
+
+可以压缩成：
+
+```text
+useClass
+    ↓
+Nest 要实例化一个 Class
+    ↓
+读取 Class constructor
+    ↓
+通过 Class Token / @Inject(Token)
+解析依赖
+
+
+useFactory
+    ↓
+Nest 要执行一个普通 Factory Function
+    ↓
+没有可供 Nest 直接分析的 Class constructor
+    ↓
+通过 inject: []
+明确告诉 Nest 需要哪些依赖
+```
+
+这也是为什么当前项目：
+
+```ts
+providers: [
+  IngestionService,
+  IngestionRateLimiter,
+  MetricsService,
+]
+```
+
+不需要给每个 Service 额外写 `inject`，而：
+
+```ts
+{
+  provide: DATABASE,
+  inject: [API_CONFIG],
+  useFactory: ...
+}
+```
+
+需要显式写出 `inject`。
+
+### 【当前项目的 API_CONFIG → DATABASE / REDIS 是一条真实 Provider Dependency Graph】
+
+当前 `InfrastructureModule`：
+
+```ts
+{
+  provide: API_CONFIG,
+  useFactory: (): ApiConfig =>
+    loadApiConfig(),
+},
+{
+  provide: DATABASE,
+  inject: [API_CONFIG],
+  useFactory: (config: ApiConfig): DatabaseHandle =>
+    createDatabase(config.DATABASE_URL),
+},
+{
+  provide: REDIS,
+  inject: [API_CONFIG],
+  useFactory: (config: ApiConfig): Redis =>
+    new Redis(config.REDIS_URL, {
+      maxRetriesPerRequest: 2,
+      enableReadyCheck: true,
+      lazyConnect: false,
+    }),
+},
+```
+
+可以直接画成：
+
+```text
+loadApiConfig()
+      ↓
+  API_CONFIG
+    ├────→ DATABASE
+    └────→ REDIS
+```
+
+这里不是通过代码排列顺序表达：
+
+```text
+先创建 API_CONFIG
+再创建 DATABASE
+再创建 REDIS
+```
+
+而是通过依赖关系表达：
+
+```text
+DATABASE depends on API_CONFIG
+REDIS depends on API_CONFIG
+```
+
+DI Container 根据 Dependency Graph（依赖图）解析这些关系。
+
+因此 DI 思维的重点是：
+
+```text
+Dependency Graph
+```
+
+而不是：
+
+```text
+Execution List
+```
+
+### 【业务 Service 再继续消费基础设施 Provider】
+
+当前 `AnalyticsService`：
+
+```ts
+@Injectable()
+export class AnalyticsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(REDIS)
+    private readonly redis: Redis,
+
+    private readonly projects: ProjectsService,
+  ) {}
+}
+```
+
+它形成：
+
+```text
+DATABASE ───────┐
+                │
+REDIS ──────────┼──→ AnalyticsService
+                │
+ProjectsService ┘
+```
+
+再把 Infrastructure 层叠进来：
+
+```text
+                 API_CONFIG
+                 /        \
+                ↓          ↓
+           DATABASE      REDIS
+                \          /
+                 \        /
+                  ↓      ↓
+               AnalyticsService
+                     ↑
+                     │
+               ProjectsService
+```
+
+此时已经得到一张真正的 Provider Object Graph（Provider 对象依赖图）。
+
+### 【Module Graph 决定去哪里找，Token 决定找谁】
+
+上一章建立了：
+
+```text
+AnalyticsModule
+    ↓ imports
+ProjectsModule
+```
+
+本章建立了：
+
+```text
+AnalyticsService
+    ↓
+ProjectsService
+```
+
+两者在 DI Container 中连接起来：
+
+```text
+Module Graph
+    ↓
+决定当前 Provider 可以从哪些 Module 获得依赖
+
+Token
+    ↓
+决定具体要找哪个 Provider
+
+Provider Definition
+    ↓
+决定这个 Provider 怎样创建
+
+constructor / inject
+    ↓
+声明依赖关系
+
+DI Container
+    ↓
+解析并连接对象
+
+Provider Object Graph
+```
+
+所以这一层最终可以收敛成：
+
+> **Module 决定 Provider 在哪里、对谁可见；Token 决定要找哪个 Provider；Provider Definition 决定它怎样创建；Class Provider 的依赖通常从 constructor 与 `@Inject()` 中解析，Factory Provider 的依赖通过 `inject: []` 显式声明；最终由 DI Container 构建完整的 Provider Object Graph。**
+
+
+## 4. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
