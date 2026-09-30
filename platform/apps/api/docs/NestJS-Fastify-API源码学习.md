@@ -7336,6 +7336,822 @@ Token 可能直接被读取和窃取
 
 ---
 
+### 【Access Token + Refresh Token 可以降低普通业务 API 的 CSRF 攻击面，但不是当前项目的优先选择】
+
+前面需要进一步修正一个容易过度简化的判断：
+
+```text
+“Access Token + Refresh Token
+不能解决 CSRF”
+```
+
+这个说法不够准确。
+
+如果采用的是：
+
+```text
+Access Token
+    ↓
+不放 Cookie
+    ↓
+由 JavaScript 主动放入
+Authorization Header
+
+Refresh Token
+    ↓
+HttpOnly Cookie
+```
+
+那么普通业务 API 的确可以显著降低传统 Cookie-based CSRF（基于 Cookie 的跨站请求伪造）攻击面。
+
+原因不是：
+
+```text
+系统有两个 Token
+```
+
+而是：
+
+```text
+Access Token
+不会被 Browser 自动携带
+```
+
+例如：
+
+```http
+Authorization:
+Bearer <access-token>
+```
+
+这个 Header 需要当前应用 JavaScript 主动设置。
+
+攻击站点不能仅仅依赖：
+
+```text
+诱导 Browser 发请求
+```
+
+就获得合法 Authorization Header。
+
+所以更准确的关系是：
+
+```text
+Cookie Session
+
+认证 Credential
+由 Browser 自动发送
+        ↓
+存在传统 CSRF 攻击面
+        ↓
+需要 SameSite / CSRF Token
+等额外防护
+
+
+Authorization Header Access Token
+
+认证 Credential
+由 JavaScript 主动发送
+        ↓
+普通业务 API
+通常不再依赖传统 CSRF Token
+```
+
+因此：
+
+> **双 Token 方案能够降低普通业务接口的传统 CSRF 风险，但关键原因是 Access Token 使用 Authorization Header，而不是“两个 Token”本身。**
+
+---
+
+### 【Access + Refresh 真正增加的是 Token Lifecycle 管理复杂度】
+
+如果当前项目改成：
+
+```text
+Access Token
++
+Refresh Token
+```
+
+就不只是把：
+
+```text
+Session Token + CSRF Token
+```
+
+替换成两个新的 Token。
+
+还要引入完整的 Token Lifecycle（令牌生命周期）管理。
+
+例如：
+
+```text
+Access Token
+    ↓
+短时间有效
+    ↓
+过期
+    ↓
+客户端发现 401 / expired
+    ↓
+调用 /refresh
+    ↓
+Refresh Token
+    ↓
+生成新的 Access Token
+    ↓
+重试原请求
+```
+
+如果同时存在多个并发请求：
+
+```text
+Request A
+Request B
+Request C
+```
+
+都发现 Access Token 过期，就可能变成：
+
+```text
+A → refresh
+B → refresh
+C → refresh
+```
+
+实际客户端通常还要额外实现：
+
+```text
+Refresh Lock
+Single Flight
+Pending Request Queue
+Retry
+```
+
+避免重复刷新和状态竞争。
+
+多 Tab 页面还需要继续考虑：
+
+```text
+不同 Tab
+是否共享 Access Token
+谁负责 Refresh
+Refresh 结果怎样同步
+Token 过期怎样协调
+```
+
+所以 Access + Refresh 解决了一部分认证问题，也会引入新的客户端状态管理复杂度。
+
+---
+
+### 【安全的 Refresh Token 方案通常还需要 Rotation 与 Reuse Detection】
+
+Refresh Token 如果只是：
+
+```text
+一个长期 Token
+一直用到过期
+```
+
+一旦泄漏，风险窗口会很长。
+
+因此成熟方案通常会引入 Refresh Token Rotation（刷新令牌轮换）：
+
+```text
+Refresh Token A
+    ↓ refresh
+A 失效
+    ↓
+Refresh Token B
+    ↓ refresh
+B 失效
+    ↓
+Refresh Token C
+```
+
+随后又需要服务端保存或识别：
+
+```text
+Refresh Token Hash
+Token Family
+Current Token
+Revoked Token
+ExpiresAt
+Rotation State
+```
+
+如果：
+
+```text
+已经使用过的 Refresh Token A
+再次出现
+```
+
+可能意味着：
+
+```text
+Token 被复制 / 被盗
+```
+
+于是还可能需要 Reuse Detection（重复使用检测）：
+
+```text
+检测旧 Refresh Token 再次出现
+        ↓
+认为 Token Family 可能泄漏
+        ↓
+撤销整个 Refresh Session
+```
+
+这时服务端最终仍然需要：
+
+```text
+Redis / Database
+```
+
+维护一套 Refresh Session State（刷新会话状态）。
+
+相对当前：
+
+```text
+Session Token
+    ↓
+Redis Session
+```
+
+体系会明显更复杂。
+
+---
+
+### 【Server-side Session 的一个直接优势是可以立即撤销】
+
+当前：
+
+```text
+bm_session
+    ↓
+hashToken()
+    ↓
+Redis Session
+```
+
+如果服务端需要让某个 Session 立即失效：
+
+```text
+redis.del(session)
+```
+
+下一次请求就无法通过：
+
+```text
+SessionGuard
+```
+
+因此以下场景非常直接：
+
+```text
+Logout
+Password Reset
+管理员强制下线
+账号安全事件
+撤销某个设备 Session
+```
+
+而自包含 Access Token 如果已经签发出去，通常只需要验证：
+
+```text
+Signature
+Expiration
+Claims
+```
+
+那么：
+
+```text
+Logout
+```
+
+并不会天然让已经签发的 Access Token 立即失效。
+
+例如 Access Token TTL 为：
+
+```text
+15 minutes
+```
+
+即使 Refresh Token 已经被撤销，当前 Access Token 仍可能继续使用到过期。
+
+如果希望即时撤销，就又要增加：
+
+```text
+Token Blacklist
+Token Version
+Session State Lookup
+```
+
+等机制。
+
+如果最后每次 Access Token 请求仍然需要：
+
+```text
+Redis Lookup
+```
+
+那么 JWT / Self-contained Token（自包含 Token）的部分优势也会被削弱。
+
+---
+
+### 【Access Token 更适合解决多客户端和多服务身份传递问题】
+
+Access Token 的价值通常在下面这些架构中更明显：
+
+```text
+Web
+Mobile
+CLI
+Third-party Client
+        ↓
+      API
+```
+
+或者：
+
+```text
+              API Gateway
+                  ↓
+        ┌─────────┼─────────┐
+        ↓         ↓         ↓
+    Service A Service B Service C
+```
+
+如果 Access Token 包含：
+
+```text
+sub
+roles
+scope
+exp
+aud
+```
+
+各个服务可以根据：
+
+```text
+Token Signature
++
+Claims
+```
+
+独立完成身份校验或权限判断，而不一定每次都查询同一个 Session Store。
+
+因此：
+
+```text
+Mobile App
+CLI
+OAuth / OIDC
+Third-party API
+多个独立 Resource Server
+跨服务身份传播
+```
+
+通常更适合 Access Token 模型。
+
+---
+
+### 【当前 Browser Monitor 的业务形态并没有强烈要求 Access + Refresh】
+
+当前系统主要是：
+
+```text
+React Web
+    ↓
+Nest API
+    ↓
+Redis + PostgreSQL
+```
+
+主要使用方是：
+
+```text
+Browser Web App
+```
+
+而不是：
+
+```text
+Web
++
+iOS
++
+Android
++
+CLI
++
+Third-party API
++
+多个独立 Resource Server
+```
+
+所以当前核心需求只是：
+
+```text
+用户登录 Web
+    ↓
+稳定保持 Session
+    ↓
+访问同一个 API
+    ↓
+服务端能够快速撤销 Session
+```
+
+并且项目本来已经存在：
+
+```text
+Redis
+```
+
+因此：
+
+```text
+Cookie
+    ↓
+Session Token
+    ↓
+Redis Session
+    ↓
+AuthenticatedUser
+```
+
+是一条非常直接的认证链路。
+
+如果只是为了减少：
+
+```text
+CSRF Token
+```
+
+而改成：
+
+```text
+Access Token
+Refresh Token
+Refresh Endpoint
+Rotation
+Reuse Detection
+Concurrent Refresh
+Retry
+Token Revocation
+多 Tab 协调
+```
+
+当前项目未必能获得足够大的架构收益。
+
+---
+
+### 【Access + Refresh 并没有让整个认证体系完全不存在 CSRF 问题】
+
+假设：
+
+```text
+Access Token
+    → JavaScript Memory
+
+Refresh Token
+    → HttpOnly Cookie
+```
+
+那么普通业务 API：
+
+```text
+Authorization Header
+```
+
+确实不再依赖 Browser 自动发送 Cookie 认证，因此传统 CSRF 攻击面明显降低。
+
+但是：
+
+```text
+POST /auth/refresh
+```
+
+如果仍然依赖：
+
+```text
+HttpOnly Refresh Token Cookie
+```
+
+那么 Refresh Endpoint 本身仍然是：
+
+```text
+Cookie-based Credential Endpoint
+```
+
+仍需要认真考虑：
+
+```text
+SameSite
+Origin / Referer Validation
+CORS
+Refresh Rotation
+是否需要额外 CSRF Protection
+```
+
+具体防护方式取决于 Refresh Endpoint 的实现。
+
+因此更准确的说法是：
+
+> **Access Token 使用 Authorization Header 后，普通业务 API 可以脱离传统 Cookie CSRF 模型；但依赖 HttpOnly Cookie 的 Refresh Endpoint 仍需要单独设计安全边界。**
+
+---
+
+### 【两种方案都不能单独解决 XSS，但 XSS 下的 Credential 暴露程度不同】
+
+两种认证模型都不能把：
+
+```text
+XSS
+```
+
+本身解决掉。
+
+但不能简单理解成：
+
+```text
+XSS 面前两种方案完全一样
+```
+
+当前方案：
+
+```text
+Session Token
+    → HttpOnly Cookie
+
+CSRF Token
+    → JavaScript 可读
+```
+
+如果发生 XSS：
+
+```text
+恶意 JavaScript
+    ↓
+可以读取 CSRF Token
+    ↓
+可以调用同源 API
+    ↓
+Browser 自动使用 Session Cookie
+```
+
+因此 XSS 可以：
+
+```text
+借用当前受害者 Session
+```
+
+但通常不能直接：
+
+```text
+读取原始 Session Credential
+```
+
+而 Access Token 方案如果：
+
+```text
+Access Token
+    → JavaScript Memory / sessionStorage / localStorage
+```
+
+那么 XSS 除了可以借用当前页面身份，还可能：
+
+```text
+直接读取 Access Token
+    ↓
+上传到攻击服务器
+    ↓
+脱离受害者当前浏览器
+继续调用 API
+```
+
+尤其：
+
+```text
+localStorage
+sessionStorage
+```
+
+中的 Token 对 XSS 是直接可读的。
+
+如果 Access Token：
+
+```text
+短 TTL
++
+只存在 Memory
+```
+
+可以缩短凭证被盗后的影响时间，但它仍然需要进入 JavaScript Runtime 才能主动放进 Authorization Header。
+
+因此两者在 XSS 下的区别更准确地说是：
+
+```text
+HttpOnly Session Token
+
+XSS 可以借用 Session
+但更难直接窃取认证 Secret
+
+
+JavaScript-readable Access Token
+
+XSS 可以借用当前身份
+同时也可能直接窃取 Access Credential
+```
+
+所以：
+
+> **HttpOnly 不能解决 XSS，但仍然能够降低“认证凭证本身被直接窃取并带离浏览器”的风险。**
+
+---
+
+### 【当前方案的一个重要设计目标是让真正认证 Secret 不进入 JavaScript Runtime】
+
+当前 Browser Monitor 的凭证边界可以画成：
+
+```text
+              JavaScript Runtime
+                     │
+       ┌─────────────┼─────────────┐
+       ↓             ↓             ↓
+     User Data    CSRF Token     API Logic
+
+────────────────────────────────────────
+       JavaScript 可以访问
+────────────────────────────────────────
+       JavaScript 不直接访问
+
+                     ↓
+               bm_session
+             HttpOnly Cookie
+```
+
+真正代表用户登录状态的：
+
+```text
+Session Credential
+```
+
+被放在：
+
+```text
+HttpOnly Cookie
+```
+
+中，不进入 JavaScript Runtime。
+
+而常见 Authorization Header Access Token：
+
+```text
+Access Token
+    ↓
+必须进入 JavaScript Runtime
+    ↓
+JS 主动构造：
+Authorization: Bearer ...
+```
+
+这是两种模型非常核心的安全取舍。
+
+---
+
+### 【当前项目没有选择双 Token 的主要原因是架构收益不足以覆盖复杂度】
+
+因此，对于当前 Browser Monitor，更准确的结论不是：
+
+```text
+Access + Refresh 不能解决 CSRF
+所以不用
+```
+
+而是：
+
+```text
+当前项目条件
+
+单一 Web Client
++
+单一 Nest API
++
+已有 Redis
++
+希望 Session 可立即撤销
++
+希望真正认证凭证不进入 JavaScript Runtime
+```
+
+在这些条件下：
+
+```text
+Server-side Session
++
+HttpOnly Cookie
++
+SameSite
++
+CSRF Token
+```
+
+已经能够提供：
+
+```text
+简单登录态管理
+立即 Session Revocation
+HttpOnly Credential Isolation
+清晰的服务端 Session State
+明确的 CSRF Protection
+```
+
+而改成：
+
+```text
+Access Token
++
+Refresh Token
+```
+
+虽然可以让普通业务 API 使用：
+
+```text
+Authorization Header
+```
+
+从而显著降低传统 CSRF 攻击面，但同时会引入：
+
+```text
+Access Token TTL
+Refresh Token TTL
+Refresh Endpoint
+Refresh Rotation
+Reuse Detection
+Concurrent Refresh
+Retry
+Multi-tab Coordination
+Token Revocation
+Token Storage Strategy
+```
+
+当前架构暂时没有：
+
+```text
+多客户端
+多 Resource Server
+OAuth
+CLI
+Mobile
+跨服务身份传播
+```
+
+等明显收益点，因此没有必要仅仅为了减少 CSRF Token 而引入完整的双 Token 生命周期体系。
+
+---
+
+### 【两种方案的选择可以用业务场景判断，而不是用“哪种更先进”判断】
+
+可以形成下面的通用判断：
+
+| 项目特点 | Session + CSRF | Access + Refresh |
+| --- | --- | --- |
+| 单一 Web 管理后台 | 很适合 | 可用，但复杂度更高 |
+| 已有 Redis Session Store | 很适合 | Token 自包含优势降低 |
+| 需要立即撤销 Session | 直接删除 Session 即可 | 需要额外撤销机制 |
+| 不希望认证 Secret 进入 JS | 很适合 | Access Token 通常需要进入 JS |
+| Mobile App | 一般 | 更自然 |
+| CLI / Third-party API | 不方便 | 更自然 |
+| 多个独立 API Service | 需要共享 Session State | Access Token 更有优势 |
+| OAuth / OIDC | 不适合作为主要模型 | 更自然 |
+| 跨服务传递身份 Claims | 一般 | 更有优势 |
+| 普通业务 API 避免传统 CSRF | 需要 CSRF Protection | Authorization Header 模型更有优势 |
+
+最终应该根据：
+
+```text
+Client 类型
+Service 数量
+Session Revocation 要求
+Credential 是否允许进入 JS
+是否需要跨服务 Claims
+是否已经有 Session Store
+实现与运维复杂度
+```
+
+决定认证模型，而不是简单比较：
+
+```text
+一个 Token
+vs
+两个 Token
+```
+
+
 ### 【当前 HttpOnly Session Cookie + CSRF Token 是一组配套设计】
 
 当前 Session Token：
