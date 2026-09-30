@@ -813,7 +813,827 @@ NestJS
 
 > **当前 API 是运行在 Node.js 进程中的 NestJS Application，Fastify 是它的底层 HTTP Platform；NestJS 通过 FastifyAdapter 在 Fastify 之上建立 Module、DI、Controller、请求生命周期和应用生命周期等应用级结构。**
 
-## 2. 后续学习顺序
+## 2. AppModule 与 Module Graph 把独立能力装配成完整 Application
+
+这一层从上一章的：
+
+```text
+NestFactory.create(AppModule)
+```
+
+继续向下展开。
+
+上一章解决的是：
+
+```text
+Nest Application 怎样被启动？
+```
+
+这一章解决的是：
+
+```text
+AppModule 被交给 Nest 以后，
+Nest 看到的整个应用结构到底是什么？
+```
+
+核心主线是：
+
+```text
+AppModule
+    ↓
+imports
+    ↓
+Feature Module / Infrastructure Module
+    ↓
+providers / controllers / exports
+    ↓
+Module Graph
+    ↓
+Provider Visibility
+    ↓
+为下一层 DI Container 提供解析边界
+```
+
+### 【源码中的 AppModule 是应用装配根节点】
+
+当前源码：
+
+```ts
+// src/app.module.ts
+@Module({
+  imports: [
+    InfrastructureModule,
+    AuthModule,
+    ProjectsModule,
+    IngestionModule,
+    AnalyticsModule,
+    LabAuditsModule,
+  ],
+  controllers: [
+    HealthController,
+    MetricsController,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestIdInterceptor,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+这里可以先分成三类信息：
+
+```text
+imports
+    → 应用由哪些 Module 组成
+
+controllers
+    → AppModule 自己直接拥有的 HTTP Controller
+
+providers
+    → AppModule 自己注册的 Provider / Application-level capability
+```
+
+因此 `AppModule` 不是“最大的业务模块”，而是：
+
+> **整个 API Application 的 Composition Root。**
+
+Nest 官方也把 Root Module 定义为构建 Application Graph 的起点；其他 Module 再通过自己的 `imports` 继续展开依赖。  
+参考：<https://docs.nestjs.com/modules>
+
+### 【当前 API 的六个 Module 分成基础设施与业务 Feature 两类】
+
+直接读取各个 `*.module.ts` 后，可以得到：
+
+| Module | imports | controllers | providers | exports |
+| --- | --- | --- | --- | --- |
+| `InfrastructureModule` | — | — | Config / Database / Redis / Shutdown | `API_CONFIG` / `DATABASE` / `REDIS` |
+| `AuthModule` | — | `AuthController` | `AuthService` / `MailerService` / `SessionGuard` / `CsrfGuard` | `MailerService` / Guards |
+| `ProjectsModule` | `AuthModule` | `ProjectsController` | `ProjectsService` | `ProjectsService` |
+| `IngestionModule` | — | `IngestionController` | `IngestionService` / `IngestionRateLimiter` / `MetricsService` | `MetricsService` |
+| `AnalyticsModule` | `ProjectsModule` | `AnalyticsController` | `AnalyticsService` / `CustomSignalsService` | — |
+| `LabAuditsModule` | `ProjectsModule` | `LabAuditsController` | `LabAuditsService` | — |
+
+第一阶段可以把它们分成：
+
+```text
+Infrastructure Module
+──────────────────────
+InfrastructureModule
+
+Feature Module
+──────────────────────
+AuthModule
+ProjectsModule
+IngestionModule
+AnalyticsModule
+LabAuditsModule
+```
+
+这体现了 Nest 常见的 Feature Module 思路：把同一业务域里的 Controller、Service 和相关 Provider 聚合在同一个 Module 中，而不是把所有 Controller 和 Service 全局平铺。
+
+### 【imports 不是文件 import，而是在 Module Graph 中建立依赖边】
+
+例如：
+
+```ts
+@Module({
+  imports: [ProjectsModule],
+  controllers: [AnalyticsController],
+  providers: [
+    AnalyticsService,
+    CustomSignalsService,
+  ],
+})
+export class AnalyticsModule {}
+```
+
+这不是简单表示：
+
+```text
+加载一下 ProjectsModule 文件
+```
+
+真正表达的是：
+
+```text
+AnalyticsModule
+       ↓ depends on
+ProjectsModule
+```
+
+为什么需要这条边，可以继续看实际 Service：
+
+```ts
+@Injectable()
+export class AnalyticsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(REDIS)
+    private readonly redis: Redis,
+
+    private readonly projects: ProjectsService,
+  ) {}
+}
+```
+
+这里真正消费 `ProjectsModule` 公共能力的是：
+
+```text
+AnalyticsService
+      ↓
+ProjectsService
+```
+
+所以：
+
+```text
+Module Graph
+
+AnalyticsModule
+      ↓ imports
+ProjectsModule
+
+
+Provider Object Graph
+
+AnalyticsService
+      ↓ inject
+ProjectsService
+```
+
+两张图不是同一张图。
+
+Module Graph 表达：
+
+```text
+谁允许访问谁的能力？
+```
+
+Provider Object Graph 表达：
+
+```text
+哪个运行时对象真正依赖哪个对象？
+```
+
+同样，`LabAuditsModule` 导入 `ProjectsModule`，最终对应：
+
+```ts
+@Injectable()
+export class LabAuditsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(API_CONFIG)
+    private readonly config: ApiConfig,
+
+    private readonly projects: ProjectsService,
+  ) {}
+}
+```
+
+所以：
+
+```text
+LabAuditsModule
+      ↓ imports
+ProjectsModule
+
+对应
+
+LabAuditsService
+      ↓
+ProjectsService
+```
+
+### 【exports 定义一个 Module 对外真正提供的公共能力】
+
+`ProjectsModule`：
+
+```ts
+@Module({
+  imports: [AuthModule],
+  controllers: [ProjectsController],
+  providers: [ProjectsService],
+  exports: [ProjectsService],
+})
+export class ProjectsModule {}
+```
+
+这里：
+
+```text
+providers: [ProjectsService]
+```
+
+表示：
+
+```text
+ProjectsService
+属于 ProjectsModule 的 Provider
+```
+
+而：
+
+```text
+exports: [ProjectsService]
+```
+
+进一步表示：
+
+```text
+ProjectsService
+不仅在 ProjectsModule 内部可用
+还构成 ProjectsModule 的 Public API
+```
+
+因此可以把 Module 看成：
+
+```text
+┌───────────────────────────────┐
+│ ProjectsModule                │
+│                               │
+│ Controller                    │
+│ Internal Provider             │
+│ Internal Implementation       │
+│                               │
+│ ───── public boundary ──────  │
+│ ProjectsService               │
+└───────────────┬───────────────┘
+                ↓
+         importing modules
+```
+
+Nest 官方明确说明：Module 默认封装自己的 Provider，被导出的 Provider 才能成为其他导入该 Module 的模块可使用的公共能力。  
+参考：<https://docs.nestjs.com/modules>
+
+### 【ProjectsModule 导入 AuthModule 是因为 ProjectsService 真正依赖 MailerService】
+
+源码：
+
+```ts
+@Module({
+  imports: [AuthModule],
+  controllers: [ProjectsController],
+  providers: [ProjectsService],
+  exports: [ProjectsService],
+})
+export class ProjectsModule {}
+```
+
+继续看 `ProjectsService`：
+
+```ts
+@Injectable()
+export class ProjectsService {
+  constructor(
+    @Inject(DATABASE)
+    private readonly database: DatabaseHandle,
+
+    @Inject(API_CONFIG)
+    private readonly config: ApiConfig,
+
+    private readonly mailer: MailerService,
+  ) {}
+}
+```
+
+而 `MailerService` 来自：
+
+```ts
+@Module({
+  providers: [
+    AuthService,
+    MailerService,
+    SessionGuard,
+    CsrfGuard,
+  ],
+  exports: [
+    MailerService,
+    SessionGuard,
+    CsrfGuard,
+  ],
+})
+export class AuthModule {}
+```
+
+于是完整链路：
+
+```text
+ProjectsService
+    ↓ needs
+MailerService
+    ↓ belongs to
+AuthModule
+    ↓ exports
+MailerService
+    ↑
+ProjectsModule imports AuthModule
+```
+
+这很好地体现：
+
+> **imports / exports 最终不是为了组织目录，而是为了给 DI Container 建立 Provider 可见性边界。**
+
+### 【IngestionModule 导出 MetricsService 是为了让根模块的 MetricsController 复用同一实例】
+
+当前：
+
+```ts
+@Module({
+  controllers: [IngestionController],
+  providers: [
+    IngestionService,
+    IngestionRateLimiter,
+    MetricsService,
+  ],
+  exports: [MetricsService],
+})
+export class IngestionModule {}
+```
+
+`IngestionService` 使用：
+
+```ts
+constructor(
+  ...
+  private readonly metrics: MetricsService,
+) {}
+```
+
+而 `AppModule` 直接拥有：
+
+```ts
+controllers: [
+  HealthController,
+  MetricsController,
+]
+```
+
+`MetricsController` 又需要：
+
+```ts
+constructor(
+  private readonly metrics: MetricsService,
+  @Inject(DATABASE)
+  private readonly database: DatabaseHandle,
+) {}
+```
+
+因此需要：
+
+```text
+IngestionModule
+    ↓ exports
+MetricsService
+    ↓
+AppModule imports IngestionModule
+    ↓
+MetricsController
+可以注入同一个 MetricsService
+```
+
+这里“同一个”非常重要。
+
+`MetricsService` 内部自己创建：
+
+```ts
+readonly registry = new Registry();
+```
+
+并把所有 Counter / Histogram / Gauge 注册到：
+
+```text
+this.registry
+```
+
+所以采集请求写指标：
+
+```text
+IngestionService
+    ↓
+MetricsService
+    ↓
+Registry
+```
+
+指标端点读取：
+
+```text
+MetricsController
+    ↓
+MetricsService
+    ↓
+同一个 Registry
+```
+
+如果在 `AppModule` 又重新：
+
+```ts
+providers: [MetricsService]
+```
+
+而不是从 `IngestionModule` 导出后复用，就可能得到不同的 Provider 实例和不同的 `Registry`，从而破坏“写指标”和“暴露指标”使用同一注册表的设计。
+
+Nest 的 Shared Module 机制就是为了让导入模块复用被导出的 Provider 实例。  
+参考：<https://docs.nestjs.com/modules#shared-modules>
+
+### 【InfrastructureModule 通过 @Global 把基础设施能力提升到应用级可见】
+
+当前源码：
+
+```ts
+@Global()
+@Module({
+  providers: [
+    API_CONFIG Provider,
+    DATABASE Provider,
+    REDIS Provider,
+    InfrastructureShutdown,
+  ],
+  exports: [
+    API_CONFIG,
+    DATABASE,
+    REDIS,
+  ],
+})
+export class InfrastructureModule {}
+```
+
+这意味着：
+
+```text
+InfrastructureModule
+        ↓
+      @Global
+        ↓
+API_CONFIG / DATABASE / REDIS
+在整个 Application Graph 中可见
+```
+
+于是：
+
+```text
+ProjectsService
+AnalyticsService
+IngestionService
+LabAuditsService
+SessionGuard
+MetricsController
+...
+```
+
+都可以直接：
+
+```ts
+@Inject(DATABASE)
+@Inject(REDIS)
+@Inject(API_CONFIG)
+```
+
+而不需要每一个 Module 都写：
+
+```ts
+imports: [InfrastructureModule]
+```
+
+这正适合数据库、Redis、Config 这类真正的全应用基础设施。
+
+但 `@Global()` 不意味着“所有 Provider 自动暴露”。
+
+仍然只有：
+
+```text
+exports
+```
+
+里的：
+
+```text
+API_CONFIG
+DATABASE
+REDIS
+```
+
+被作为全局公共能力。
+
+`InfrastructureShutdown` 没有 export，因为它只是由 Nest 生命周期系统管理，不需要其他模块注入。
+
+Nest 官方也明确建议 Global Module 只注册一次，并提醒不要把所有能力都做成 Global，否则会削弱显式 `imports` 带来的模块边界。  
+参考：<https://docs.nestjs.com/modules#global-modules>
+
+### 【InfrastructureModule 必须被加载，但并不要求排在 imports 数组第一位】
+
+当前 `app.module.ts` 顶部有注释：
+
+```text
+InfrastructureModule ... 因此它必须最先注册
+```
+
+但 `@Module()` 旁边又写：
+
+```text
+注册顺序对 Nest 无影响
+```
+
+这两个说法需要区分。
+
+更准确的通用理解是：
+
+```text
+InfrastructureModule
+    ↓
+必须进入整个 Application Graph
+    ↓
+@Global() 才能让其 exports
+成为全局可解析 Provider
+```
+
+但是：
+
+```text
+imports: [
+  InfrastructureModule,
+  AuthModule,
+  ...
+]
+```
+
+中的数组位置不是 DI 初始化顺序声明。
+
+Nest 根据 Module Graph 和 Provider Dependency Graph 解析依赖，而不是要求开发者通过数组先后手工安排：
+
+```text
+先 Config
+再 Database
+再 Redis
+再 Service
+```
+
+因此更准确的描述应该是：
+
+> **InfrastructureModule 必须被 Root Graph 加载一次，但不需要依靠“放在 imports 第一位”保证其他模块能够解析它。**
+
+### 【AppModule 自己也可以拥有 Controller，但应保持 Application-level 语义】
+
+当前：
+
+```ts
+controllers: [
+  HealthController,
+  MetricsController,
+]
+```
+
+这两个 Controller 没有被塞进：
+
+```text
+ProjectsModule
+IngestionModule
+AnalyticsModule
+```
+
+因为它们表达的是应用级能力：
+
+```text
+HealthController
+    → 整个 API Process 是否存活 / Ready
+
+MetricsController
+    → 整个 API Process 的 Prometheus 指标
+```
+
+因此当前设计可以理解为：
+
+```text
+业务域 HTTP API
+    → 放 Feature Module
+
+应用级 HTTP API
+    → Root / Infrastructure-oriented Module
+```
+
+“Root Module 不放业务”是一条设计约定，而不是 Nest 的语法限制。
+
+随着项目继续扩大，也可以把：
+
+```text
+Health
+Observability
+```
+
+分别拆成独立 Module，再由 AppModule 只保留 imports。当前规模下直接挂 Root Module 是一种较轻量的选择。
+
+### 【APP_INTERCEPTOR 属于应用级 Provider，不等于 Global Module】
+
+当前：
+
+```ts
+providers: [
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: RequestIdInterceptor,
+  },
+]
+```
+
+这里又出现一种“全局”，但它和 `@Global()` 完全不同。
+
+```text
+@Global()
+    ↓
+控制 Module 中导出 Provider
+是否对所有 Module 可见
+
+APP_INTERCEPTOR
+    ↓
+控制一个 Interceptor
+是否作用于整个 Application 的请求
+```
+
+`APP_INTERCEPTOR` 是 Nest 提供的 Application-level Provider Token。
+
+通过 Module Provider 注册：
+
+```ts
+{
+  provide: APP_INTERCEPTOR,
+  useClass: RequestIdInterceptor,
+}
+```
+
+相比直接在 `main.ts`：
+
+```ts
+app.useGlobalInterceptors(
+  new RequestIdInterceptor(),
+)
+```
+
+一个重要区别是它仍然位于 Nest DI Context 中，因此 Interceptor 自己可以正常使用依赖注入。
+
+Nest 官方也明确说明，通过 `APP_INTERCEPTOR` 注册的 Interceptor 无论写在哪个 Module 都是全局生效；如果需要 DI，这是比在 Module 外手工 `new` 一个全局 Interceptor 更合适的方式。  
+参考：<https://docs.nestjs.com/interceptors>
+
+### 【当前项目的 Module Graph 可以重新画成两层关系】
+
+只画 Module：
+
+```text
+                         AppModule
+                             │
+          ┌──────────────────┼──────────────────┐
+          ↓                  ↓                  ↓
+InfrastructureModule     AuthModule       IngestionModule
+     @Global                 ↑                  │
+          │                  │                  │ exports
+          │            ProjectsModule           ↓
+          │                  ↑             MetricsService
+          │           ┌──────┴──────┐
+          │           ↓             ↓
+          │     AnalyticsModule  LabAuditsModule
+          │
+          └── API_CONFIG / DATABASE / REDIS
+              对整个 Application Graph 可见
+```
+
+如果进一步把真正的 Provider 依赖叠上去：
+
+```text
+API_CONFIG
+   ├──→ DATABASE
+   └──→ REDIS
+
+AuthModule
+   └──→ MailerService
+              ↑
+              │
+ProjectsService
+   ├──→ DATABASE
+   ├──→ API_CONFIG
+   └──→ MailerService
+
+AnalyticsService
+   ├──→ DATABASE
+   ├──→ REDIS
+   └──→ ProjectsService
+
+CustomSignalsService
+   ├──→ DATABASE
+   └──→ ProjectsService
+
+LabAuditsService
+   ├──→ DATABASE
+   ├──→ API_CONFIG
+   └──→ ProjectsService
+
+IngestionService
+   ├──→ DATABASE
+   ├──→ REDIS
+   ├──→ API_CONFIG
+   ├──→ IngestionRateLimiter
+   └──→ MetricsService
+
+MetricsController
+   ├──→ DATABASE
+   └──→ MetricsService
+```
+
+现在就能清楚看到：
+
+```text
+Module Graph
+    ↓
+描述能力边界与 Provider 可见性
+
+Provider Graph
+    ↓
+描述运行时对象真正的依赖关系
+```
+
+### 【脱离项目后形成通用 Module 装配知识框架】
+
+任何 Nest 应用都可以用下面这套顺序分析：
+
+```text
+Root Module
+    ↓
+有哪些 Feature Module
+    ↓
+每个 Module providers 什么
+    ↓
+哪些 Provider exports
+    ↓
+哪些 Module imports 它
+    ↓
+形成 Module Graph
+    ↓
+确定 Provider Visibility
+    ↓
+DI Container
+再根据 Token 构建 Provider Object Graph
+```
+
+因此 `@Module()` 中四个字段可以重新理解：
+
+| 字段 | 真正的架构含义 |
+| --- | --- |
+| `imports` | 我依赖哪些其他能力边界 |
+| `controllers` | 哪些 HTTP 入口属于当前能力边界 |
+| `providers` | 当前边界内部由 Nest 管理哪些对象 |
+| `exports` | 哪些对象构成当前 Module 的公共 API |
+
+最终收敛成一句话：
+
+> **Module Graph 不是目录关系图，而是 NestJS 用 `imports / exports` 建立的能力边界与 Provider 可见性图；Root Module 负责把这些能力装配成完整 Application，DI Container 再在这张图允许的范围内解析具体对象依赖。**
+
+
+## 3. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
