@@ -2613,7 +2613,1083 @@ Provider Object Graph
 
 
 
-## 4. 后续学习顺序
+## 4. Controller 与 Route Mapping 把 HTTP 请求映射到应用方法
+
+这一层继续回答：
+
+```text
+Nest Application 已经完成 Module 与 Provider 装配以后，
+
+一个 HTTP Request（HTTP 请求）进入 Fastify，
+NestJS 怎样知道应该调用哪个 Controller 方法？
+请求中的 URL、Body、Header 又怎样变成方法参数？
+```
+
+核心主线是：
+
+```text
+HTTP Request
+    ↓
+Fastify
+    ↓
+FastifyAdapter
+    ↓
+Nest Route Mapping（路由映射）
+    ↓
+Controller
+    ↓
+Parameter Decorator（参数装饰器）
+提取 Param / Query / Body / Header
+    ↓
+Controller Method
+    ↓
+Service
+    ↓
+HTTP Response
+```
+
+### 【Controller 是一组相关 HTTP Endpoint 的入口边界】
+
+当前 `IngestionController`：
+
+```ts
+@Controller('api/v3/ingest')
+export class IngestionController {
+  constructor(
+    private readonly ingestion: IngestionService,
+  ) {}
+
+  @Post(':publicKey/envelopes')
+  @HttpCode(202)
+  ingestBatch(
+    @Param('publicKey') publicKey: string,
+    @Body() body: unknown,
+    @Headers('origin') origin: string | undefined,
+    @Ip() ip: string,
+    @Req() request: FastifyRequest,
+  ): Promise<IngestionResult> {
+    const requestId =
+      (request as FastifyRequest & {
+        requestId?: string
+      }).requestId ?? request.id;
+
+    return this.ingestion.ingest(
+      publicKey,
+      body,
+      origin,
+      ip,
+      requestId,
+    );
+  }
+}
+```
+
+这里最先要理解的是：
+
+```ts
+@Controller('api/v3/ingest')
+```
+
+和：
+
+```ts
+@Post(':publicKey/envelopes')
+```
+
+两者共同组成最终 Route（路由）：
+
+```text
+POST /api/v3/ingest/:publicKey/envelopes
+```
+
+例如：
+
+```text
+POST /api/v3/ingest/bm_pk_123/envelopes
+```
+
+会映射到：
+
+```text
+IngestionController.ingestBatch()
+```
+
+因此 Controller（控制器）不能只理解成“一个处理请求的 Class”，更准确的是：
+
+> **Controller 是一组相关 HTTP Endpoint（HTTP 接口端点）的入口边界。**
+
+### 【@Controller 定义公共路径，方法装饰器定义具体路由】
+
+`@Controller()` 是 Controller Decorator（控制器装饰器）。
+
+例如：
+
+```ts
+@Controller('api/v3/ingest')
+```
+
+定义：
+
+```text
+Base Path（基础路径）
+=
+/api/v3/ingest
+```
+
+而：
+
+```ts
+@Post(':publicKey/envelopes')
+```
+
+定义：
+
+```text
+HTTP Method（HTTP 方法）
+=
+POST
+
+Method Path（方法路径）
+=
+/:publicKey/envelopes
+```
+
+最终：
+
+```text
+Controller Base Path
++
+Method Path
+
+/api/v3/ingest
++
+/:publicKey/envelopes
+
+        ↓
+
+POST /api/v3/ingest/:publicKey/envelopes
+```
+
+当前 `AnalyticsController` 也是同样逻辑：
+
+```ts
+@Controller(
+  'api/v1/projects/:projectId/analytics',
+)
+export class AnalyticsController {
+  @Get('overview')
+  overview(...) {}
+
+  @Get('performance')
+  performance(...) {}
+
+  @Get('routes')
+  routes(...) {}
+}
+```
+
+得到：
+
+```text
+GET /api/v1/projects/:projectId/analytics/overview
+
+GET /api/v1/projects/:projectId/analytics/performance
+
+GET /api/v1/projects/:projectId/analytics/routes
+```
+
+所以 Controller 的第一层职责是：
+
+```text
+把一组具有共同业务语义的 Route
+组织在同一个 HTTP 边界中
+```
+
+### 【@Get / @Post / @Put 同时声明 HTTP Method 与方法路径】
+
+这些属于 Route Handler Decorator（路由处理方法装饰器）。
+
+例如：
+
+```ts
+@Controller('api/v1')
+export class ProjectsController {
+  @Get('projects')
+  list(...) {}
+
+  @Post('projects')
+  create(...) {}
+}
+```
+
+最终是：
+
+```text
+GET /api/v1/projects
+    → list()
+
+POST /api/v1/projects
+    → create()
+```
+
+所以同一个 Path（路径）可以根据不同 HTTP Method 映射到不同 Controller Method（控制器方法）。
+
+### 【装饰器通过 Metadata 描述路由，而不是直接调用 Fastify API】
+
+Metadata（元数据）可以理解为：
+
+> **附加在 Class 或 Method 上、供框架在运行时读取的描述信息。**
+
+例如：
+
+```ts
+@Controller('api/v1')
+```
+
+记录：
+
+```text
+Controller Path = /api/v1
+```
+
+而：
+
+```ts
+@Get('projects')
+```
+
+记录：
+
+```text
+HTTP Method = GET
+Method Path = /projects
+```
+
+在启动阶段：
+
+```text
+NestFactory.create(AppModule)
+        ↓
+扫描 Module
+        ↓
+找到 Controller
+        ↓
+读取 Controller Metadata
+        ↓
+读取 Method Metadata
+        ↓
+形成 Nest Route Definition（Nest 路由定义）
+```
+
+可以概念化成：
+
+```text
+Method
+GET
+
+Path
+/api/v1/projects
+
+Handler（请求处理函数）
+ProjectsController.list
+```
+
+所以：
+
+```text
+@Controller / @Get / @Post
+```
+
+不是直接调用：
+
+```ts
+fastify.get(...)
+fastify.post(...)
+```
+
+而是先建立 Nest 自己的 Route Metadata（路由元数据）。
+
+### 【FastifyAdapter 再把 Nest Route 映射到底层 Fastify】
+
+这一步与第一章的 FastifyAdapter 正式连接起来：
+
+```text
+@Controller / @Get / @Post
+        ↓
+Nest Route Metadata
+        ↓
+Nest Routing
+        ↓
+FastifyAdapter
+        ↓
+Fastify Route
+        ↓
+Node.js HTTP Server
+```
+
+因此可以理解为：
+
+> **Nest 负责声明和组织 Route，FastifyAdapter 负责把这些 Route 映射到底层 Fastify 能真正执行的 HTTP 路由。**
+
+### 【Parameter Decorator 从 HTTP Request 中提取方法参数】
+
+Route 找到以后，还要解决：
+
+```text
+HTTP Request 中的数据
+怎样传给 Controller Method？
+```
+
+Nest 使用 Parameter Decorator（参数装饰器）完成这件事。
+
+当前项目常见：
+
+| 装饰器 | 中文含义 | 数据来源 |
+| --- | --- | --- |
+| `@Param()` | 路径参数 | URL Path Parameter |
+| `@Query()` | 查询参数 | Query String |
+| `@Body()` | 请求体 | Request Body |
+| `@Headers()` | 请求头 | HTTP Header |
+| `@Ip()` | 客户端 IP | Request IP |
+| `@Req()` | 完整请求对象 | FastifyRequest |
+| `@Res()` | 完整响应对象 | FastifyReply |
+
+例如 Ingestion：
+
+```ts
+ingestBatch(
+  @Param('publicKey') publicKey: string,
+  @Body() body: unknown,
+  @Headers('origin') origin: string | undefined,
+  @Ip() ip: string,
+  @Req() request: FastifyRequest,
+)
+```
+
+Nest 会分别从同一个 HTTP Request 中取出不同部分，再传给方法参数。
+
+### 【@Param 从动态 URL 中提取 Path Parameter】
+
+Route：
+
+```ts
+@Post(':publicKey/envelopes')
+```
+
+其中：
+
+```text
+:publicKey
+```
+
+是 Path Parameter（路径参数）。
+
+请求：
+
+```text
+POST /api/v3/ingest/bm_pk_123/envelopes
+```
+
+经过：
+
+```ts
+@Param('publicKey')
+publicKey: string
+```
+
+得到：
+
+```text
+publicKey = "bm_pk_123"
+```
+
+当前 Analytics 还存在多个路径参数：
+
+```ts
+@Controller(
+  'api/v1/projects/:projectId/analytics',
+)
+
+@Get('traces/:traceId')
+```
+
+最终：
+
+```text
+GET
+/api/v1/projects/:projectId/analytics/traces/:traceId
+```
+
+Controller：
+
+```ts
+@Param('projectId')
+projectId: string,
+
+@Param('traceId')
+traceId: string,
+```
+
+例如请求：
+
+```text
+/api/v1/projects/p123/analytics/traces/t456
+```
+
+得到：
+
+```text
+projectId = "p123"
+traceId   = "t456"
+```
+
+### 【@Query 获取 Query String，但获取不等于校验完成】
+
+例如：
+
+```text
+GET
+/api/v1/projects/p123/analytics/performance
+?from=2026-09-01T00:00:00Z
+&environment=production
+```
+
+Controller：
+
+```ts
+@Get('performance')
+performance(
+  @CurrentUser() user: AuthenticatedUser,
+  @Param('projectId') projectId: string,
+  @Query() query: unknown,
+) {
+  return this.analytics.performance(
+    user.id,
+    projectId,
+    this.filters(query),
+  );
+}
+```
+
+`@Query()` 只负责把 Query String（查询字符串）解析后的数据取出来。
+
+它并不代表：
+
+```text
+数据已经合法
+数据已经满足业务约束
+```
+
+当前项目还会继续：
+
+```text
+query
+    ↓
+this.filters(query)
+    ↓
+Zod Validation（Zod 输入校验）
+    ↓
+AnalyticsFilters
+```
+
+这一部分后续在 Validation（输入校验）章节继续深入。
+
+### 【@Body 获取 Request Body，当前项目用 unknown 表达“不可信输入”】
+
+当前 `ProjectsController`：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser() user: AuthenticatedUser,
+  @Body() body: unknown,
+) {
+  const input =
+    parseBody(createProjectSchema, body);
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+这里特意写：
+
+```ts
+body: unknown
+```
+
+而不是直接假设：
+
+```ts
+body: CreateProjectInput
+```
+
+表达的是：
+
+```text
+HTTP Request Body
+    ↓
+来自外部
+    ↓
+当前不可信
+    ↓
+unknown
+    ↓
+Validation
+    ↓
+可信业务输入
+```
+
+所以：
+
+> **`@Body()` 只负责取得请求体，不代表请求体已经通过业务校验。**
+
+### 【@Req 与 @Res 代表 Controller 开始接触 Fastify 特定 API】
+
+大部分参数装饰器属于 Nest 的高层抽象：
+
+```text
+@Param()
+@Query()
+@Body()
+@Headers()
+@Ip()
+```
+
+而：
+
+```ts
+@Req() request: FastifyRequest
+```
+
+会直接拿到底层 Fastify Request（Fastify 请求对象）。
+
+当前 IngestionController 使用它，是为了取得：
+
+```ts
+request.requestId
+request.id
+```
+
+因此可以形成一条实践规则：
+
+```text
+能使用高层 Parameter Decorator 获取的数据
+    ↓
+优先使用 @Param / @Query / @Body / @Headers
+
+确实需要底层 Platform 信息
+    ↓
+再使用 @Req / @Res
+```
+
+因为一旦代码直接使用：
+
+```text
+FastifyRequest
+FastifyReply
+```
+
+这个 Controller 就明确知道当前 HTTP Platform 是 Fastify。
+
+### 【@Res({ passthrough: true }) 允许直接修改 Fastify Reply，同时继续由 Nest 返回响应体】
+
+当前 `AuthController.login()`：
+
+```ts
+@Post('login')
+@HttpCode(200)
+async login(
+  @Body() body: unknown,
+
+  @Res({ passthrough: true })
+  reply: FastifyReply,
+) {
+  const input = parseBody(loginSchema, body);
+  const session =
+    await this.auth.login(
+      input.email,
+      input.password,
+    );
+
+  reply.setCookie(
+    'bm_session',
+    session.token,
+    {
+      httpOnly: true,
+      secure:
+        this.config.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: session.expiresAt,
+    },
+  );
+
+  return {
+    user: session.user,
+    csrfToken: session.user.csrfToken,
+  };
+}
+```
+
+这里同时做了两件事：
+
+```text
+FastifyReply
+    ↓
+setCookie()
+    ↓
+直接修改 Response Header
+
+同时
+
+return Object
+    ↓
+Nest 继续生成 Response Body
+```
+
+`passthrough: true` 可以理解为：
+
+> **允许 Controller 访问底层 Response 做局部修改，但不完全接管响应，最终返回值仍交给 Nest 处理。**
+
+### 【Controller return value 会继续经过 Nest 与 Fastify 生成 HTTP Response】
+
+例如：
+
+```ts
+@Get('live')
+live(): { status: 'ok' } {
+  return {
+    status: 'ok',
+  };
+}
+```
+
+可以理解成：
+
+```text
+Controller return value
+    ↓
+Nest Response Handling（响应处理）
+    ↓
+FastifyAdapter
+    ↓
+Fastify Reply
+    ↓
+HTTP Response
+```
+
+异步方法也是一样：
+
+```text
+Promise
+    ↓
+Nest 等待完成
+    ↓
+取得返回值
+    ↓
+生成 HTTP Response
+```
+
+因此普通 Controller 不需要自己调用：
+
+```ts
+reply.send(...)
+```
+
+### 【@HttpCode 与 @Header 负责补充 HTTP Response 语义】
+
+当前项目：
+
+```ts
+@Post('register')
+@HttpCode(202)
+```
+
+表示成功时返回：
+
+```text
+202 Accepted
+```
+
+而：
+
+```ts
+@Post('verify-email')
+@HttpCode(204)
+```
+
+表示：
+
+```text
+204 No Content
+```
+
+`MetricsController`：
+
+```ts
+@Get('metrics')
+@Header(
+  'content-type',
+  'text/plain; version=0.0.4; charset=utf-8',
+)
+```
+
+明确把 Prometheus Metrics（Prometheus 指标）的 Content-Type 设置为文本格式。
+
+所以 Controller 还负责一部分 HTTP Semantics（HTTP 语义）：
+
+```text
+HTTP Method
+Path
+Status Code
+Response Header
+Cookie
+```
+
+### 【Controller 的核心职责是把 HTTP World 转换成 Application World】
+
+以创建项目为例：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser() user: AuthenticatedUser,
+  @Body() body: unknown,
+) {
+  const input =
+    parseBody(createProjectSchema, body);
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+Controller 做的是：
+
+```text
+HTTP Request
+    ↓
+读取 User / Body
+    ↓
+校验和转换输入
+    ↓
+得到业务参数
+userId / displayName / appName
+    ↓
+ProjectsService.create(...)
+```
+
+因此可以把 Controller 看成：
+
+```text
+HTTP World
+    ↓
+Controller Boundary（控制器边界）
+    ↓
+Application / Business World
+```
+
+Service 不应该再关心：
+
+```text
+@Body()
+@Param()
+FastifyRequest
+Query String
+```
+
+而应该接收已经转换过的业务参数。
+
+### 【当前项目整体采用 Thin Controller 的设计方向】
+
+Thin Controller（薄控制器）是一种常见设计思想：
+
+> **Controller 主要负责 HTTP 边界处理，不承载复杂业务流程。**
+
+例如：
+
+```ts
+return this.ingestion.ingest(
+  publicKey,
+  body,
+  origin,
+  ip,
+  requestId,
+);
+```
+
+复杂逻辑继续进入：
+
+```text
+IngestionService
+    ↓
+Protocol Validation
+Project Resolution
+Origin Check
+Rate Limit
+Redaction
+Database Transaction
+Outbox
+```
+
+所以当前 Controller 的主要职责保持在：
+
+```text
+取 HTTP 数据
+    ↓
+做必要的输入适配
+    ↓
+调用 Service
+```
+
+`AnalyticsController` 稍微复杂一些，因为它还负责：
+
+```text
+Query String
+    ↓
+默认值
+范围限制
+格式转换
+    ↓
+AnalyticsFilters
+```
+
+但这仍然属于 HTTP 输入向业务输入模型转换的边界职责，而不是数据库查询或核心业务计算。
+
+### 【@CurrentUser 是项目自定义的 Parameter Decorator】
+
+当前多个 Controller 使用：
+
+```ts
+@CurrentUser()
+user: AuthenticatedUser
+```
+
+它不是 Nest 内置装饰器，而是 Custom Parameter Decorator（自定义参数装饰器）。
+
+它的思想与：
+
+```text
+@Body()
+@Param()
+@Query()
+```
+
+相同，都是：
+
+```text
+从 Request Context（请求上下文）
+取出某一部分数据
+```
+
+只是 `@CurrentUser()` 读取的不是 URL 或 Body，而是认证流程提前写入的：
+
+```text
+request.auth
+```
+
+完整来源将在 SessionGuard（会话守卫）章节继续展开。
+
+### 【@UseGuards 当前先理解为给 Route 附加请求处理规则】
+
+例如：
+
+```ts
+@Controller(
+  'api/v1/projects/:projectId/analytics',
+)
+@UseGuards(
+  SessionGuard,
+  CsrfGuard,
+)
+export class AnalyticsController {}
+```
+
+这里说明 Route Metadata 不只有：
+
+```text
+HTTP Method
+Path
+Handler
+```
+
+还可以附加：
+
+```text
+Guard
+Interceptor
+Pipe
+...
+```
+
+因此 Nest 最终建立的 Route 更接近：
+
+```text
+Route
+    ↓
+HTTP Method
+Path
+Guard Metadata
+Pipe Metadata
+Interceptor Metadata
+Handler
+```
+
+这些组件怎样按顺序执行，将在下一章 Request Lifecycle（请求生命周期）中继续分析。
+
+### 【当前项目的 Controller 可以先分成三类】
+
+第一类是公开接口：
+
+```text
+IngestionController
+AuthController 中的 register / login 等
+```
+
+第二类是登录后的业务接口：
+
+```text
+ProjectsController
+AnalyticsController
+LabAuditsController
+```
+
+通常组合：
+
+```text
+CurrentUser
++
+projectId
++
+Body / Query
++
+SessionGuard / CsrfGuard
+```
+
+第三类是应用级或基础设施接口：
+
+```text
+HealthController
+MetricsController
+```
+
+它们描述的是整个 API Process（API 进程）的健康状态和观测能力，而不是某个具体业务域。
+
+### 【脱离项目后可以用四层模型分析任何 Nest Controller】
+
+以后看到一个 Nest Controller，可以先按四层拆：
+
+```text
+第一层：Route Definition（路由定义）
+────────────────────
+@Controller()
+@Get()
+@Post()
+@Put()
+
+第二层：Request Extraction（请求数据提取）
+────────────────────
+@Param()
+@Query()
+@Body()
+@Headers()
+@Req()
+
+第三层：Cross-cutting Metadata（横向请求规则元数据）
+────────────────────
+@UseGuards()
+@UseInterceptors()
+@UsePipes()
+...
+
+第四层：Application Call（应用能力调用）
+────────────────────
+this.someService.xxx()
+```
+
+所以 Controller 可以收敛成：
+
+```text
+Controller
+=
+Route 定义
++
+HTTP 输入提取
++
+请求规则声明
++
+Service 调用
+```
+
+### 【Controller 到 Fastify 的完整执行链路】
+
+开发阶段：
+
+```ts
+@Controller('api/v1')
+
+@Get('projects')
+
+list(...)
+```
+
+启动阶段：
+
+```text
+NestFactory.create(AppModule)
+        ↓
+扫描 ProjectsModule
+        ↓
+发现 ProjectsController
+        ↓
+读取 @Controller Metadata
+        ↓
+读取 @Get Metadata
+        ↓
+形成 Nest Route Definition
+        ↓
+FastifyAdapter
+        ↓
+注册为 Fastify Route
+```
+
+运行阶段：
+
+```text
+GET /api/v1/projects
+        ↓
+Node.js HTTP Server
+        ↓
+Fastify
+        ↓
+Nest Request Lifecycle
+        ↓
+ProjectsController.list()
+        ↓
+ProjectsService.list()
+        ↓
+返回结果
+        ↓
+Nest Response Handling
+        ↓
+Fastify Reply
+        ↓
+HTTP Response
+```
+
+因此这一层最终可以收敛成：
+
+> **Controller（控制器）是 NestJS 的 HTTP 边界：`@Controller()` 与 `@Get()` / `@Post()` 等装饰器负责声明 Route（路由），`@Param()` / `@Body()` / `@Query()` 等参数装饰器负责把 HTTP Request 转成方法参数，Controller 再调用 Service；Nest 最终通过 FastifyAdapter 把这些声明映射成 Fastify 真正执行的 HTTP Route。**
+
+
+## 5. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
