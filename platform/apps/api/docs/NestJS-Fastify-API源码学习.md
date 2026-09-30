@@ -9010,7 +9010,2210 @@ CSP / Sanitization / React Escaping 等
 > **认证凭证由谁持有、Browser 是否自动发送、JavaScript 是否能够读取、服务端怎样恢复身份、写请求如何防跨站伪造，以及即使身份合法后如何继续做资源授权。CSRF Token 解决不了 XSS；HttpOnly 能降低 Session Credential 被直接窃取的风险，但也不能阻止已经运行在当前 Origin 中的恶意 JavaScript 借用当前 Session 调用同源 API。**
 
 
-## 7. 后续学习顺序
+## 7. Zod Validation 把不可信 HTTP 输入转换成业务代码可以使用的数据
+
+这一节继续沿着前面的 Request Lifecycle 往下走。
+
+前面已经建立：
+
+```text
+HTTP Request
+    ↓
+Guard
+    ↓
+Interceptor
+    ↓
+Parameter Extraction
+    ↓
+Controller
+    ↓
+Service
+```
+
+但这里还有一个非常重要的问题：
+
+```text
+HTTP 请求里的数据
+真的符合 Controller 假设的类型吗？
+```
+
+答案是：
+
+```text
+不能直接相信
+```
+
+因为 HTTP Request 来自 Runtime（运行时）的外部世界，而 TypeScript Type（TypeScript 类型）只能约束开发和编译阶段的代码。
+
+因此当前项目建立了：
+
+```text
+HTTP Input
+    ↓
+unknown
+    ↓
+Zod Schema
+    ↓
+safeParse()
+    ↓
+Validation + Normalization
+    ↓
+Typed Data
+    ↓
+Controller
+    ↓
+Service
+```
+
+这条边界可以理解成：
+
+```text
+Untrusted Input
+    ↓
+Validation Boundary
+    ↓
+Trusted Application Input
+```
+
+### 【HTTP 输入先使用 unknown，是因为 TypeScript 无法证明运行时输入真实合法】
+
+当前 `ProjectsController`：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Body()
+  body: unknown,
+) {
+  const input =
+    parseBody(
+      createProjectSchema,
+      body,
+    );
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+这里没有直接写：
+
+```ts
+@Body()
+body: CreateProjectInput
+```
+
+而是：
+
+```ts
+@Body()
+body: unknown
+```
+
+这是一个重要的安全和类型边界。
+
+客户端真实发送的数据可能是：
+
+```json
+{
+  "displayName": 123,
+  "appName": null
+}
+```
+
+也可能是：
+
+```json
+[]
+```
+
+甚至：
+
+```json
+{
+  "displayName": "",
+  "appName": "!!!!!"
+}
+```
+
+如果 Controller 直接声明：
+
+```ts
+body: CreateProjectInput
+```
+
+TypeScript 只是在开发阶段告诉代码：
+
+```text
+“把 body 当成 CreateProjectInput 使用”
+```
+
+它不会在 Node.js Runtime 自动检查：
+
+```text
+body 真的是 object 吗？
+displayName 真的是 string 吗？
+字段长度合法吗？
+appName 是否符合格式？
+```
+
+因此外部输入更准确的类型应该先是：
+
+```ts
+unknown
+```
+
+它表达的是：
+
+> **这个值已经进入程序，但当前还没有被证明符合应用的数据契约。**
+
+### 【TypeScript Type 与 Runtime Validation 分别解决编译阶段和运行阶段的问题】
+
+例如：
+
+```ts
+interface UserInput {
+  email: string;
+}
+```
+
+TypeScript 可以约束：
+
+```ts
+function foo(
+  input: UserInput,
+) {
+  input.email.toLowerCase();
+}
+```
+
+但如果 HTTP Client 实际发送：
+
+```json
+{
+  "email": 123
+}
+```
+
+TypeScript 无法阻止这个 Runtime Value（运行时值）进入服务端。
+
+因为运行 Node.js 时执行的是编译后的 JavaScript。
+
+因此：
+
+```text
+TypeScript Type
+────────────────────────
+开发 / 编译阶段
+
+解决：
+程序代码应该如何使用这个数据？
+
+
+Runtime Validation
+────────────────────────
+运行阶段
+
+解决：
+外部真正传进来的数据
+是否符合这个结构？
+```
+
+这也是 Zod 在服务端最核心的价值之一。
+
+### 【当前项目通过 parseBody 统一执行 Zod Runtime Validation】
+
+当前公共方法：
+
+```ts
+export function parseBody<T>(
+  schema: ZodType<T>,
+  value: unknown,
+): T {
+  const parsed =
+    schema.safeParse(value);
+
+  if (!parsed.success) {
+    throw new BadRequestException({
+      code:
+        'invalid_request',
+      message:
+        'Request validation failed.',
+      issues:
+        parsed.error.issues.map(
+          (issue) => ({
+            path:
+              issue.path.join('.'),
+            message:
+              issue.message,
+          }),
+        ),
+    });
+  }
+
+  return parsed.data;
+}
+```
+
+可以拆成：
+
+```text
+unknown
+    ↓
+Schema
+    ↓
+safeParse()
+    ↓
+success ?
+
+否
+    ↓
+BadRequestException
+    ↓
+HTTP 400
+
+是
+    ↓
+parsed.data
+    ↓
+进入业务代码
+```
+
+所以 `parseBody()` 实际承担两类职责：
+
+```text
+1. Runtime Validation
+   判断输入是否满足 Schema
+
+2. Error Adaptation
+   把 Zod Error 转成当前 API 的 HTTP Error Contract
+```
+
+### 【Schema 是运行时数据契约，而不只是 TypeScript 类型声明】
+
+当前：
+
+```ts
+const createProjectSchema =
+  z.object({
+    displayName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(120),
+
+    appName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(128)
+        .regex(
+          /^[a-zA-Z0-9._-]+$/,
+        ),
+  });
+```
+
+这个 Schema 描述的不只是：
+
+```text
+displayName 是 string
+appName 是 string
+```
+
+还包括：
+
+```text
+displayName
+    → string
+    → trim
+    → 至少 1 个字符
+    → 最多 120 个字符
+
+appName
+    → string
+    → trim
+    → 至少 1 个字符
+    → 最多 128 个字符
+    → 只能包含：
+       字母
+       数字
+       .
+       _
+       -
+```
+
+所以 Schema 是：
+
+```text
+Type
++
+Format
++
+Constraint
++
+Normalization
+```
+
+组成的 Runtime Contract（运行时契约）。
+
+### 【safeParse 真正执行运行时校验】
+
+当前：
+
+```ts
+const parsed =
+  schema.safeParse(value);
+```
+
+成功时可以概念化为：
+
+```text
+{
+  success: true,
+  data: ...
+}
+```
+
+失败时：
+
+```text
+{
+  success: false,
+  error: ...
+}
+```
+
+因此：
+
+```ts
+if (!parsed.success) {
+  ...
+}
+```
+
+就是：
+
+```text
+输入不符合当前 Schema
+```
+
+而：
+
+```ts
+return parsed.data;
+```
+
+表示：
+
+```text
+这个数据已经经过当前 Schema 校验
+可以继续进入应用代码
+```
+
+这里形成了一个明显的 Trust Boundary（可信边界）：
+
+```text
+External Input
+    ↓
+unknown
+    ↓
+Schema.safeParse()
+    ↓
+Validated Data
+```
+
+### 【Zod 不只做 Validation，也可以执行 Normalization】
+
+例如：
+
+```ts
+z.string().trim()
+```
+
+输入：
+
+```text
+"  Browser Monitor  "
+```
+
+解析后：
+
+```text
+"Browser Monitor"
+```
+
+因此实际流程是：
+
+```text
+Raw Input
+    ↓
+Validation
++
+Normalization
+    ↓
+Application Input
+```
+
+当前 `displayName`：
+
+```ts
+z.string()
+  .trim()
+  .min(1)
+  .max(120)
+```
+
+同时完成：
+
+```text
+类型检查
++
+去除首尾空格
++
+非空检查
++
+长度约束
+```
+
+### 【optional 与 default 描述的是不同的输入语义】
+
+当前：
+
+```ts
+environment:
+  z.string()
+    .max(64)
+    .optional()
+```
+
+表示：
+
+```text
+这个字段可以不存在
+```
+
+解析后仍可能：
+
+```ts
+environment === undefined
+```
+
+而：
+
+```ts
+label:
+  z.string()
+    .trim()
+    .min(1)
+    .max(80)
+    .default('rotated')
+```
+
+表示：
+
+```text
+如果字段没有提供
+    ↓
+Schema 自动补默认值
+```
+
+所以：
+
+```text
+optional
+    → 允许没有
+
+default
+    → 没有时生成默认值
+```
+
+当前 `rotateSchema` 已经给 `label` 设置：
+
+```text
+rotated
+```
+
+但 Controller 后续仍写：
+
+```ts
+input.label ?? 'rotated'
+```
+
+从当前 Schema 语义看，这是额外的一层兜底，存在一定重复。
+
+### 【enum 用来限制输入只能来自明确集合】
+
+例如：
+
+```ts
+role:
+  z.enum([
+    'owner',
+    'member',
+  ])
+```
+
+表示：
+
+```text
+owner
+    → valid
+
+member
+    → valid
+
+admin
+    → invalid
+```
+
+当前项目中还有：
+
+```ts
+device:
+  z.enum([
+    'mobile',
+    'desktop',
+  ])
+```
+
+以及：
+
+```ts
+metric:
+  z.enum([
+    'LCP',
+    'FCP',
+    'INP',
+    'CLS',
+    'FPS',
+    'LoAF',
+  ])
+```
+
+这些 Schema 实际上也是 API Contract（API 契约）的一部分。
+
+### 【Schema 可以通过 superRefine 表达字段之间的组合规则】
+
+简单 Schema 主要检查单字段规则。
+
+但很多输入存在：
+
+```text
+字段 A 出现
+    ↓
+字段 B 必须同时存在
+```
+
+当前：
+
+```ts
+const detailSchema =
+  selectionSchema
+    .extend({
+      metric:
+        z.string()
+          .trim()
+          .min(1)
+          .max(64)
+          .optional(),
+
+      unit:
+        z.string()
+          .trim()
+          .min(1)
+          .max(32)
+          .regex(
+            /^[a-zA-Z][a-zA-Z0-9_./%-]*$/,
+          )
+          .optional(),
+
+      aggregation:
+        z.enum([
+          'count',
+          'sum',
+          'avg',
+          'min',
+          'max',
+          'p50',
+          'p75',
+          'p90',
+          'p95',
+          'p99',
+        ])
+        .optional(),
+    })
+    .superRefine(
+      (
+        selection,
+        context,
+      ) => {
+        if (
+          selection.metric
+          &&
+          !selection.unit
+        ) {
+          context.addIssue({
+            code:
+              z.ZodIssueCode.custom,
+            message:
+              'unit is required when metric is selected',
+          });
+        }
+
+        if (
+          !selection.metric
+          &&
+          selection.aggregation
+          &&
+          selection.aggregation
+            !== 'count'
+        ) {
+          context.addIssue({
+            code:
+              z.ZodIssueCode.custom,
+            message:
+              'count is the only aggregation without a metric',
+          });
+        }
+      },
+    );
+```
+
+这里第一条规则：
+
+```text
+metric 存在
+    ↓
+unit 必须存在
+```
+
+第二条：
+
+```text
+metric 不存在
+    ↓
+aggregation 如果存在
+只能是 count
+```
+
+所以 Schema 不只是：
+
+```text
+字段类型列表
+```
+
+还可以表达：
+
+```text
+多个字段之间的输入一致性规则
+```
+
+### 【当前 parseBody 实际不仅验证 Body，也验证 Query 和 Param】
+
+虽然函数名叫：
+
+```text
+parseBody
+```
+
+但当前 `AnalyticsController`：
+
+```ts
+private filters(
+  query: unknown,
+): AnalyticsFilters {
+  const parsed =
+    parseBody(
+      querySchema,
+      query,
+    );
+
+  // ...
+}
+```
+
+这里校验的是：
+
+```text
+@Query()
+```
+
+另外：
+
+```ts
+const normalized =
+  parseBody(
+    z.string()
+      .trim()
+      .min(1)
+      .max(256),
+    traceId,
+  );
+```
+
+这里验证的是：
+
+```text
+@Param('traceId')
+```
+
+因此从实际职责看：
+
+```text
+parseBody()
+```
+
+更接近：
+
+```text
+parseInput()
+parseWithSchema()
+validateInput()
+```
+
+因为它处理的是：
+
+```text
+Body
+Query
+Param
+其他 unknown Runtime Value
+```
+
+而不是只处理 HTTP Body。
+
+### 【parseBody 把第三方 Zod Error 转换成当前 API 的错误契约】
+
+当前失败后：
+
+```ts
+throw new BadRequestException({
+  code:
+    'invalid_request',
+  message:
+    'Request validation failed.',
+  issues:
+    parsed.error.issues.map(
+      (issue) => ({
+        path:
+          issue.path.join('.'),
+        message:
+          issue.message,
+      }),
+    ),
+});
+```
+
+最终对外重点暴露：
+
+```text
+code
+message
+issues[].path
+issues[].message
+```
+
+而没有直接把：
+
+```text
+ZodError
+```
+
+完整结构暴露给客户端。
+
+这里体现的是：
+
+```text
+Third-party Validation Error
+    ↓
+Adapter
+    ↓
+Application Error Contract
+```
+
+这个边界很重要：
+
+> **第三方库的数据结构尽量不要直接成为应用对外 API Contract。**
+
+否则未来更换 Validator 或升级库时，前端 API Contract 也可能被第三方实现细节绑定。
+
+### 【Input Validation 与 Business Validation 必须分开】
+
+例如：
+
+```ts
+createProjectSchema
+```
+
+能够判断：
+
+```text
+displayName 是否是合法 string
+appName 是否满足格式要求
+```
+
+但它不能判断：
+
+```text
+用户是否有权执行当前操作？
+appName 是否已经存在？
+项目是否处于允许修改状态？
+当前账号是否达到某种业务限制？
+```
+
+因为这些规则通常依赖：
+
+```text
+Current User
+Database
+Project State
+Business State
+```
+
+因此：
+
+```text
+Input / Structural Validation
+────────────────────────
+输入本身是否符合接口契约？
+
+
+Business / Domain Validation
+────────────────────────
+在当前业务状态下，
+这个操作是否合法？
+```
+
+必须分层。
+
+结合前一章：
+
+```text
+Request
+    ↓
+SessionGuard
+    ↓
+Authentication
+你是谁？
+    ↓
+CsrfGuard
+    ↓
+CSRF Protection
+写请求是否具有合法附加凭证？
+    ↓
+Input Validation
+    ↓
+输入格式是否满足 Contract？
+    ↓
+Service
+    ↓
+Authorization
+能否访问当前 Resource？
+    ↓
+Business Rules
+操作本身是否合法？
+```
+
+所以：
+
+```text
+Validation 成功
+```
+
+不等于：
+
+```text
+请求已经通过所有安全和业务判断
+```
+
+### 【当前普通后台接口采用 Controller 内显式 Zod Validation】
+
+当前真实实现是：
+
+```text
+@Body / @Query / @Param
+    ↓
+Controller Method 开始执行
+    ↓
+unknown
+    ↓
+parseBody()
+    ↓
+Zod Schema
+    ↓
+Validated Data
+    ↓
+Service
+```
+
+例如：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Body()
+  body: unknown,
+) {
+  const input =
+    parseBody(
+      createProjectSchema,
+      body,
+    );
+
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+这种设计的优势是：
+
+```text
+HTTP Input
+    ↓
+哪个 Schema 校验
+    ↓
+校验后调用哪个 Service
+```
+
+全部直接出现在 Controller 中，阅读非常直观。
+
+但它也有一个明显代价：
+
+```text
+Validation 依赖开发者主动调用 parseBody()
+```
+
+如果某个 Controller 忘记调用：
+
+```ts
+@Post(...)
+foo(
+  @Body()
+  body: unknown,
+) {
+  return this.service.foo(body);
+}
+```
+
+那么：
+
+```text
+Untrusted Input
+    ↓
+可能直接进入 Service
+```
+
+因此当前方案依赖明确的代码规范：
+
+> **所有外部不可信输入，在进入业务层之前必须显式经过对应 Schema。**
+
+项目规模增大以后，这种人工约束可能出现遗漏。
+
+### 【Nest Pipe 可以把 Validation 从 Controller Implementation 前移到 Request Lifecycle】
+
+NestJS 的 Pipe（管道）本身就用于：
+
+```text
+Validation
+Transformation
+```
+
+如果使用 Pipe，链路会从：
+
+```text
+当前实现
+
+@Body()
+    ↓
+body: unknown
+    ↓
+Controller 已经开始执行
+    ↓
+parseBody()
+    ↓
+Zod
+    ↓
+input
+    ↓
+Service
+```
+
+变成：
+
+```text
+Pipe 实现
+
+@Body()
+    ↓
+Pipe
+    ↓
+Zod Schema
+    ↓
+Validated Input
+    ↓
+Controller 才开始执行
+    ↓
+Service
+```
+
+所以本质区别是：
+
+> **当前实现把 Validation 放在 Controller Implementation（控制器实现）内部；Pipe 方案把 Validation 提升为 Nest Request Lifecycle（请求生命周期）的一部分。**
+
+### 【使用自定义 ZodValidationPipe 可以直接复用当前 parseBody 的逻辑】
+
+如果不依赖 Nest 新的 Schema Pipe，可以把当前 `parseBody()` 几乎原样改造成：
+
+```ts
+import {
+  BadRequestException,
+  Injectable,
+  PipeTransform,
+} from '@nestjs/common';
+import type {
+  ZodType,
+} from 'zod';
+
+@Injectable()
+export class ZodValidationPipe<T>
+  implements PipeTransform<
+    unknown,
+    T
+  > {
+
+  constructor(
+    private readonly schema:
+      ZodType<T>,
+  ) {}
+
+  transform(
+    value: unknown,
+  ): T {
+    const parsed =
+      this.schema.safeParse(
+        value,
+      );
+
+    if (!parsed.success) {
+      throw new BadRequestException({
+        code:
+          'invalid_request',
+        message:
+          'Request validation failed.',
+        issues:
+          parsed.error.issues.map(
+            (issue) => ({
+              path:
+                issue.path.join('.'),
+              message:
+                issue.message,
+            }),
+          ),
+      });
+    }
+
+    return parsed.data;
+  }
+}
+```
+
+本质上只是把：
+
+```ts
+parseBody(
+  schema,
+  value,
+)
+```
+
+变成：
+
+```ts
+pipe.transform(
+  value,
+)
+```
+
+### 【createProject 使用自定义 Pipe 后可以直接接收已校验输入】
+
+Schema：
+
+```ts
+const createProjectSchema =
+  z.object({
+    displayName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(120),
+
+    appName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(128)
+        .regex(
+          /^[a-zA-Z0-9._-]+$/,
+        ),
+  });
+
+type CreateProjectInput =
+  z.infer<
+    typeof createProjectSchema
+  >;
+```
+
+Controller 可以变成：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Body(
+    new ZodValidationPipe(
+      createProjectSchema,
+    ),
+  )
+  input: CreateProjectInput,
+) {
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+于是执行链：
+
+```text
+HTTP Body
+    ↓
+ZodValidationPipe
+    ↓
+createProjectSchema
+    ↓
+Validation
+    ↓
+成功
+    ↓
+CreateProjectInput
+    ↓
+Controller
+    ↓
+Service
+```
+
+如果校验失败：
+
+```text
+Pipe
+    ↓
+BadRequestException
+    ↓
+400
+```
+
+Controller Method 不会开始正常执行。
+
+### 【当前 Nest 版本还可以使用官方 StandardSchemaValidationPipe】
+
+当前项目依赖：
+
+```text
+@nestjs/common      ^11.1.6
+@nestjs/core        ^11.1.6
+@nestjs/platform-fastify ^11.1.6
+zod                ^3.24.2
+```
+
+当前 Nest 官方提供：
+
+```text
+StandardSchemaValidationPipe
+```
+
+用于验证实现 Standard Schema 规范的 Schema。
+
+官方文档明确说明：
+
+```text
+StandardSchemaValidationPipe
+可以使用 Zod、Valibot、ArkType
+等 Standard Schema compatible library
+```
+
+Standard Schema 官方兼容列表中，Zod 从：
+
+```text
+3.24.0+
+```
+
+开始实现 Standard Schema。
+
+因此当前项目声明的：
+
+```text
+zod ^3.24.2
+```
+
+已经位于该兼容范围内。
+
+这里属于**可选改造方案**，当前源码还没有实际使用 `StandardSchemaValidationPipe`。
+
+### 【StandardSchemaValidationPipe 可以全局注册，但只处理声明了 schema 的参数】
+
+概念改造：
+
+```ts
+import {
+  StandardSchemaValidationPipe,
+} from '@nestjs/common';
+
+async function bootstrap() {
+  const app =
+    await NestFactory.create<
+      NestFastifyApplication
+    >(
+      AppModule,
+      adapter,
+      {
+        bufferLogs: true,
+      },
+    );
+
+  app.useGlobalPipes(
+    new StandardSchemaValidationPipe(),
+  );
+
+  // ...
+}
+```
+
+虽然 Pipe 注册为 Global Pipe（全局管道），但官方行为是：
+
+```text
+只有参数显式声明 schema
+    ↓
+才执行 Standard Schema Validation
+
+没有 schema 的参数
+    ↓
+原样通过
+```
+
+因此可以渐进式改造，不需要一次性把所有 Controller 全部修改。
+
+### 【使用官方 StandardSchemaValidationPipe 后 Controller 可以进一步简化】
+
+Schema 和 Type：
+
+```ts
+const createProjectSchema =
+  z.object({
+    displayName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(120),
+
+    appName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(128)
+        .regex(
+          /^[a-zA-Z0-9._-]+$/,
+        ),
+  });
+
+type CreateProjectInput =
+  z.infer<
+    typeof createProjectSchema
+  >;
+```
+
+Controller 可以写成：
+
+```ts
+@Post('projects')
+create(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Body({
+    schema:
+      createProjectSchema,
+  })
+  input: CreateProjectInput,
+) {
+  return this.projects.create(
+    user.id,
+    input.displayName,
+    input.appName,
+  );
+}
+```
+
+此时：
+
+```text
+@Body({ schema })
+    ↓
+StandardSchemaValidationPipe
+    ↓
+Zod Schema
+    ↓
+Validated / Normalized Data
+    ↓
+Controller
+```
+
+Controller 不再自己调用：
+
+```text
+parseBody()
+```
+
+也不再直接接触：
+
+```text
+unknown
+```
+
+### 【Schema 的 transform / default / trim 结果会成为 Controller 实际收到的数据】
+
+Pipe 最终应该把 Schema 的 Output（输出）交给 Controller。
+
+例如：
+
+```json
+{
+  "displayName":
+    "  Browser Monitor  ",
+  "appName":
+    " monitor-web "
+}
+```
+
+当前 Schema：
+
+```ts
+z.string().trim()
+```
+
+会产生：
+
+```json
+{
+  "displayName":
+    "Browser Monitor",
+  "appName":
+    "monitor-web"
+}
+```
+
+所以 Controller 需要接收的是：
+
+```text
+Parsed / Normalized Schema Output
+```
+
+而不是原始 HTTP Input。
+
+这与当前：
+
+```ts
+return parsed.data;
+```
+
+的设计思想一致。
+
+### 【Query 也可以直接进入 Schema Pipe】
+
+当前：
+
+```ts
+@Get('performance')
+performance(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Param('projectId')
+  projectId: string,
+
+  @Query()
+  query: unknown,
+) {
+  return this.analytics
+    .performance(
+      user.id,
+      projectId,
+      this.filters(query),
+    );
+}
+```
+
+然后：
+
+```ts
+private filters(
+  query: unknown,
+): AnalyticsFilters {
+  const parsed =
+    parseBody(
+      querySchema,
+      query,
+    );
+
+  // ...
+}
+```
+
+可以改成：
+
+```ts
+type AnalyticsQuery =
+  z.infer<
+    typeof querySchema
+  >;
+
+@Get('performance')
+performance(
+  @CurrentUser()
+  user: AuthenticatedUser,
+
+  @Param('projectId')
+  projectId: string,
+
+  @Query({
+    schema:
+      querySchema,
+  })
+  query: AnalyticsQuery,
+) {
+  // query 已经通过 Schema
+}
+```
+
+形成：
+
+```text
+Query String
+    ↓
+Nest @Query()
+    ↓
+querySchema
+    ↓
+StandardSchemaValidationPipe
+    ↓
+AnalyticsQuery
+    ↓
+Controller
+```
+
+### 【单个 Path Param 也可以绑定 Schema】
+
+例如当前：
+
+```ts
+@Param('traceId')
+traceId: string
+```
+
+后面再手动：
+
+```ts
+const normalized =
+  parseBody(
+    z.string()
+      .trim()
+      .min(1)
+      .max(256),
+    traceId,
+  );
+```
+
+Pipe 方案可以把 Schema 直接放到参数上：
+
+```ts
+const traceIdSchema =
+  z.string()
+    .trim()
+    .min(1)
+    .max(256);
+
+@Get('traces/:traceId')
+trace(
+  @Param(
+    'traceId',
+    {
+      schema:
+        traceIdSchema,
+    },
+  )
+  traceId: string,
+) {
+  // traceId 已经 trim + validate
+}
+```
+
+Nest 官方目前支持：
+
+```text
+@Body()
+@Query()
+@Param()
+```
+
+声明 `schema`。
+
+### 【改成官方 Pipe 时需要保留当前 API Error Contract】
+
+当前 `parseBody()` 的一个重要职责是返回统一错误：
+
+```json
+{
+  "code":
+    "invalid_request",
+  "message":
+    "Request validation failed.",
+  "issues": [
+    {
+      "path":
+        "displayName",
+      "message":
+        "..."
+    }
+  ]
+}
+```
+
+如果直接使用默认：
+
+```ts
+new StandardSchemaValidationPipe()
+```
+
+错误结构会采用 Nest 默认 Schema Validation Error 表达。
+
+如果改造后仍希望保持现有 API Contract，需要使用：
+
+```text
+exceptionFactory
+```
+
+进行 Error Adaptation。
+
+例如：
+
+```ts
+app.useGlobalPipes(
+  new StandardSchemaValidationPipe({
+    exceptionFactory:
+      (issues) =>
+        new BadRequestException({
+          code:
+            'invalid_request',
+
+          message:
+            'Request validation failed.',
+
+          issues:
+            issues.map(
+              (issue) => ({
+                path:
+                  issue.path
+                    ?.map(
+                      (segment) =>
+                        typeof segment
+                          === 'object'
+                          ? segment.key
+                          : segment,
+                    )
+                    .join('.')
+                  ?? '',
+
+                message:
+                  issue.message,
+              }),
+            ),
+        }),
+  }),
+);
+```
+
+于是：
+
+```text
+Standard Schema Issue
+    ↓
+exceptionFactory
+    ↓
+当前项目 Error Contract
+    ↓
+BadRequestException
+    ↓
+HTTP 400
+```
+
+这样可以把现有 `parseBody()` 的：
+
+```text
+Validation
++
+Error Format Adaptation
+```
+
+一起移动到 Pipe。
+
+### 【当前普通后台 API 适合逐步迁移到 Pipe】
+
+这些 Controller：
+
+```text
+AuthController
+ProjectsController
+AnalyticsController
+LabAuditsController
+```
+
+大量采用：
+
+```text
+@Body / @Query / @Param
+    ↓
+parseBody()
+    ↓
+Zod
+```
+
+属于高度重复的 Request Input Validation。
+
+因此它们很适合逐步改成：
+
+```text
+@Body({ schema })
+@Query({ schema })
+@Param(..., { schema })
+    ↓
+StandardSchemaValidationPipe
+    ↓
+Controller
+```
+
+优点：
+
+```text
+Validation 进入 Request Lifecycle
+Controller 更薄
+Schema 与参数绑定更明确
+减少忘记调用 parseBody 的风险
+统一 Error Mapping
+```
+
+### 【Ingestion 不适合机械地把全部 Validation 搬进 Pipe】
+
+当前 `IngestionService.ingest()` 明显比普通后台 CRUD Validation 更复杂。
+
+第一步：
+
+```ts
+let decodedBody = body;
+
+if (
+  typeof body === 'string'
+) {
+  try {
+    decodedBody =
+      JSON.parse(body)
+        as unknown;
+  } catch {
+    decodedBody = null;
+  }
+}
+```
+
+这是 Transport Decoding（传输解码）。
+
+原因是：
+
+```text
+sendBeacon
+可能以 text/plain
+发送 JSON Document
+```
+
+所以：
+
+```text
+Transport Representation
+    ↓
+string / object
+    ↓
+Decode
+    ↓
+统一 Runtime Value
+```
+
+第二步先检查：
+
+```text
+protocolVersion
+```
+
+不支持时：
+
+```text
+unsupported_protocol
+    ↓
+422
+```
+
+第三步：
+
+```ts
+const header =
+  telemetryBatchHeaderV3Schema
+    .safeParse(decodedBody);
+```
+
+验证整个 Batch。
+
+如果 Batch 本身非法：
+
+```text
+invalid_batch
+    ↓
+整个 Request 失败
+```
+
+第四步对每个 Event：
+
+```ts
+header.data.events
+  .forEach(
+    (
+      candidate,
+      index,
+    ) => {
+      const parsed =
+        telemetryEventV3Schema
+          .safeParse(
+            candidate,
+          );
+
+      if (!parsed.success) {
+        rejections.push({
+          index,
+          code:
+            'invalid_event',
+        });
+
+        return;
+      }
+
+      // ...
+    },
+  );
+```
+
+这里某一个 Event 失败：
+
+```text
+不会直接让整个 Batch 失败
+```
+
+而是：
+
+```text
+Event 0
+    → accepted
+
+Event 1
+    → rejected
+
+Event 2
+    → accepted
+```
+
+最终返回：
+
+```text
+accepted
+duplicate
+rejected
+rejections[]
+```
+
+这是 Partial Acceptance（部分接受）策略。
+
+### 【Ingestion 中 Schema 合法也不代表 Event 最终会被接受】
+
+例如：
+
+```ts
+if (
+  parsed.data.app.name
+  !== project.app_name
+) {
+  rejections.push({
+    index,
+    code:
+      'app_name_mismatch',
+  });
+
+  return;
+}
+```
+
+这里：
+
+```text
+telemetryEventV3Schema
+    ↓
+已经成功
+```
+
+但：
+
+```text
+Event.app.name
+        !=
+Project.app_name
+```
+
+所以仍然拒绝。
+
+另外：
+
+```ts
+if (
+  parsed.data.occurredAt
+    > now + 5 * 60_000
+  ||
+  parsed.data.occurredAt
+    < now
+      - 30 * 24
+        * 60 * 60_000
+) {
+  rejections.push({
+    index,
+    code:
+      'event_time_out_of_range',
+  });
+
+  return;
+}
+```
+
+也是：
+
+```text
+Structural Validation
+    ↓
+成功
+
+Domain Validation
+    ↓
+失败
+```
+
+因此不能把所有业务判断都塞进一个 HTTP Pipe。
+
+### 【Validation 可以分成四个层次理解】
+
+结合当前项目，可以形成：
+
+```text
+第一层
+Transport Validation / Decoding
+────────────────────────
+HTTP Body 是否能解析
+text/plain JSON 是否能 decode
+
+
+第二层
+Structural Validation
+────────────────────────
+Zod Schema
+
+类型
+字段
+长度
+格式
+enum
+字段组合
+默认值
+Normalization
+
+
+第三层
+Security / Identity Validation
+────────────────────────
+Session
+CSRF
+Origin
+Public Key
+Rate Limit 等
+
+
+第四层
+Business / Domain Validation
+────────────────────────
+Project access
+app_name 是否匹配
+Event 时间是否合理
+资源当前状态
+业务约束
+Partial Acceptance Policy
+```
+
+不同层解决的问题不同。
+
+### 【Pipe 最适合承担 Controller 参数契约，而不是所有业务校验】
+
+Pipe 最适合回答：
+
+```text
+“这个 Controller Parameter
+在进入 Handler 前
+应该是什么结构？”
+```
+
+例如：
+
+```text
+Body Schema
+Query Schema
+Param Schema
+UUID
+Integer
+Enum
+String Format
+Coercion
+Normalization
+```
+
+而 Service 更适合回答：
+
+```text
+“这个数据虽然格式合法，
+但在当前业务状态下，
+是否应该接受？”
+```
+
+例如：
+
+```text
+用户是否有 Project 权限
+Project 是否存在
+Origin 是否在白名单
+Event app_name 是否匹配
+Event 时间是否有效
+是否超过 Rate Limit
+是否需要部分拒绝
+```
+
+所以可以建立：
+
+```text
+Pipe
+    → Request / Input Contract
+
+Service
+    → Domain / Business Contract
+```
+
+### 【当前项目更合理的改造方式是普通 API 使用 Pipe，Ingestion 保留分层业务校验】
+
+普通后台接口可以逐步改成：
+
+```text
+HTTP Request
+    ↓
+Guard
+    ↓
+Interceptor
+    ↓
+StandardSchemaValidationPipe
+    ↓
+Zod Schema
+    ↓
+Validated / Normalized Input
+    ↓
+Controller
+    ↓
+Service
+    ↓
+Business Validation
+    ↓
+Database
+```
+
+而 Ingestion：
+
+```text
+HTTP Request
+    ↓
+Transport Decode
+    ↓
+Protocol Version
+    ↓
+Batch Schema
+    ↓
+Project / Origin / Rate Limit
+    ↓
+Event-by-event Schema
+    ↓
+Domain Validation
+    ↓
+Partial Acceptance
+    ↓
+Transaction / Outbox
+```
+
+不要因为引入 Pipe，就把：
+
+```text
+所有 Validation
+```
+
+都搬到 Controller Parameter 阶段。
+
+### 【当前实现与 Pipe 方案的最终对比】
+
+当前实现：
+
+```text
+@Body()
+    ↓
+body: unknown
+    ↓
+Controller 开始执行
+    ↓
+parseBody()
+    ↓
+Zod
+    ↓
+Validated Input
+    ↓
+Service
+```
+
+优点：
+
+```text
+显式
+容易阅读
+实现简单
+当前代码已经可用
+```
+
+代价：
+
+```text
+Controller 有重复 Validation 代码
+依赖开发者记得调用 parseBody()
+Validation 不属于框架 Lifecycle 阶段
+```
+
+Pipe 方案：
+
+```text
+@Body({ schema })
+    ↓
+StandardSchemaValidationPipe
+    ↓
+Zod
+    ↓
+Validated Input
+    ↓
+Controller
+    ↓
+Service
+```
+
+优点：
+
+```text
+Validation 前移
+Controller 更薄
+减少遗漏
+Schema 与参数绑定
+错误处理可以统一
+更符合 Nest Request Lifecycle
+```
+
+代价：
+
+```text
+部分行为隐藏在全局 Pipe 中
+需要理解 Pipe / Schema Metadata
+迁移时要保持现有 Error Contract
+复杂业务 Validation 仍不能全部搬入 Pipe
+```
+
+所以对于当前项目：
+
+> **普通 Auth / Projects / Analytics / LabAudits 输入校验可以逐步迁移到 StandardSchemaValidationPipe；Ingestion 中的 Protocol、Batch、Event、Domain Rule 和 Partial Acceptance 仍应保持分层处理，不应该机械地统一成一个 Pipe。**
+
+### 【这一节最终建立的 Validation 心智模型】
+
+最终可以把当前项目的输入处理理解成：
+
+```text
+External HTTP Input
+    ↓
+unknown
+    ↓
+Runtime Schema
+    ↓
+Validation / Normalization
+    ↓
+Typed Application Input
+    ↓
+Controller
+    ↓
+Service
+    ↓
+Authorization
+    ↓
+Business / Domain Validation
+    ↓
+Persistence
+```
+
+核心结论：
+
+> **TypeScript Type 只能帮助开发阶段正确使用数据；Zod Schema 才能在 Runtime 验证外部输入。当前项目通过 `parseBody()` 显式建立这一边界；在当前 Nest 版本下，也可以把普通接口逐步迁移到 `StandardSchemaValidationPipe`，让 Validation 正式进入 Request Lifecycle。但 Pipe 只适合承担 Request Input Contract，不能替代 Service 中依赖数据库、权限、状态和部分接受策略的 Domain Validation。**
+
+### 【参考资料】
+
+NestJS, *Validation*, 官方文档：<https://docs.nestjs.com/application/validation>
+
+NestJS, *Pipes*, 官方文档：<https://docs.nestjs.com/pipes>
+
+Standard Schema, *What schema libraries implement the spec?*：<https://standardschema.dev/schema>
+
+Zod, *TypeScript-first schema validation with static type inference*：<https://zod.dev/>
+
+
+## 8. 后续学习顺序
 
 在当前整体框架基础上，后续按以下顺序继续深入：
 
