@@ -9008,7 +9008,409 @@ Proposed Design
 
 用于说明 Outbox 怎样解决这类跨存储最终一致性问题，不能描述成项目当前已有能力。
 
-<!-- REDIS_SECTION_5_CONTINUE -->
+### 【Recovery 机制要按故障阶段选择，而不是把 Retry、TTL、Version、Outbox 当成同类技巧】
+
+现在可以把第五节前面的机制重新放回同一张图：
+
+~~~text
+Cross-Storage Failure
+        ↓
+系统还有没有记住
+“什么事情没完成”？
+        ↓
+┌───────────────┬────────────────┐
+│               │                │
+记得            不记得
+│               │
+↓               ↓
+Retry / Outbox   只能依赖 TTL /
+                 Rebuild 等兜底
+~~~
+
+不同机制解决的问题并不相同。
+
+#### <u>1. Retry 解决暂时性执行失败</u>
+
+例如：
+
+~~~text
+PostgreSQL Session 已删除
+        ↓
+Redis DEL
+网络错误
+~~~
+
+可以再次执行 Redis DEL。
+
+DEL 本身很适合重复调用：
+
+~~~text
+DEL
+DEL
+DEL
+    ↓
+最终都是
+Key 不存在
+~~~
+
+因此 Retry 很合适。
+
+但普通 Retry 仍要问：
+
+~~~text
+Retry Intent 存在哪里？
+
+进程 Crash 以后
+还会不会继续 Retry？
+~~~
+
+这正是 Outbox 比单纯 try/catch Retry 更进一步的地方。
+
+#### <u>2. TTL 提供遗漏恢复动作后的时间上界</u>
+
+如果：
+
+~~~text
+Invalidation
+完全漏掉
+~~~
+
+TTL 仍然可以让旧状态最终消失。
+
+例如 Analytics：
+
+~~~text
+EX 15
+~~~
+
+意味着旧 Cache 不会永久存在。
+
+Session：
+
+~~~text
+SESSION_TTL_SECONDS
+~~~
+
+意味着旧 Session 最终也会自然失效。
+
+所以 TTL 更像：
+
+~~~text
+Last-resort Time Bound
+~~~
+
+但它不能保证立即一致。
+
+TTL 越长：
+
+~~~text
+Consistency Window
+可能越长
+~~~
+
+#### <u>3. Version 解决批量 Cache Invalidation 与 Stale Write 隔离</u>
+
+Version 适合：
+
+~~~text
+大量 Cache Key
+难以逐个删除
+~~~
+
+以及：
+
+~~~text
+旧请求迟到写回
+~~~
+
+的问题。
+
+它通过：
+
+~~~text
+Generation 8
+    ↓
+Generation 9
+~~~
+
+把旧状态隔离在旧 Namespace。
+
+所以 Version 是 Cache Consistency 机制，不是通用跨存储事务机制。
+
+#### <u>4. Outbox 解决“外部动作不能被系统忘记”</u>
+
+Outbox 适合：
+
+~~~text
+Database State
+已经 Commit
+
+但是
+还有一个外部 Side Effect
+必须最终完成
+~~~
+
+它通过：
+
+~~~text
+Business State
++
+Outbox Task
+
+同一数据库 Transaction
+~~~
+
+把“后续必须完成”本身变成可靠状态。
+
+所以 Outbox 比普通 Retry 多解决了一个问题：
+
+~~~text
+Process Crash 以后
+系统仍然知道要 Retry 什么
+~~~
+
+#### <u>5. Rebuild 适合真正可派生的 Redis State</u>
+
+例如 Analytics Cache：
+
+~~~text
+Redis Cache 丢失
+    ↓
+Database Query
+    ↓
+重新生成
+~~~
+
+这类状态最简单的恢复方式不是复杂同步，而是：
+
+~~~text
+直接 Rebuild
+~~~
+
+所以 Derived State 往往应该优先设计成可重新构建，而不是强行把 Redis 和 Database 做成两份同等权威数据。
+
+### 【强一致、有限陈旧与最终一致要根据 State Semantics 区分】
+
+可以先建立：
+
+~~~text
+Consistency Requirement
+│
+├── Stronger / Immediate
+│     ↓
+│   Security Revocation
+│   Critical Business State
+│
+├── Bounded Staleness
+│     ↓
+│   Cache
+│   Analytics
+│
+└── Eventual Consistency
+      ↓
+    Async Side Effect
+    Derived State
+~~~
+
+当前项目：
+
+| 场景 | 主要风险 | 当前机制 | 一致性特点 |
+|---|---|---|---|
+| Session Logout / Reset | 旧身份继续有效 | Redis DEL + TTL | 对安全窗口敏感 |
+| Analytics Cache | 暂时返回旧结果 | Version + 15s TTL | Bounded Staleness |
+| Ingestion Outbox | 后续处理永久丢失 | Durable Task + Retry + Dead Letter | Reliable Eventual Processing |
+| Ingestion Statistics | 统计缺失 | Best-effort Redis Write | 主业务优先，允许部分统计损失 |
+
+这说明 Redis Consistency Requirement 不是全系统固定一个等级，而是由：
+
+~~~text
+State Semantics
++
+Business Impact
++
+Recovery Ability
+~~~
+
+共同决定。
+
+### 【第五节最终形成一套跨存储一致性分析方法】
+
+以后看到：
+
+~~~text
+PostgreSQL
++
+Redis
+~~~
+
+不要马上讨论：
+
+~~~text
+先写谁？
+~~~
+
+应该按下面顺序分析：
+
+~~~text
+第一步
+确定 Data Authority
+    ↓
+谁是 Source of Truth？
+
+第二步
+确定 Runtime Read Path
+    ↓
+真正请求读取谁？
+Redis？
+Database？
+还是 Cache Miss 后 fallback？
+
+第三步
+确定 Write Path
+    ↓
+一次业务需要修改几个 Store？
+
+第四步
+画 Transaction Boundary
+    ↓
+哪些修改属于同一个本地 Transaction？
+哪些已经越过边界？
+
+第五步
+列 Failure Matrix
+    ↓
+DB ✓ Redis ✗
+DB ✗ Redis ✓
+分别有什么业务后果？
+
+第六步
+判断 Business Impact
+    ↓
+只是页面旧数据？
+还是 Session / Security / Money？
+
+第七步
+确定 Consistency Window
+    ↓
+必须立即一致？
+允许 15 秒？
+允许分钟级最终收敛？
+
+第八步
+选择 Recovery Mechanism
+    ↓
+Retry？
+TTL？
+Version？
+Outbox？
+Rebuild？
+
+第九步
+检查 Idempotency
+    ↓
+失败重试会不会重复产生副作用？
+
+第十步
+检查 Availability
+    ↓
+Redis 挂掉以后
+应用能否降级？
+还是整个请求直接失败？
+~~~
+
+最终可以收束成：
+
+~~~text
+                Business State
+                       │
+                       ▼
+               Source of Truth
+                       │
+            ┌──────────┴──────────┐
+            │                     │
+            ▼                     ▼
+      PostgreSQL              Redis State
+            │                     │
+            └──── Dual Write ─────┘
+                       │
+                       ▼
+                Failure Window
+                       │
+                       ▼
+              Business Impact
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+          ▼                         ▼
+   Stronger Requirement       Bounded / Eventual
+   Session Revocation         Analytics / Async Work
+          │                         │
+          ▼                         ▼
+ Durable Retry / Outbox       Version / TTL / Rebuild
+          │                         │
+          └────────────┬────────────┘
+                       ▼
+                  Convergence
+~~~
+
+这里最重要的不是记住某一个模式，而是建立：
+
+> **跨存储一致性不是“让两个系统永远同时成功”，而是先明确权威状态，再识别部分失败，并用可恢复机制把暂时不一致控制在业务可接受范围内，最终让系统重新收敛。**
+
+## 6. 下一节进入 Redis 自身的可靠运行体系
+
+到这里已经完成：
+
+~~~text
+第一节
+Redis 在系统中的位置
+
+第二节
+Redis 数据组织
+
+第三节
+Redis 命令执行、事务与原子性
+
+第四节
+Redis 工程状态模型、存储选择与持久化边界
+
+第五节
+Redis + PostgreSQL
+跨存储一致性与 Outbox
+~~~
+
+下一节会从：
+
+~~~text
+应用怎样使用 Redis
+~~~
+
+切换到：
+
+~~~text
+Redis Server 自己
+如果发生故障怎么办？
+~~~
+
+进入：
+
+~~~text
+Redis Reliability
+│
+├── Memory Dataset
+├── RDB
+├── AOF
+├── fsync
+├── AOF Rewrite
+├── Memory Limit
+├── Eviction Policy
+├── Restart Recovery
+├── Replication
+└── Failure Mode
+~~~
+
+第四节只建立了 RDB / AOF 的位置，第六节再真正深入 Redis 自身怎样做到长期运行、内存可控与故障恢复。
+
 
 ## 参考资料
 
@@ -9075,3 +9477,6 @@ Proposed Design
 [30] PostgreSQL. Database Physical Storage. https://www.postgresql.org/docs/current/storage.html
 
 [31] PostgreSQL. Write-Ahead Logging. https://www.postgresql.org/docs/current/wal-intro.html
+
+
+[32] AWS. Transactional Outbox Pattern. https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
