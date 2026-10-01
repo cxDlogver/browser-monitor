@@ -5715,6 +5715,705 @@ Version Counter 的意义是：
 不应该继续使用
 ~~~
 
+### 【Rate Limit State Model 将共享预算映射成 Allow / Reject 决策】
+
+限流真正解决的是：
+
+~~~text
+某一个 Scope
+在某一时间尺度内
+允许消耗多少资源？
+~~~
+
+常见 Scope：
+
+~~~text
+User
+IP
+Project
+API Key
+Tenant
+~~~
+
+Redis 很适合限流，是因为它同时提供：
+
+~~~text
+高频共享状态
+Atomic Command
+TTL
+Sorted Set
+Lua
+~~~
+
+#### <u>1. 常见限流算法需要先建立完整位置</u>
+
+入门阶段可以先建立：
+
+~~~text
+Rate Limit
+│
+├── Fixed Window
+├── Sliding Window
+├── Token Bucket
+└── Leaky Bucket
+~~~
+
+Fixed Window 可以理解成：
+
+~~~text
+每分钟最多 100 次
+~~~
+
+可以用：
+
+~~~text
+Counter
++
+TTL
+~~~
+
+实现。
+
+优点：
+
+~~~text
+简单
+内存低
+~~~
+
+缺点是窗口边界可能产生突发。
+
+Sliding Window 不再看自然分钟，而是看：
+
+~~~text
+当前时间往前 N 秒
+~~~
+
+可以用 Sorted Set：
+
+~~~text
+timestamp
+    ↓
+Score
+~~~
+
+配合范围查询和范围删除实现。
+
+Token Bucket：
+
+~~~text
+Bucket
+│
+├── capacity = burst
+├── tokens
+└── refill rate
+~~~
+
+请求到达时：
+
+~~~text
+补充 Token
+    ↓
+tokens >= cost ?
+    ↓
+允许 / 拒绝
+~~~
+
+它允许受控突发。
+
+Leaky Bucket 更关注稳定输出速率，这里先建立算法位置，不提前深入全部实现细节。
+
+#### <u>2. 当前项目真正使用的是 Token Bucket</u>
+
+当前两个 Key：
+
+~~~text
+ingest:project:<projectId>
+
+ingest:ip:<projectId>:<ip>
+~~~
+
+都保存：
+
+~~~text
+tokens
+updated
+~~~
+
+所以状态模型是：
+
+~~~text
+Token Bucket
+│
+├── Scope
+│     Project
+│     Project + IP
+│
+├── State
+│     tokens
+│     updated
+│
+├── Algorithm
+│     refill
+│     consume
+│
+├── Concurrency
+│     Lua Atomic Script
+│
+└── Lifecycle
+      TTL 60s
+~~~
+
+#### <u>3. 当前 cost 不是一个 HTTP Request 固定消耗一个 Token</u>
+
+源码调用：
+
+~~~text
+consume(
+  projectId,
+  ip,
+  eventCount
+)
+~~~
+
+eventCount 被作为 cost 传入 Lua。
+
+因此：
+
+~~~text
+Request A
+包含 1 Event
+    ↓
+cost = 1
+
+Request B
+包含 50 Events
+    ↓
+cost = 50
+~~~
+
+说明当前真正限制的是：
+
+~~~text
+Event Processing Budget
+~~~
+
+而不仅仅是 HTTP Request Count。
+
+这是一种很重要的业务建模：
+
+~~~text
+资源消耗单位
+    ↓
+不是请求数
+而是事件数
+~~~
+
+#### <u>4. Project 与 IP 构成两层限流 Scope</u>
+
+当前逻辑：
+
+~~~text
+Request
+   ↓
+Project Bucket
+   ↓
+AND
+   ↓
+IP Bucket
+   ↓
+Allowed / Rejected
+~~~
+
+Project 层限制整个 Project 的总体采集速率。
+
+IP 层限制某个 IP 在同一 Project 下集中消耗预算。
+
+上一节已经分析：
+
+~~~text
+Project Bucket Lua
+单独原子
+
+IP Bucket Lua
+单独原子
+~~~
+
+但两者：
+
+~~~text
+Promise.all(
+  Project EVAL,
+  IP EVAL
+)
+~~~
+
+并不是一个统一 All-or-Nothing 事务。
+
+因此当前准确语义是：
+
+~~~text
+两个 Bucket
+分别消费
+最后做 AND 判断
+~~~
+
+而不是：
+
+~~~text
+两个 Bucket
+只有都允许
+才一起扣减
+~~~
+
+是否需要组合原子性，取决于产品想要的限流语义。
+
+### 【Recent Time Window 保存“最近发生了什么”，不是长期历史】
+
+当前：
+
+~~~text
+ingestion:rate:<projectId>
+~~~
+
+非常容易和 Sliding Window Rate Limiter 混淆。
+
+但当前用途并不是限流决策。
+
+#### <u>1. Sorted Set 保存最近一分钟的采集请求</u>
+
+写入：
+
+~~~ts
+.zadd(
+  recentRateKey,
+  recordedAt,
+  JSON.stringify([
+    requestId,
+    accepted
+  ])
+)
+~~~
+
+所以：
+
+~~~text
+Score
+    recordedAt
+
+Member
+    [requestId, accepted]
+~~~
+
+形成：
+
+~~~text
+10:00:10 → [reqA, 20]
+10:00:20 → [reqB, 25]
+10:00:40 → [reqC, 18]
+~~~
+
+#### <u>2. 每次写入都删除窗口以前的数据</u>
+
+源码：
+
+~~~ts
+.zremrangebyscore(
+  recentRateKey,
+  0,
+  recordedAt - 60_000,
+)
+~~~
+
+意味着只保留：
+
+~~~text
+Current Time - 60s
+        ↓
+Current Time
+~~~
+
+之间的请求。
+
+#### <u>3. Analytics 再读取当前时间窗口</u>
+
+查询：
+
+~~~ts
+this.redis.zrangebyscore(
+  "ingestion:rate:<projectId>",
+  recentSince,
+  "+inf",
+)
+~~~
+
+所以：
+
+~~~text
+最近一分钟 Member
+        ↓
+解析 accepted
+        ↓
+得到最近 Receive Rate
+~~~
+
+这是：
+
+~~~text
+Rolling Operational Window
+~~~
+
+#### <u>4. 这份 Recent Window 是观测状态，不是限流决策状态</u>
+
+真正参与：
+
+~~~text
+Allow / Reject
+~~~
+
+的是：
+
+~~~text
+Token Bucket
+~~~
+
+而：
+
+~~~text
+ingestion:rate
+~~~
+
+用于 Dashboard / Service Status 的最近接收速率。
+
+因此：
+
+~~~text
+Rate Limiting State
+    ↓
+Hash + Lua
+
+Recent Rate Observation
+    ↓
+Sorted Set
+~~~
+
+虽然都和时间、速率、请求有关，但职责完全不同。
+
+#### <u>5. Member Window 与 Key TTL 是两层生命周期</u>
+
+当前同时有：
+
+~~~text
+ZREMRANGEBYSCORE
+    ↓
+只保留约 60 秒 Member
+
+EXPIRE 120
+    ↓
+长时间无请求
+整个 Key 自动删除
+~~~
+
+所以：
+
+~~~text
+Member Lifecycle
+≠
+Key Lifecycle
+~~~
+
+这是一种可以迁移到 Recent Errors、Recent Login Attempts、Recent Operations、Recent Active Users 的通用状态模型。
+
+### 【Cache State Model 用 Redis 保存可重新生成的读取结果】
+
+Cache 与前几类状态最大的区别：
+
+~~~text
+Cache 通常不是 Source of Truth
+~~~
+
+它真正解决：
+
+~~~text
+同一个昂贵结果
+能不能不重复计算？
+~~~
+
+当前 Analytics 就是典型 Cache-Aside 读取链路。
+
+#### <u>1. API 先读取 Analytics Version</u>
+
+当前：
+
+~~~text
+GET analytics:version:<projectId>
+~~~
+
+假设：
+
+~~~text
+version = 8
+~~~
+
+然后构造：
+
+~~~text
+analytics:
+<projectId>:
+8:
+<namespace>:
+<filters>
+~~~
+
+也就是说 Cache Key 同时包含：
+
+~~~text
+Project
+Data Version
+Query Namespace
+Filters
+~~~
+
+#### <u>2. 然后执行 Cache-Aside Read Path</u>
+
+核心逻辑：
+
+~~~text
+GET Cache
+    ↓
+Hit?
+ ┌──┴───┐
+Yes     No
+ ↓       ↓
+Return  loader()
+        ↓
+   PostgreSQL /
+   TimescaleDB
+        ↓
+      Result
+        ↓
+ SET Cache EX 15
+        ↓
+      Return
+~~~
+
+因此：
+
+~~~text
+Redis
+    ↓
+保存 Derived Result
+
+PostgreSQL / TimescaleDB
+    ↓
+仍然是原始数据来源
+~~~
+
+Cache 丢失以后只需要重新执行 loader()。
+
+#### <u>3. TTL = 15 秒形成自动失效和清理</u>
+
+当前：
+
+~~~text
+SET key value EX 15
+~~~
+
+意味着 Cache Entry 最多自动存在约 15 秒。
+
+TTL 同时承担：
+
+~~~text
+Memory Cleanup
+Staleness Bound
+Failure Safety
+~~~
+
+即使没有任何显式 Invalidation，旧 Cache 最终也会自动消失。
+
+### 【Versioned Invalidation 通过改变命名空间让旧 Cache 自动不可达】
+
+当前 Cache 比普通 Cache-Aside 多一层：
+
+~~~text
+analytics:version:<projectId>
+~~~
+
+#### <u>1. Worker 在数据变化以后增加 Version</u>
+
+Worker：
+
+~~~text
+INCR analytics:version:<projectId>
+~~~
+
+例如：
+
+~~~text
+8
+↓
+9
+~~~
+
+这不是业务统计，而是在告诉 API：
+
+~~~text
+Analytics Data Generation
+已经变化
+~~~
+
+#### <u>2. API 后续请求自动进入新 Cache Namespace</u>
+
+原来：
+
+~~~text
+analytics:p001:8:overview:...
+~~~
+
+Version 增加以后：
+
+~~~text
+analytics:p001:9:overview:...
+~~~
+
+所以旧缓存即使还存在：
+
+~~~text
+analytics:p001:8:...
+~~~
+
+后续请求也不会再命中它。
+
+这叫：
+
+~~~text
+Logical Invalidation
+~~~
+
+而不是 Physical Deletion。
+
+#### <u>3. Version Pattern 避免枚举和删除所有 Query Key</u>
+
+如果没有 Version，数据变化以后可能需要找到 overview cache、performance cache、route cache、各种 filter 组合 cache，再逐个 DEL。
+
+Version Pattern 则只需要：
+
+~~~text
+INCR version
+~~~
+
+就能让所有旧 Namespace 自动失效。
+
+#### <u>4. Version Pattern 还能隔离并发中的 Stale Write</u>
+
+假设：
+
+~~~text
+Request A
+读取 version = 8
+        ↓
+Cache Miss
+        ↓
+开始慢 SQL Query
+~~~
+
+此时 Worker：
+
+~~~text
+更新数据
+    ↓
+INCR version
+    ↓
+version = 9
+~~~
+
+Request A 后来才完成，并写入：
+
+~~~text
+analytics:p001:8:...
+~~~
+
+这份结果虽然旧，但仍被写进旧 Namespace。
+
+后面的 Request B：
+
+~~~text
+GET version
+    ↓
+9
+    ↓
+只访问 analytics:p001:9:...
+~~~
+
+所以旧结果不会重新污染当前 Cache Namespace。
+
+这意味着：
+
+~~~text
+Stale Write
+    ↓
+被隔离在旧 Version
+~~~
+
+#### <u>5. 旧 Version Cache 最终由 TTL 清理</u>
+
+整个策略：
+
+~~~text
+INCR Version
+    ↓
+旧 Cache 逻辑失效
+    ↓
+新请求进入新 Namespace
+    ↓
+旧 Cache 等待 TTL
+    ↓
+自动清除
+~~~
+
+即：
+
+~~~text
+Logical Invalidation
++
+TTL Garbage Collection
+~~~
+
+### 【当前 Cache 仍然存在 Cache Stampede 窗口】
+
+当前 Cache Miss 逻辑没有：
+
+~~~text
+SET NX Lock
+Singleflight
+Lua Stampede Protection
+Early Refresh
+~~~
+
+所以同一个热 Key 同时失效时，可能：
+
+~~~text
+Request A → Miss → DB Query
+Request B → Miss → DB Query
+Request C → Miss → DB Query
+~~~
+
+造成重复数据库查询。
+
+因此当前模型准确说是：
+
+~~~text
+Simple Cache-Aside
++
+TTL
++
+Versioned Invalidation
+~~~
+
+还不是完整的 Stampede Protection Cache。
+
+这不一定代表当前项目已经存在性能问题，只有 Query 成本、并发和热点程度达到一定规模时才值得治理。
+
 <!-- REDIS_SECTION_4_CONTINUE -->
 
 ## 参考资料
