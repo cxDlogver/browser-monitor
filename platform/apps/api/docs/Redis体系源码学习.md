@@ -7911,6 +7911,324 @@ Session 旧 10 秒可能意味着本应撤销的身份仍能继续请求。
 
 所以 Consistency Window 必须结合 State Semantics 判断。
 
+### 【第四层：Analytics 展示 Source of Truth 与 Derived Cache 的读一致性问题】
+
+Session 的核心是跨存储写状态同步，而 Analytics 的核心不同：
+
+~~~text
+Database 已更新
+Redis 怎样避免继续返回旧结果？
+~~~
+
+这是典型 Cache Consistency。
+
+#### <u>1. Cache-Aside 先明确 Redis 只是 Derived State</u>
+
+当前 Analytics：
+
+~~~text
+Request
+   ↓
+GET Redis Cache
+   ↓
+Hit?
+ ┌─┴─┐
+Yes  No
+ │    ↓
+ │ loader()
+ │    ↓
+ │ PostgreSQL / TimescaleDB
+ │    ↓
+ │ SET Cache
+ │    ↓
+ └── Return
+~~~
+
+基础关系：
+
+~~~text
+PostgreSQL / TimescaleDB
+        ↓
+Source of Truth
+
+Redis
+        ↓
+Derived Cache
+~~~
+
+Cache 丢失以后，可以重新执行 loader()。
+
+#### <u>2. Cache 一致性的核心通常是 Invalidate，而不是维护第二份权威值</u>
+
+如果：
+
+~~~text
+Database
+Old → New
+~~~
+
+直接同时：
+
+~~~text
+UPDATE Database
++
+UPDATE Cache
+~~~
+
+仍然形成 Dual Write。
+
+只要：
+
+~~~text
+DB ✓
+Cache ✗
+~~~
+
+Cache 仍然可能保留旧值。
+
+所以 Cache-Aside 更常见的思路是：
+
+~~~text
+Update Source of Truth
+        ↓
+Invalidate Cache
+        ↓
+Next Read Miss
+        ↓
+Reload Source of Truth
+~~~
+
+因为 Cache 最重要的特点就是：
+
+~~~text
+可以没有
+可以重新生成
+~~~
+
+#### <u>3. 当前项目使用 Versioned Invalidation，而不是逐个 DEL Query Key</u>
+
+当前 Cache Key：
+
+~~~text
+analytics:
+<projectId>:
+<version>:
+<namespace>:
+<filters>
+~~~
+
+Worker 在数据变化以后：
+
+~~~text
+INCR analytics:version:<projectId>
+~~~
+
+例如：
+
+~~~text
+Version 8
+    ↓
+Version 9
+~~~
+
+那么旧 Cache：
+
+~~~text
+analytics:p001:8:...
+~~~
+
+自动进入 Old Generation。
+
+新请求只访问：
+
+~~~text
+analytics:p001:9:...
+~~~
+
+所以 analytics:version 本质上是：
+
+~~~text
+Cache Generation
+~~~
+
+#### <u>4. Version Pattern 解决大量 Cache Key 难以枚举的问题</u>
+
+如果没有 Version：
+
+~~~text
+overview + filters
+routes + filters
+performance + filters
+...
+~~~
+
+所有组合都可能需要逐个 DEL。
+
+Version 只需要：
+
+~~~text
+INCR analytics:version:p001
+~~~
+
+就能让整个旧 Namespace 逻辑失效。
+
+所以这是：
+
+~~~text
+Logical Invalidation
+~~~
+
+而不是 Physical Deletion。
+
+#### <u>5. Version 还可以隔离并发中的 Stale Write</u>
+
+假设：
+
+~~~text
+Version = 8
+
+Request A
+读取 Version 8
+    ↓
+Cache Miss
+    ↓
+开始慢 Query
+~~~
+
+此时 Worker：
+
+~~~text
+更新 Database
+    ↓
+INCR Version
+    ↓
+Version = 9
+~~~
+
+Request A 后来才返回并写：
+
+~~~text
+analytics:p001:8:...
+~~~
+
+虽然它是一份旧结果，但只进入旧 Generation。
+
+后续请求读取 Version 9，因此不会再访问 Generation 8。
+
+所以：
+
+~~~text
+Stale Write
+    ↓
+被隔离在旧 Namespace
+~~~
+
+#### <u>6. Version INCR 自身仍然可能失败，所以 TTL 提供第二层恢复边界</u>
+
+当前仍然是：
+
+~~~text
+Database Update
+      ↓
+Redis INCR Version
+~~~
+
+所以仍可能：
+
+~~~text
+Database ✓
+Redis INCR ✗
+~~~
+
+旧 Cache 暂时继续 Hit。
+
+但是当前 Cache：
+
+~~~text
+EX 15
+~~~
+
+意味着旧结果不会永久存在。
+
+所以当前组合是：
+
+~~~text
+Version
+    ↓
+Primary Invalidation
+
+TTL
+    ↓
+Bounded Staleness
++
+Cleanup Safety Net
+~~~
+
+#### <u>7. Derived Cache 不等于 Redis 故障时应用一定可以自动降级</u>
+
+当前 cached() 第一条路径就是：
+
+~~~text
+GET analytics:version:<projectId>
+~~~
+
+如果 Redis 自身不可用，这一步会直接抛错。
+
+当前源码没有看到：
+
+~~~text
+Redis Error
+    ↓
+直接绕过 Cache
+    ↓
+执行 loader()
+~~~
+
+这样的 fallback。
+
+因此需要区分：
+
+~~~text
+Data Authority
+≠
+Runtime Availability Dependency
+~~~
+
+Redis Cache 在数据意义上不是 Source of Truth，但在当前请求执行链路上仍然是同步依赖。
+
+### 【第五层：跨存储一致性真正需要的是可恢复机制，而不是假设每次都成功】
+
+前面两个源码案例已经说明：
+
+~~~text
+Session
+    ↓
+写状态同步失败
+
+Analytics
+    ↓
+Cache 失效失败
+~~~
+
+都会产生：
+
+~~~text
+Temporary Inconsistency
+~~~
+
+真正的工程问题不是完全避免任何瞬间不一致，而是：
+
+~~~text
+不一致发生以后
+系统是否知道还有什么没完成？
+
+能不能继续重试？
+
+最终是否能够重新收敛？
+~~~
+
+这就进入 Recovery 体系。
+
 <!-- REDIS_SECTION_5_CONTINUE -->
 
 ## 参考资料
