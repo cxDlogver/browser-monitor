@@ -4642,7 +4642,459 @@ Conditional Write
 
 而不是失败回滚。
 
-<!-- REDIS_SECTION_3_CONTINUE -->
+### 【Redis 不等于不需要一致性，而是复杂业务不变量更多由数据模型和应用保证】
+
+这里还需要避免另一个错误结论：
+
+~~~text
+Redis 没有 SQL 式 Rollback
+      ↓
+Redis 不需要 Consistency
+~~~
+
+这并不成立。
+
+Token Bucket 本身就有业务不变量：
+
+~~~text
+tokens <= burst
+
+一次允许请求
+必须正确扣减 Token
+
+tokens 和 updated
+必须共同描述最新 Bucket State
+~~~
+
+Lua 就是在帮助维持这些状态关系。
+
+不同的是：
+
+~~~text
+PostgreSQL
+通常通过
+
+Schema
+CHECK
+UNIQUE
+FOREIGN KEY
+Transaction
+Isolation
+Rollback
+
+提供更丰富的声明式约束
+~~~
+
+而 Redis 更多依赖：
+
+~~~text
+Key Design
+Data Type
+Atomic Command
+MULTI / EXEC
+WATCH
+Lua
+Application Logic
+~~~
+
+共同维护状态正确性。
+
+所以不是：
+
+~~~text
+SQL 需要一致性
+Redis 不需要一致性
+~~~
+
+而是：
+
+~~~text
+两者都需要正确状态
+
+但是
+提供的约束机制
+和承担的系统职责
+不同
+~~~
+
+### 【当前 Browser Monitor 中 PostgreSQL 与 Redis 的职责差异解释了事务强度选择】
+
+当前 IngestionService 源码明确写道：
+
+~~~text
+Dashboard counters live in Redis because rejected events intentionally
+never enter the telemetry tables.
+
+A statistics failure must not turn a successfully committed ingestion
+request into a retryable SDK error.
+~~~
+
+对应代码：
+
+~~~ts
+await this.redis
+  .multi()
+  ...
+  .exec()
+  .catch(() => undefined);
+~~~
+
+这里反映的架构边界是：
+
+~~~text
+核心 Ingestion 数据
+      ↓
+PostgreSQL / TimescaleDB
+      ↓
+Primary / Authoritative Data
+
+Dashboard Statistics
+Recent Rate
+      ↓
+Redis
+      ↓
+Runtime / Derived State
+~~~
+
+所以 Redis Statistics 写失败时，项目明确选择：
+
+~~~text
+不要把已经成功提交的 Ingestion
+重新告诉 SDK 是失败
+~~~
+
+这不是：
+
+~~~text
+Redis 数据不需要正确
+~~~
+
+而是：
+
+~~~text
+Redis 这部分状态
+和主业务事实
+拥有不同的可靠性等级
+~~~
+
+因此事务机制必须和数据职责一起判断，而不能单独看到“没有 Rollback”就认为架构不安全。
+
+### 【当前 Token Bucket 的单个 Lua 原子，但 Project + IP 两个 Bucket 不是一个整体事务】
+
+当前源码：
+
+[src/ingestion/rate-limiter.service.ts](../src/ingestion/rate-limiter.service.ts)
+
+~~~ts
+const [projectAllowed, ipAllowed] =
+  await Promise.all([
+    this.consumeKey(
+      "ingest:project:<projectId>",
+      ...
+    ),
+    this.consumeKey(
+      "ingest:ip:<projectId>:<ip>",
+      ...
+    ),
+  ]);
+
+return projectAllowed && ipAllowed;
+~~~
+
+每一个 consumeKey 内部执行：
+
+~~~text
+EVAL TOKEN_BUCKET_SCRIPT
+~~~
+
+所以：
+
+~~~text
+Project Bucket Lua
+      ↓
+Atomic
+
+IP Bucket Lua
+      ↓
+Atomic
+~~~
+
+但是：
+
+~~~text
+Promise.all(
+  Project EVAL,
+  IP EVAL
+)
+~~~
+
+不会把两个 EVAL 自动组成一个 Redis Transaction。
+
+因此整体并不是：
+
+~~~text
+Project Bucket
++
+IP Bucket
+
+All-or-Nothing
+~~~
+
+例如可能发生：
+
+~~~text
+Project Bucket
+Token 足够
+    ↓
+扣减
+    ↓
+Allowed
+
+IP Bucket
+Token 不足
+    ↓
+Rejected
+~~~
+
+最终：
+
+~~~text
+projectAllowed = true
+ipAllowed = false
+
+Request Rejected
+~~~
+
+但 Project Bucket 已经消耗了 Token。
+
+所以当前实现准确的语义是：
+
+~~~text
+两个 Bucket
+分别原子消费
+        ↓
+最后做 AND 判断
+~~~
+
+而不是：
+
+~~~text
+只有两个 Bucket
+同时满足条件
+
+才一起扣减
+~~~
+
+这不一定就是 Bug，因为还要看限流产品语义。
+
+如果要求：
+
+~~~text
+任意一层失败
+另一层绝不能消费 Token
+~~~
+
+那么就需要重新设计成：
+
+~~~text
+One Lua Script
+      ↓
+KEYS[1] = Project Bucket
+KEYS[2] = IP Bucket
+      ↓
+同时读取两个 Bucket
+      ↓
+同时判断
+      ↓
+都允许
+才一起写回
+~~~
+
+形成：
+
+~~~text
+Atomic Dual-Bucket Decision
+~~~
+
+当前源码并没有做到这一层组合原子性。
+
+### 【Analytics Cache 展示了另一种“允许并发但不破坏权威事实”的设计】
+
+AnalyticsService：
+
+[src/analytics/analytics.service.ts](../src/analytics/analytics.service.ts)
+
+~~~text
+GET Cache
+    ↓
+Miss
+    ↓
+Database Query
+    ↓
+SET Cache
+~~~
+
+这里没有 MULTI、WATCH 或 Lua。
+
+假设两个请求同时 Miss：
+
+~~~text
+Request A               Request B
+
+GET Miss                GET Miss
+
+DB Query                DB Query
+
+SET Cache               SET Cache
+~~~
+
+于是可能：
+
+~~~text
+同一个 Analytics Query
+被重复计算两次
+~~~
+
+这里的主要风险是：
+
+~~~text
+重复数据库计算
+增加负载
+~~~
+
+而不是：
+
+~~~text
+把权威业务数据永久写坏
+~~~
+
+所以当前项目接受这种并发窗口。
+
+这体现一个重要工程原则：
+
+> **不是所有并发都必须消除。只有并发会破坏正确性，或者带来的成本已经不可接受时，才需要增加事务、WATCH、Lua 或其他协调机制。**
+
+### 【第三节最终形成 Redis 并发执行机制的完整判断框架】
+
+可以把当前章节收束成：
+
+| 机制 | 核心目标 | 是否阻止本逻辑被其他 Client 穿插 | SQL 式 Rollback | 当前项目 |
+|---|---|---|---|---|
+| 单条 Command | 一次基本状态变化 | 是，单命令边界 | 不适用 | HINCRBY、INCR |
+| Pipeline | 降低 RTT、提高吞吐 | 否 | 否 | 客户端批量发送机制 |
+| MULTI / EXEC | 多条已确定 Command 连续执行 | 是 | 否 | Ingestion Statistics |
+| WATCH + MULTI/EXEC | Client Read-Modify-Write 冲突检测 | 条件执行，冲突时 Abort | 未执行时无需回滚 | 当前未使用 |
+| Lua / EVAL | Server-side Read-Compute-Write | 是，整个脚本不可穿插 | 否，不提供 SQL 式通用回滚 | Token Bucket |
+
+以后设计 Redis 状态修改时，可以按照：
+
+~~~text
+我要修改 Redis State
+        ↓
+一条原生命令能完成吗？
+        │
+        ├── 能
+        │    ↓
+        │ Atomic Command
+        │ INCR / HINCRBY ...
+        │
+        └── 不能
+             ↓
+后续操作是否依赖当前 Redis 读取结果？
+             │
+       ┌─────┴─────┐
+       │           │
+      不依赖       依赖
+       │           │
+       ↓           ↓
+只需要性能？     Read → Compute → Write
+       │           │
+       ↓           ├── 计算留在 Client
+   Pipeline         │       ↓
+                   │     WATCH
+需要连续事务执行？ │
+       │           └── 逻辑可移入 Redis
+       ↓                   ↓
+ MULTI / EXEC              Lua
+~~~
+
+如果进一步要求：
+
+~~~text
+复杂跨实体业务约束
++
+运行时失败必须全部恢复
++
+强 All-or-Nothing
++
+权威数据事务
+~~~
+
+就不能因为 Redis 有 MULTI / EXEC 或 Lua，直接把它等价成：
+
+~~~text
+SQL ACID Transaction
+~~~
+
+这类场景通常应该重新评估真正权威状态是否更适合由 PostgreSQL 这样的事务型数据库承担。
+
+## 4. 下一节从执行机制进入 Redis 的典型工程状态模型
+
+前三节已经形成：
+
+~~~text
+第一节
+Redis 在服务端系统中的位置
+        ↓
+Redis Server / Client / Shared State
+
+第二节
+Redis 如何组织状态
+        ↓
+Keyspace / Key / Data Type / Command / TTL
+
+第三节
+Redis 如何安全修改并发状态
+        ↓
+Atomic Command
+Pipeline
+MULTI / EXEC
+WATCH
+Lua
+Failure Semantics
+~~~
+
+接下来开始把这些基础能力组合成完整工程模式：
+
+~~~text
+Redis Engineering State Models
+│
+├── Session
+│     ├── Session Store
+│     ├── TTL
+│     └── Invalidation
+│
+├── Counter
+│     ├── INCR
+│     └── HINCRBY
+│
+├── Rate Limit
+│     ├── Fixed Window
+│     ├── Sliding Window
+│     └── Token Bucket
+│
+├── Recent Time Window
+│     └── Sorted Set
+│
+└── Cache
+      ├── Cache Hit / Miss
+      ├── Cache-Aside
+      ├── TTL
+      └── Versioned Invalidation
+~~~
+
+第四节会从这些工程状态模型开始，把前三节的 Redis 基础机制真正组合成服务端可复用设计。
+
 
 ## 参考资料
 
@@ -4679,3 +5131,16 @@ Conditional Write
 [16] Redis. Redis Sets. https://redis.io/docs/latest/develop/data-types/sets/
 
 [17] Redis. Redis Streams. https://redis.io/docs/latest/develop/data-types/streams/
+
+
+[18] Redis. Transactions. https://redis.io/docs/latest/interact/transactions/
+
+[19] Redis. EXEC Command. https://redis.io/docs/latest/commands/exec/
+
+[20] Redis. Redis Pipelining. https://redis.io/docs/latest/develop/using-commands/pipelining/
+
+[21] Redis. Scripting with Lua. https://redis.io/docs/latest/develop/programmability/eval-intro/
+
+[22] Redis. Redis Lua API Reference. https://redis.io/docs/latest/develop/interact/programmability/lua-api/
+
+[23] Redis. You Don’t Need Transaction Rollbacks in Redis. https://redis.io/blog/you-dont-need-transaction-rollbacks-in-redis/
