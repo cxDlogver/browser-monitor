@@ -6863,7 +6863,763 @@ Redis Suitable
 Persistence Required
 ~~~
 
-<!-- REDIS_SECTION_4_CONTINUE -->
+### 【判断 Redis State 是否值得持久化，关键看丢失后的业务后果】
+
+最实用的判断方法是直接问：
+
+~~~text
+Redis Server 突然重启
+
+这个 Key 丢失以后
+
+系统会发生什么？
+~~~
+
+根据答案，可以把 Redis State 分成几类。
+
+#### <u>1. 完全可以丢失的 Derived Cache</u>
+
+例如当前：
+
+~~~text
+analytics:<...>
+~~~
+
+它来源于 PostgreSQL / TimescaleDB，Redis 只是保存 Query Result。
+
+如果丢失：
+
+~~~text
+Cache Miss
+    ↓
+loader()
+    ↓
+Database Query
+    ↓
+重新生成
+~~~
+
+因此：
+
+~~~text
+业务正确性
+不依赖这份 Cache
+~~~
+
+这类数据适合 Redis，但 Persistence 通常不是业务必须。
+
+#### <u>2. 丢失会影响体验，但不会破坏长期业务事实的 Runtime State</u>
+
+例如 Session。
+
+如果 Redis 是唯一 Session Store：
+
+~~~text
+Redis Restart
+    ↓
+Session Key 丢失
+    ↓
+用户重新登录
+~~~
+
+用户体验会受到影响，但长期业务事实不会因此损坏。
+
+当前项目稍微复杂，因为 Session 同时存在：
+
+~~~text
+PostgreSQL user_sessions
++
+Redis session:<tokenHash>
+~~~
+
+但是 SessionGuard 只查询 Redis。
+
+所以：
+
+~~~text
+Redis Session Key 丢失
+        ↓
+即使 PostgreSQL Session Record 还存在
+        ↓
+当前请求仍然 session_expired
+~~~
+
+因此 Redis Session Persistence 可以改善 Redis Restart 以后的用户登录连续性，但当前 PostgreSQL 仍然保存另外一层持久 Session Record。
+
+#### <u>3. 丢失以后可以自动重新初始化的 Control State</u>
+
+当前 Token Bucket：
+
+~~~text
+ingest:project:<projectId>
+
+ingest:ip:<projectId>:<ip>
+~~~
+
+如果 Redis 数据消失：
+
+~~~text
+Bucket Key 不存在
+    ↓
+下一次 Lua HMGET
+得到 nil
+    ↓
+tokens = burst
+updated = now
+~~~
+
+也就是说 Bucket 自动重建。
+
+后果主要是：
+
+~~~text
+Redis Restart 后
+限流预算被重新初始化
+~~~
+
+它不会破坏历史业务数据。
+
+因此 Rate Limit State 通常不依赖强持久化。是否接受重启后短时间恢复满 Bucket，需要由产品和安全要求决定。
+
+#### <u>4. 丢失意味着部分统计无法完整重建的 Operational State</u>
+
+当前：
+
+~~~text
+ingestion:stats:<projectId>
+~~~
+
+保存：
+
+~~~text
+accepted
+duplicate
+rejected
+~~~
+
+其中 rejected 很特殊。
+
+源码明确说明：
+
+~~~text
+rejected events intentionally
+never enter the telemetry tables
+~~~
+
+所以如果 Redis Statistics 全部丢失，过去 rejected Count 不能简单依靠 telemetry tables 完整重算。
+
+因此必须继续问：
+
+~~~text
+它只是 Best-effort Dashboard Statistic？
+
+还是未来要成为
+准确、长期、可审计的历史指标？
+~~~
+
+当前源码：
+
+~~~ts
+.exec()
+.catch(() => undefined);
+~~~
+
+说明当前架构明确接受：
+
+~~~text
+Redis Statistics 失败
+不能导致已经成功的 Ingestion 失败
+~~~
+
+因此当前它属于：
+
+~~~text
+Operational / Best-effort State
+~~~
+
+但如果未来产品要求：
+
+~~~text
+180 天 rejected Count
+必须准确
+不能丢
+~~~
+
+那么仅仅把它放 Redis 就不够。
+
+需要考虑：
+
+~~~text
+Redis
+    ↓
+实时 Counter
+
++
+Durable Store
+    ↓
+PostgreSQL / TimescaleDB / 其他持久化统计表
+~~~
+
+### 【Redis Persistence 解决的是 Redis Dataset 恢复，不等于业务 Source of Truth】
+
+一个很容易出现的错误推导是：
+
+~~~text
+Redis 可以 AOF
+      ↓
+Redis 可以持久化
+      ↓
+订单 / 余额 / 支付
+也可以全部只放 Redis
+~~~
+
+这个推导不成立。
+
+因为：
+
+~~~text
+Persistence
+≠
+Database Semantics
+~~~
+
+Redis Persistence 主要回答：
+
+~~~text
+Redis Process Restart
+或者
+Redis Server Restart
+
+以后怎样恢复之前的 Dataset？
+~~~
+
+它并不会自动给 Redis 增加：
+
+~~~text
+Foreign Key
+CHECK
+关系查询
+复杂 JOIN
+SQL Transaction Rollback
+完整关系模型
+~~~
+
+因此：
+
+> **Redis 能持久化，说明它不是只能保存临时数据；但是否适合作为某类业务的 Source of Truth，仍然取决于事务、约束、关系、审计和恢复要求。**
+
+### 【Redis 主要通过 RDB 和 AOF 提供持久化能力】
+
+可以先建立：
+
+~~~text
+Redis Persistence
+│
+├── RDB
+│     ↓
+│   Point-in-time Snapshot
+│
+└── AOF
+      ↓
+    Append Write Operations
+~~~
+
+两者解决相同的大问题：
+
+~~~text
+Memory Dataset
+    ↓
+Redis Restart
+    ↓
+如何恢复
+~~~
+
+但恢复模型不同。
+
+#### <u>1. RDB 保存某个时间点的 Dataset Snapshot</u>
+
+可以理解成：
+
+~~~text
+Redis Memory
+    ↓
+某个时间点
+    ↓
+生成 Snapshot
+    ↓
+RDB File
+~~~
+
+例如：
+
+~~~text
+T1
+Snapshot
+
+T2
+继续有新写入
+
+T3
+Redis Crash
+~~~
+
+如果 T1 之后没有新的 Snapshot，那么 T1 到 T3 之间的部分新数据可能无法从这个 RDB Snapshot 恢复。
+
+所以 RDB 的基本特点是：
+
+~~~text
+Snapshot-based
+~~~
+
+而不是每条写入都立即产生一个完整快照。
+
+#### <u>2. AOF 记录 Redis 的写操作</u>
+
+AOF：
+
+~~~text
+Append Only File
+~~~
+
+可以先理解成：
+
+~~~text
+SET ...
+HSET ...
+HINCRBY ...
+ZADD ...
+DEL ...
+~~~
+
+这些修改 Dataset 的操作被追加记录。
+
+Redis Restart 后：
+
+~~~text
+读取 AOF
+    ↓
+Replay / Reconstruct
+    ↓
+恢复 Dataset
+~~~
+
+所以 AOF 的模型更接近：
+
+~~~text
+Operation Log
+~~~
+
+而 RDB 更接近：
+
+~~~text
+Dataset Snapshot
+~~~
+
+#### <u>3. RDB 与 AOF 的选择是可靠性、恢复和成本之间的权衡</u>
+
+入门阶段先建立：
+
+| 维度 | RDB | AOF |
+|---|---|---|
+| 核心模型 | Snapshot | Write Log |
+| 数据恢复 | 从快照恢复 | 重放写操作恢复 |
+| 数据丢失窗口 | 与 Snapshot 周期相关 | 与 AOF fsync 策略相关 |
+| 文件特点 | 通常更紧凑 | 通常记录更细 |
+| 典型目标 | 快照、备份、较快恢复 | 更强的近期写入恢复能力 |
+
+后续进入 Redis Reliability 时，再深入：
+
+~~~text
+save / bgsave
+fork / COW
+appendfsync
+AOF Rewrite
+RDB + AOF
+Crash Recovery
+~~~
+
+这一节先明确它们在整体体系中的位置。
+
+### 【当前 Browser Monitor Redis 已经开启 AOF】
+
+当前 Docker Compose：
+
+[browser-monitor/platform/infra/docker-compose.yml](../../../infra/docker-compose.yml)
+
+Redis 配置：
+
+~~~yaml
+redis:
+  image: redis:7.4-alpine
+  command:
+    - redis-server
+    - --appendonly
+    - "yes"
+  volumes:
+    - monitor-redis-data:/data
+~~~
+
+这说明当前项目同时做了两件事：
+
+~~~text
+--appendonly yes
+      ↓
+启用 AOF Persistence
+
+monitor-redis-data:/data
+      ↓
+Redis 持久化文件
+放在 Docker Volume 中
+~~~
+
+因此：
+
+~~~text
+Container Restart
+~~~
+
+不等于：
+
+~~~text
+Redis Dataset 一定全部消失
+~~~
+
+因为 /data 使用了持久化 Volume，并且 Redis 开启了 AOF。
+
+具体能够恢复到什么时间点，还取决于 AOF 的 fsync 策略和运行状态；当前 docker-compose 只显式开启 appendonly，没有单独指定 appendfsync。
+
+### 【Redis Persistence 通常是实例级能力，而不是按单个 Key 分别配置】
+
+当前 Redis Server 中同时存在：
+
+~~~text
+Session
+Cache
+Rate Limit
+Statistics
+Analytics Version
+Recent Window
+~~~
+
+如果同一个 Redis Instance 开启 AOF，那么持久化机制面向的是整个实例的 Dataset，而不是：
+
+~~~text
+session:* 使用 AOF
+
+analytics:* 不使用 AOF
+
+ingest:* 使用 RDB
+~~~
+
+这种逐 Key 配置。
+
+因此当前项目虽然：
+
+~~~text
+Analytics Cache
+本身不要求持久化
+~~~
+
+但由于它和 Session、Statistics 等都在同一个 Redis 实例中，AOF 会记录这个实例中相关写操作。
+
+如果未来希望：
+
+~~~text
+Session
+需要更强持久化
+
+Cache
+完全不关心持久化
+~~~
+
+一种架构选择是：
+
+~~~text
+Redis Instance A
+    ↓
+Session / Important Runtime State
+    ↓
+Persistence Enabled
+
+Redis Instance B
+    ↓
+Pure Cache
+    ↓
+Persistence Disabled
+~~~
+
+是否值得拆分，取决于规模、成本、可用性、运维复杂度和可靠性要求。
+
+### 【当前 Browser Monitor 中不同 Redis State 的持久化价值并不相同】
+
+可以整理：
+
+| Redis State | 数据性质 | 丢失后的主要结果 | 持久化要求 |
+|---|---|---|---|
+| analytics:<...> | Derived Cache | 重新查询数据库 | 低 |
+| ingestion:rate:<projectId> | Recent Observation Window | 最近速率窗口暂时为空 | 低 |
+| ingest:project / ingest:ip | Rate Limit Runtime State | Bucket 重置 | 通常较低 |
+| analytics:version:<projectId> | Coordination State | Cache Version 状态重建 | 中低，结合缓存策略判断 |
+| session:<tokenHash> | Authentication Runtime State | 已登录用户可能被判 Session Expired | 中，持久化改善连续性 |
+| ingestion:stats:<projectId> | Operational Statistics | 部分统计可能无法完整重建 | 取决于统计是否要求准确 |
+
+这张表说明：
+
+~~~text
+都在 Redis
+~~~
+
+不代表：
+
+~~~text
+它们都应该具有
+相同的可靠性要求
+~~~
+
+### 【真正不能丢的业务事实，不应该只依赖 Redis Persistence 来定义可靠性】
+
+如果一份数据同时满足：
+
+~~~text
+不能丢
+不能错
+需要历史审计
+需要复杂约束
+需要强事务
+需要跨实体关系
+~~~
+
+那么架构问题不应该只问：
+
+~~~text
+Redis 要不要开 AOF？
+~~~
+
+而应该先问：
+
+~~~text
+Redis
+是不是应该承担
+这份数据的 Source of Truth？
+~~~
+
+当前项目中：
+
+~~~text
+Users
+user_sessions
+telemetry_events
+outbox_tasks
+performance data
+~~~
+
+主要由 PostgreSQL / TimescaleDB 承担。
+
+Redis 则主要承担：
+
+~~~text
+Authentication Runtime State
+Cache
+Rate Limit
+Counter
+Recent Window
+Coordination State
+~~~
+
+这就是两类存储最重要的职责边界。
+
+### 【第四节最终形成 Redis 状态建模、存储选择与持久化判断方法】
+
+以后面对一个新的 Redis 需求，可以按照：
+
+~~~text
+第一步
+识别 State Semantics
+    ↓
+Session？
+Counter？
+Cache？
+Limiter？
+Recent Window？
+
+第二步
+确定 State Scope
+    ↓
+User？
+Session？
+Project？
+IP？
+Query？
+
+第三步
+选择 Representation
+    ↓
+String？
+Hash？
+Sorted Set？
+
+第四步
+选择 Mutation
+    ↓
+SET？
+INCR？
+HINCRBY？
+MULTI？
+Lua？
+
+第五步
+分析 Concurrency
+    ↓
+是否存在 Read → Modify → Write？
+是否需要 Atomic Command / Transaction / Lua？
+
+第六步
+设计 Lifecycle
+    ↓
+固定 TTL？
+滑动 TTL？
+Member Window？
+主动 Invalidation？
+
+第七步
+确定 Authority
+    ↓
+Redis 是 Source of Truth？
+还是 Runtime / Derived State？
+
+第八步
+判断 Loss Impact
+    ↓
+Redis 丢失后：
+可重新计算？
+重新登录？
+自动初始化？
+还是永久丢失信息？
+
+第九步
+决定 Persistence
+    ↓
+无需持久化？
+RDB？
+AOF？
+还是需要 Durable Database？
+
+第十步
+重新检查存储边界
+    ↓
+即使 Redis 能持久化，
+它是否真的应该成为权威存储？
+~~~
+
+最终可以收束成：
+
+~~~text
+高频
+共享
+短生命周期
+可重建
+适合专用数据结构操作
+        ↓
+Redis
+
+长期
+权威
+强事务
+复杂关系
+不可丢失
+需要审计
+        ↓
+PostgreSQL / Durable Database
+~~~
+
+二者并不是绝对互斥。
+
+很多真实系统最终采用：
+
+~~~text
+PostgreSQL / TimescaleDB
+        ↓
+Source of Truth
+
+Redis
+        ↓
+Fast Runtime State
+Cache
+Coordination
+Control State
+~~~
+
+共同完成服务端数据体系。
+
+## 5. 下一节从单存储状态进入 Redis 与 PostgreSQL 的一致性边界
+
+第四节已经回答：
+
+~~~text
+Redis 的基础能力
+如何组合成完整状态模型
+
+为什么 Redis 通常更快
+
+哪些数据适合 Redis
+
+哪些 Redis State 需要持久化
+
+为什么 AOF / RDB
+不等于 Redis 自动成为 Source of Truth
+~~~
+
+下一节继续进入跨存储问题：
+
+~~~text
+PostgreSQL
++
+Redis
+    ↓
+Dual Storage
+    ↓
+谁是 Source of Truth？
+    ↓
+Cache-Aside
+    ↓
+Invalidation
+    ↓
+Version Key
+    ↓
+Consistency Window
+    ↓
+Dual Write Failure
+    ↓
+Failure Recovery
+~~~
+
+重点会回到当前源码中的两个典型问题：
+
+~~~text
+Session
+
+PostgreSQL INSERT / DELETE
++
+Redis SET / DEL
+
+如果一边成功、一边失败怎么办？
+~~~
+
+以及：
+
+~~~text
+Analytics
+
+TimescaleDB Data
++
+Redis Cache
+
+数据库变化以后
+如何让旧 Cache 不继续生效？
+~~~
+
+从这一节开始，Redis 学习会从“单个 Redis State”进入“Redis 与主数据库共同构成一个完整服务端数据系统”。
+
 
 ## 参考资料
 
@@ -6913,3 +7669,20 @@ Persistence Required
 [22] Redis. Redis Lua API Reference. https://redis.io/docs/latest/develop/interact/programmability/lua-api/
 
 [23] Redis. You Don’t Need Transaction Rollbacks in Redis. https://redis.io/blog/you-dont-need-transaction-rollbacks-in-redis/
+
+
+[24] Redis. Persistence. https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
+
+[25] Redis. RDB Persistence. https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/#rdb-advantages
+
+[26] Redis. AOF Persistence. https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/#aof-advantages
+
+[27] Redis. Session Store. https://redis.io/docs/latest/develop/use-cases/session-store/
+
+[28] Redis. Rate Limiting. https://redis.io/docs/latest/develop/use-cases/rate-limiter/
+
+[29] Redis. Cache-Aside. https://redis.io/docs/latest/develop/use-cases/cache-aside/
+
+[30] PostgreSQL. Database Physical Storage. https://www.postgresql.org/docs/current/storage.html
+
+[31] PostgreSQL. Write-Ahead Logging. https://www.postgresql.org/docs/current/wal-intro.html
