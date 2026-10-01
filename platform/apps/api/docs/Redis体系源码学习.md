@@ -8229,6 +8229,785 @@ Temporary Inconsistency
 
 这就进入 Recovery 体系。
 
+### 【Outbox 将“后续动作不能丢”转化为数据库中的持久待办】
+
+Outbox 不应该先理解成 Message Queue。
+
+它最核心的作用是：
+
+> **当业务数据已经写入数据库，而后面还有一个必须继续完成的外部动作时，把“这件事还没做完”也作为一条持久记录，和业务数据在同一个数据库事务里提交。**
+
+可以先把：
+
+~~~text
+outbox_tasks
+~~~
+
+理解成：
+
+~~~text
+Durable Todo List
+~~~
+
+也就是数据库里的“可靠待办表”。
+
+#### <u>1. 没有 Outbox 时，数据库成功以后进程崩溃会让后续任务永久丢失</u>
+
+假设采集一个 Event 后需要：
+
+~~~text
+① INSERT telemetry_events
+
+② 后续 processor.process(...)
+~~~
+
+最直接的执行：
+
+~~~text
+INSERT telemetry_events
+        ↓
+COMMIT
+        ↓
+processor.process(...)
+~~~
+
+如果：
+
+~~~text
+Database COMMIT ✓
+        ↓
+Process Crash
+        ↓
+processor.process
+根本没执行
+~~~
+
+数据库只知道：
+
+~~~text
+Event 已经落库
+~~~
+
+但是系统已经失去：
+
+~~~text
+这个 Event
+后面还需要继续处理
+~~~
+
+的信息。
+
+所以问题不是后续任务执行慢，而是后续任务可能被永久忘记。
+
+#### <u>2. Outbox 把 Business Data 与“后续待办”放进同一个 PostgreSQL Transaction</u>
+
+当前 Ingestion 源码已经实现：
+
+~~~sql
+WITH ...,
+inserted_events AS (
+    INSERT INTO telemetry_events(...)
+    ...
+    RETURNING event_id, occurred_at, event
+)
+
+INSERT INTO outbox_tasks(
+    project_id,
+    event_id,
+    occurred_at,
+    event
+)
+SELECT ...
+FROM inserted_events
+~~~
+
+随后：
+
+~~~text
+COMMIT
+~~~
+
+所以真正的事务边界：
+
+~~~text
+BEGIN PostgreSQL Transaction
+
+INSERT telemetry_events
+
+INSERT outbox_tasks
+
+COMMIT
+~~~
+
+由于两条记录属于同一个 PostgreSQL Transaction，最终只能是：
+
+~~~text
+telemetry_events ✓
+outbox_tasks     ✓
+~~~
+
+或者：
+
+~~~text
+telemetry_events ✗
+outbox_tasks     ✗
+~~~
+
+不会出现：
+
+~~~text
+业务 Event 已经 Commit
+
+但是
+
+系统没有记录
+这个 Event 还需要 Worker 处理
+~~~
+
+这就是 Transactional Outbox 最核心的原子性来源。
+
+#### <u>3. Outbox 不是让外部动作立即成功，而是保证外部动作不会被忘记</u>
+
+事务提交以后：
+
+~~~text
+telemetry_events
+    ↓
+业务事实已经存在
+
+outbox_tasks
+status = pending
+    ↓
+后续任务仍然待执行
+~~~
+
+即使 API 此时 Crash：
+
+~~~text
+Process Crash
+Server Restart
+Worker Restart
+~~~
+
+数据库中的：
+
+~~~text
+status = pending
+~~~
+
+仍然存在。
+
+所以系统以后仍然知道：
+
+~~~text
+还有一件事没有完成
+~~~
+
+这和普通内存里的 setTimeout、Promise Retry、Local Queue 完全不同，后者会随进程退出一起消失。
+
+#### <u>4. Worker 不断消费 Outbox，把 pending 转成 completed</u>
+
+当前 Worker：
+
+~~~sql
+SELECT id
+FROM outbox_tasks
+WHERE
+    status = 'pending'
+    ...
+FOR UPDATE SKIP LOCKED
+~~~
+
+然后把任务改成：
+
+~~~text
+pending
+    ↓
+processing
+~~~
+
+拿到 Task 后：
+
+~~~ts
+await this.processor.process(
+  task.project_id,
+  task.event,
+);
+~~~
+
+成功后：
+
+~~~text
+processing
+    ↓
+completed
+~~~
+
+因此完整链路：
+
+~~~text
+API
+ │
+ │ PostgreSQL Transaction
+ ▼
+telemetry_events
++
+outbox_tasks
+status = pending
+        │
+        ▼
+      Worker
+        │
+        ▼
+status = processing
+        │
+        ▼
+processor.process(...)
+        │
+        ▼
+status = completed
+~~~
+
+#### <u>5. Worker 失败以后不是丢弃 Task，而是重新进入 pending</u>
+
+当前失败逻辑：
+
+~~~text
+processing
+    ↓
+处理失败
+    ↓
+attempts < 8
+    ↓
+status = pending
+available_at = future time
+~~~
+
+并使用：
+
+~~~text
+2 ^ attempts
+~~~
+
+形成指数退避，并限制最长等待约 300 秒。
+
+所以：
+
+~~~text
+第 1 次失败
+    ↓
+稍后重试
+
+第 2 次失败
+    ↓
+等待更长时间
+
+...
+~~~
+
+任务不会因为一次暂时故障直接消失。
+
+#### <u>6. 多次失败以后进入 Dead Letter，避免无限重试</u>
+
+当前：
+
+~~~text
+attempts >= 8
+~~~
+
+时：
+
+~~~text
+INSERT / UPDATE dead_letter_tasks
+
+outbox_tasks.status = failed
+~~~
+
+于是状态机：
+
+~~~text
+Outbox Task
+│
+├── pending
+│
+├── processing
+│
+├── completed
+│
+└── failed
+      ↓
+   dead_letter_tasks
+~~~
+
+Dead Letter 表示这个任务已经无法通过普通 Retry 自动恢复，需要保留错误和上下文，供后续人工或专门流程处理。
+
+因此 Outbox 不只是“异步任务表”，而是一套：
+
+~~~text
+Durable Task
++
+Claim
++
+Retry
++
+Backoff
++
+Failure Record
+~~~
+
+的可靠执行模型。
+
+### 【Outbox 解决一致性的关键，是让“后续动作”本身也成为持久状态】
+
+现在回到跨存储一致性问题。
+
+假设：
+
+~~~text
+PostgreSQL
+删除 Session
+    ↓
+Redis DEL Session
+~~~
+
+没有 Outbox：
+
+~~~text
+PostgreSQL DELETE ✓
+        ↓
+Redis DEL ✗
+        ↓
+Request End
+        ↓
+系统可能彻底忘记
+Redis Session 还需要删除
+~~~
+
+于是 Inconsistency 可能持续到 TTL，甚至更久。
+
+如果使用 Outbox 思路：
+
+~~~text
+BEGIN PostgreSQL
+
+DELETE user_sessions
+
+INSERT outbox_tasks
+type = invalidate-session
+tokenHash = ...
+
+COMMIT
+~~~
+
+那么数据库同时记录：
+
+~~~text
+业务事实：
+Session 已经撤销
+
+待办事实：
+Redis Session 还必须删除
+~~~
+
+Worker：
+
+~~~text
+Claim invalidate-session Task
+        ↓
+Redis DEL
+        ↓
+成功？
+   ┌────┴────┐
+  Yes       No
+   ↓         ↓
+Completed   Retry
+~~~
+
+所以 Outbox 不是让 PostgreSQL 和 Redis 在同一时刻同时成功，而是把：
+
+~~~text
+Redis 还没有成功
+~~~
+
+变成：
+
+~~~text
+数据库里有一条
+不会丢失的 Pending Task
+~~~
+
+然后持续执行直到成功或进入明确的 Failed State。
+
+### 【Outbox 将不可靠 Dual Write 转化为本地事务 + 可靠异步执行】
+
+原本：
+
+~~~text
+Application
+   │
+   ├── Write PostgreSQL
+   │
+   └── Write Redis
+~~~
+
+问题：
+
+~~~text
+两个独立 Store
+没有共同事务
+~~~
+
+Outbox 改成：
+
+~~~text
+第一阶段
+
+PostgreSQL Transaction
+│
+├── Business State
+└── Outbox Task
+        ↓
+      COMMIT
+~~~
+
+这一阶段由 PostgreSQL 本地事务保证：
+
+~~~text
+Business Change
++
+Need-to-do Action
+~~~
+
+一起存在。
+
+第二阶段：
+
+~~~text
+Worker
+   ↓
+执行 Outbox Task
+   ↓
+Redis / MQ / External Service
+~~~
+
+这一阶段依赖：
+
+~~~text
+Retry
+Idempotency
+Task Status
+Backoff
+Dead Letter
+~~~
+
+逐步完成。
+
+所以：
+
+~~~text
+不可靠 Dual Write
+~~~
+
+被转换成：
+
+~~~text
+Local Transaction
++
+Durable Pending Work
++
+Reliable Retry
+~~~
+
+这就是 Transactional Outbox Pattern 的核心。
+
+### 【Outbox 解决的是最终一致性，不是跨系统强原子事务】
+
+假设：
+
+~~~text
+PostgreSQL COMMIT
+~~~
+
+已经完成：
+
+~~~text
+Business State = New
+Outbox Task = pending
+~~~
+
+但是 Worker 还没执行 Redis。
+
+此时：
+
+~~~text
+PostgreSQL = New State
+
+Redis = Old State
+~~~
+
+仍然存在短暂不一致。
+
+所以 Outbox 没有做到：
+
+~~~text
+DB Commit 的同一个瞬间
+Redis 也一定已经更新
+~~~
+
+它做到的是：
+
+~~~text
+DB Commit
+    ↓
+外部动作不会被忘记
+    ↓
+Worker 持续 Retry
+    ↓
+最终执行
+    ↓
+状态重新收敛
+~~~
+
+因此：
+
+~~~text
+Outbox
+    ↓
+Reliable Eventual Consistency
+~~~
+
+而不是：
+
+~~~text
+Distributed ACID Transaction
+~~~
+
+### 【Outbox 比普通 Retry 更可靠，因为 Retry Intent 本身被持久化】
+
+如果只写：
+
+~~~text
+Database Update
+    ↓
+try Redis DEL
+    ↓
+catch
+    ↓
+retry()
+~~~
+
+仍然可能：
+
+~~~text
+Database Update ✓
+    ↓
+Process Crash
+    ↓
+还没进入 retry()
+~~~
+
+Node.js Memory 消失以后，系统不知道还需要 Retry。
+
+Outbox 则把：
+
+~~~text
+Retry Intent
+~~~
+
+变成：
+
+~~~text
+PostgreSQL Row
+status = pending
+~~~
+
+所以即使：
+
+~~~text
+API Crash
+Worker Crash
+Server Restart
+~~~
+
+Task 仍然存在。
+
+这就是：
+
+~~~text
+Durable Retry Intent
+~~~
+
+### 【Transactional Outbox 还要求下游操作具有幂等性】
+
+Outbox Worker 的目标通常是：
+
+~~~text
+At-least-once Attempt
+~~~
+
+现实中可能出现：
+
+~~~text
+Worker 已经执行外部动作
+
+但还没来得及把
+outbox_tasks 标记 completed
+
+Worker Crash
+~~~
+
+重启以后同一个 Task 可能再次执行。
+
+因此下游操作必须尽量：
+
+~~~text
+Idempotent
+~~~
+
+例如：
+
+~~~text
+DEL session:key
+~~~
+
+重复执行：
+
+~~~text
+DEL
+DEL
+DEL
+~~~
+
+最终仍然是：
+
+~~~text
+Key 不存在
+~~~
+
+非常适合 Retry。
+
+而如果外部操作是账户扣款、不可重复通知等，就必须另外设计 Idempotency Key、Processed Event ID 或 Deduplication。
+
+AWS 的 Transactional Outbox 指南也明确指出，Outbox 消费端可能收到重复事件，因此消费者需要具备幂等处理能力。
+
+### 【Outbox 与 Message Queue 的职责不同】
+
+Message Queue：
+
+~~~text
+Producer
+   ↓
+Kafka / RabbitMQ / SQS
+   ↓
+Consumer
+~~~
+
+Outbox：
+
+~~~text
+Application
+   ↓
+PostgreSQL
+│
+├── Business Data
+└── Outbox Task
+        ↓
+Worker
+~~~
+
+Outbox 的特殊价值是：
+
+~~~text
+Business Data
++
+Need-to-publish / Need-to-process
+~~~
+
+可以利用同一个 PostgreSQL Transaction 原子提交。
+
+如果应用直接做：
+
+~~~text
+PostgreSQL Write
++
+Send Message Queue
+~~~
+
+仍然存在：
+
+~~~text
+DB ✓
+Message Send ✗
+~~~
+
+的 Dual Write Problem。
+
+所以常见完整链路反而是：
+
+~~~text
+PostgreSQL Transaction
+│
+├── Business Data
+└── Outbox Event
+        ↓
+      Worker
+        ↓
+   Message Queue
+        ↓
+     Consumer
+~~~
+
+Outbox 和 MQ 可以同时存在，并不是互相替代。
+
+### 【当前项目已经实现 Outbox，但 Session Invalidation 接入 Outbox 只是 Proposed Design】
+
+这里必须严格区分源码事实和可迁移设计。
+
+当前已经实现：
+
+~~~text
+Telemetry Ingestion
+        ↓
+PostgreSQL Transaction
+│
+├── telemetry_events
+└── outbox_tasks
+        ↓
+Worker
+        ↓
+processor.process(...)
+        ↓
+completed / retry / dead letter
+~~~
+
+这是 Confirmed Implementation。
+
+当前没有实现：
+
+~~~text
+Password Reset
+    ↓
+INSERT invalidate-session Outbox
+    ↓
+Worker Retry Redis DEL
+~~~
+
+当前 Session 仍然是：
+
+~~~text
+PostgreSQL COMMIT
+    ↓
+直接 Redis DEL
+~~~
+
+所以把 Session Invalidation 接入 Outbox 只是：
+
+~~~text
+Proposed Design
+~~~
+
+用于说明 Outbox 怎样解决这类跨存储最终一致性问题，不能描述成项目当前已有能力。
+
 <!-- REDIS_SECTION_5_CONTINUE -->
 
 ## 参考资料
