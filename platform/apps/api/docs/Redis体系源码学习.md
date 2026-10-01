@@ -3922,6 +3922,726 @@ Optimistic Lock
 我的事务就不再基于旧状态执行
 ~~~
 
+### 【Lua 把 Read → Compute → Conditional Write 整体移动到 Redis Server 内部】
+
+当前 Token Bucket 没有使用 WATCH，而是使用：
+
+[src/ingestion/rate-limiter.service.ts](../src/ingestion/rate-limiter.service.ts)
+
+~~~ts
+await this.redis.eval(
+  TOKEN_BUCKET_SCRIPT,
+  1,
+  key,
+  now,
+  rate,
+  burst,
+  cost,
+);
+~~~
+
+它对应第三种并发控制模型：
+
+~~~text
+Server-side Script
+~~~
+
+#### <u>1. EVAL 把 Lua 代码和参数交给 Redis Server 执行</u>
+
+当前调用可以映射为：
+
+~~~text
+Script
+    TOKEN_BUCKET_SCRIPT
+
+Number of Keys
+    1
+
+KEYS[1]
+    key
+
+ARGV[1]
+    now
+
+ARGV[2]
+    rate
+
+ARGV[3]
+    burst
+
+ARGV[4]
+    cost
+~~~
+
+所以 Lua：
+
+~~~lua
+local key = KEYS[1]
+local now = tonumber(ARGV[1])
+local rate = tonumber(ARGV[2])
+local burst = tonumber(ARGV[3])
+local cost = tonumber(ARGV[4])
+~~~
+
+是在读取 EVAL 传入的 Key 和参数。
+
+脚本内部通过：
+
+~~~text
+redis.call(...)
+~~~
+
+直接调用 Redis Command。
+
+#### <u>2. Token Bucket 先读取当前 Bucket State</u>
+
+源码：
+
+~~~lua
+local current =
+  redis.call(
+    'HMGET',
+    key,
+    'tokens',
+    'updated'
+  )
+~~~
+
+得到：
+
+~~~text
+tokens
+updated
+~~~
+
+如果 Key 第一次出现：
+
+~~~lua
+local tokens =
+  tonumber(current[1]) or burst
+
+local updated =
+  tonumber(current[2]) or now
+~~~
+
+初始状态就是：
+
+~~~text
+tokens = burst
+updated = now
+~~~
+
+也就是新 Bucket 默认装满 Token。
+
+#### <u>3. 根据经过时间补充 Token</u>
+
+核心计算：
+
+~~~lua
+tokens =
+  math.min(
+    burst,
+    tokens +
+      math.max(0, now - updated) * rate
+  )
+~~~
+
+拆开以后：
+
+~~~text
+elapsed
+    =
+now - updated
+
+refill
+    =
+elapsed × rate
+
+tokens
+    =
+min(
+  burst,
+  oldTokens + refill
+)
+~~~
+
+所以 Token 永远不会超过 burst。
+
+#### <u>4. 根据当前 Token 决定允许还是拒绝</u>
+
+如果：
+
+~~~text
+tokens < cost
+~~~
+
+脚本：
+
+~~~text
+保存 tokens
+更新 updated
+刷新 TTL
+return 0
+~~~
+
+业务含义：
+
+~~~text
+Rejected
+~~~
+
+如果 Token 足够：
+
+~~~text
+tokens = tokens - cost
+~~~
+
+然后：
+
+~~~text
+保存 tokens
+更新 updated
+刷新 TTL
+return 1
+~~~
+
+业务含义：
+
+~~~text
+Allowed
+~~~
+
+完整过程：
+
+~~~text
+HMGET
+  ↓
+Read State
+  ↓
+Refill
+  ↓
+Enough?
+ ┌────┴────┐
+ │         │
+No        Yes
+ │         │
+ ↓         ↓
+Save      Deduct
+ │         │
+TTL       Save
+ │         │
+0         TTL
+           │
+           1
+~~~
+
+### 【Lua 解决原子性问题的关键是整个脚本执行期间不可被其他 Client 穿插】
+
+#### <u>1. Node.js Read-Compute-Write 会暴露并发窗口</u>
+
+如果 Token Bucket 写在 Node.js：
+
+~~~text
+Node.js
+  ↓
+HMGET
+
+Redis
+  ↓
+tokens / updated
+
+Node.js
+  ↓
+Compute
+  ↓
+Decision
+  ↓
+HSET
+
+Redis
+~~~
+
+HMGET 和 HSET 之间可能出现另一个请求。
+
+例如：
+
+~~~text
+tokens = 10
+cost = 7
+
+Request A
+HMGET → 10
+
+Request B
+HMGET → 10
+
+A 允许
+B 允许
+
+A HSET 3
+B HSET 3
+~~~
+
+于是两个请求都通过，发生状态竞争。
+
+#### <u>2. Lua 把读取、计算、判断和写入收进 Redis 内部的一次执行</u>
+
+Lua 后变成：
+
+~~~text
+Node.js
+   ↓
+EVAL
+   ↓
+Redis Server
+
+┌─────────────────────────┐
+│ HMGET                   │
+│ Compute                 │
+│ Conditional Decision    │
+│ HSET                    │
+│ EXPIRE                  │
+│ return                  │
+└─────────────────────────┘
+~~~
+
+Redis 保证脚本执行期间不会让其他客户端活动穿插进这个脚本。
+
+所以两个请求不会变成：
+
+~~~text
+A HMGET
+B HMGET
+A HSET
+B HSET
+~~~
+
+而会更接近：
+
+~~~text
+Request A Lua
+
+HMGET
+ ↓
+10
+ ↓
+Compute
+ ↓
+Allow
+ ↓
+HSET 3
+ ↓
+return 1
+
+──────── A 完整结束 ────────
+
+Request B Lua
+
+HMGET
+ ↓
+3
+ ↓
+Compute
+ ↓
+Reject
+ ↓
+return 0
+~~~
+
+因此 Lua 的真正价值不是：
+
+~~~text
+Lua 比 TypeScript 更适合写数学逻辑
+~~~
+
+而是：
+
+> **把 Read + Compute + Conditional Write 组合成 Redis Server 内部不可被其他 Client 穿插的执行单元。**
+
+#### <u>3. Lua 原子执行也意味着脚本必须保持短小</u>
+
+Lua 执行期间其他命令不能正常穿插，所以：
+
+~~~text
+长时间循环
+复杂 CPU 计算
+大量数据扫描
+~~~
+
+都会延长其他 Client 的等待。
+
+适合 Lua 的逻辑通常应该：
+
+~~~text
+短
+确定
+围绕 Redis State
+执行时间可控
+~~~
+
+当前 Token Bucket 只包含：
+
+~~~text
+HMGET
+简单数学运算
+条件判断
+HSET
+EXPIRE
+~~~
+
+属于典型适用场景。
+
+### 【WATCH 与 Lua 都能保护 Read-Modify-Write，但执行模型不同】
+
+WATCH：
+
+~~~text
+Client
+  ↓
+WATCH
+  ↓
+GET / HMGET
+  ↓
+Client Compute
+  ↓
+MULTI
+  ↓
+Write Commands
+  ↓
+EXEC
+
+如果 Key 期间变化
+    ↓
+Abort
+    ↓
+Retry
+~~~
+
+Lua：
+
+~~~text
+Client
+  ↓
+EVAL
+  ↓
+Redis Server
+
+Read
+ ↓
+Compute
+ ↓
+Decision
+ ↓
+Write
+~~~
+
+可以整理：
+
+| 维度 | WATCH + MULTI/EXEC | Lua / EVAL |
+|---|---|---|
+| 计算位置 | Client | Redis Server |
+| 是否先把数据返回 Client | 是 | 否 |
+| 冲突策略 | 发现变化后 Abort | 执行期间不允许其他 Command 穿插 |
+| 是否可能需要 Retry | 是 | 通常不因并发冲突而重试 |
+| 适合逻辑 | Client 计算复杂、难搬入 Redis | 短小且围绕 Redis State 的逻辑 |
+| 当前项目 | 未使用 | Token Bucket |
+
+### 【Redis 的 Atomic Execution 与 SQL ACID Atomicity 不是同一个层次】
+
+#### <u>1. 原子性不要求多条操作在物理时间上同时发生</u>
+
+无论 Redis 还是 SQL，都不要求：
+
+~~~text
+Command A
+和
+Command B
+
+在同一个 CPU 时刻
+同时完成
+~~~
+
+所谓原子边界讨论的是：
+
+~~~text
+这一组操作
+在系统语义上
+能不能被拆开观察
+或者
+能不能被拆开作为最终结果提交
+~~~
+
+#### <u>2. SQL ACID Atomicity 强调事务结果 All-or-Nothing</u>
+
+例如转账：
+
+~~~text
+A -= 100
+B += 100
+~~~
+
+数据库内部完全可以先改 A 再改 B。
+
+但如果第二步失败，ACID Atomicity 要求：
+
+~~~text
+A 的修改也不能作为最终事务结果留下
+~~~
+
+最终只能是：
+
+~~~text
+成功
+    ↓
+A -100
+B +100
+全部 COMMIT
+~~~
+
+或者：
+
+~~~text
+失败
+    ↓
+A 不变
+B 不变
+ROLLBACK
+~~~
+
+所以 SQL Atomicity 主要强调：
+
+~~~text
+Failure Atomicity
+      ↓
+事务最终结果
+要么全部提交
+要么全部不提交
+~~~
+
+#### <u>3. Redis MULTI/EXEC 和 Lua 更强调不可穿插执行边界</u>
+
+Redis Transaction 的关键执行保证：
+
+~~~text
+Command A
+Command B
+Command C
+
+在 EXEC 阶段
+连续执行
+~~~
+
+Lua 的关键执行保证：
+
+~~~text
+Read
+Compute
+Conditional Write
+
+在 Script 中
+连续执行
+~~~
+
+其他 Client 不会插入事务或脚本执行到一半。
+
+因此 Redis 文档会使用 atomic / isolated operation 描述这些执行语义。
+
+但是：
+
+~~~text
+不可穿插执行
+~~~
+
+并不自动等于：
+
+~~~text
+执行中任意一步报错
+前面所有修改自动 Rollback
+~~~
+
+这两个概念必须分开。
+
+### 【MULTI / EXEC 没有 SQL 式 Rollback】
+
+#### <u>1. 排队阶段错误和 EXEC 运行阶段错误不同</u>
+
+如果在 MULTI 阶段就出现：
+
+~~~text
+未知 Command
+参数数量明显错误
+~~~
+
+Redis 可以在真正执行事务前发现 Queue Error。
+
+这种情况下，事务不会按正常 EXEC 流程提交这些命令。
+
+#### <u>2. EXEC 阶段才发现的运行时错误不会撤销前面已经成功的 Command</u>
+
+例如：
+
+~~~text
+MULTI
+
+SET foo "abc"
+
+INCR foo
+
+SET bar "ok"
+
+EXEC
+~~~
+
+第一条：
+
+~~~text
+SET foo "abc"
+~~~
+
+成功。
+
+INCR foo 执行时才发现：
+
+~~~text
+foo 不是可增量整数
+~~~
+
+这一条发生运行时错误。
+
+Redis 不会撤销：
+
+~~~text
+SET foo "abc"
+~~~
+
+其他合法命令也会继续执行。
+
+所以可能得到：
+
+~~~text
+foo = "abc"
+
+INCR foo
+失败
+
+bar = "ok"
+~~~
+
+即：
+
+~~~text
+Command A ✓
+Command B ✗
+Command C ✓
+~~~
+
+而不是 SQL 式：
+
+~~~text
+Command B 失败
+      ↓
+A / B / C 全部恢复
+~~~
+
+#### <u>3. Redis 不提供通用 Rollback 是事务模型的设计选择</u>
+
+如果 Redis 要支持 SQL 式自动 Rollback，每次修改都需要额外维护足够的信息，例如：
+
+~~~text
+修改前的 String
+
+修改前的 Hash Field
+
+被删除的 Sorted Set Member
+
+原来的 Score
+
+原来的 TTL
+...
+~~~
+
+然后失败时：
+
+~~~text
+读取 Undo Information
+      ↓
+逐步恢复
+~~~
+
+这会增加：
+
+~~~text
+额外内存
+额外 CPU
+事务实现复杂度
+执行成本
+~~~
+
+Redis 官方事务文档明确说明 Redis Transaction 不支持 Rollback，并把简单性和性能作为这一模型的重要设计取舍。
+
+因此 Redis 的基础事务更接近：
+
+~~~text
+应用先准备好
+一组预期合法、确定的 Command
+        ↓
+MULTI
+        ↓
+Queue
+        ↓
+EXEC
+        ↓
+不可穿插地连续执行
+~~~
+
+而不是依赖执行失败后的通用 Undo / Rollback。
+
+### 【Lua 同样不等于 SQL 式 Rollback】
+
+Lua 的 Atomic Execution 表示：
+
+~~~text
+脚本执行期间
+其他 Client Command
+不能穿插
+~~~
+
+它并不意味着：
+
+~~~text
+脚本中途运行时报错
+Redis 会自动恢复脚本已经产生的所有修改
+~~~
+
+使用 redis.call() 时，如果内部 Redis Command 产生运行时错误，错误会中止脚本并返回给调用方；在错误发生前已经成功产生的数据修改并不会获得 SQL 式通用 Rollback。
+
+所以：
+
+~~~text
+Lua Atomic
+~~~
+
+不能理解成：
+
+~~~text
+SQL Transaction Rollback
+~~~
+
+Lua 解决 Token Bucket 的核心是：
+
+~~~text
+Concurrency Atomicity
+      ↓
+Read
+Compute
+Conditional Write
+
+整个过程
+不被其他请求穿插
+~~~
+
+而不是失败回滚。
+
 <!-- REDIS_SECTION_3_CONTINUE -->
 
 ## 参考资料
