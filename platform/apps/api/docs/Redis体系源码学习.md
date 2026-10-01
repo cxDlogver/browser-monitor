@@ -7551,75 +7551,367 @@ Control State
 
 共同完成服务端数据体系。
 
-## 5. 下一节从单存储状态进入 Redis 与 PostgreSQL 的一致性边界
+## 5. Redis 与 PostgreSQL 的一致性问题来自跨存储状态缺少共同事务边界
 
-第四节已经回答：
+第四节已经建立：
 
 ~~~text
-Redis 的基础能力
-如何组合成完整状态模型
+PostgreSQL / TimescaleDB
+        ↓
+Source of Truth / Durable Data
 
-为什么 Redis 通常更快
-
-哪些数据适合 Redis
-
-哪些 Redis State 需要持久化
-
-为什么 AOF / RDB
-不等于 Redis 自动成为 Source of Truth
+Redis
+        ↓
+Runtime State
+Cache
+Coordination State
+Control State
 ~~~
 
-下一节继续进入跨存储问题：
+只看单个存储时：
 
 ~~~text
 PostgreSQL
-+
+可以依赖本地 Transaction
+
+Redis
+可以依赖 Atomic Command
+MULTI / EXEC
+Lua
+~~~
+
+但是一次 Business Operation 如果同时修改 PostgreSQL 和 Redis，问题就发生变化。
+
+因为：
+
+~~~text
+PostgreSQL Transaction
+只能约束 PostgreSQL
+
+Redis Transaction / Lua
+只能约束 Redis
+~~~
+
+两个系统之间天然没有共同的原子提交边界。
+
+所以第五节真正要解决的是：
+
+> **当一个业务状态被 PostgreSQL 和 Redis 共同表达，而两个存储又不能组成一个本地事务时，系统怎样识别部分成功、控制不一致窗口，并最终让状态重新收敛。**
+
+完整框架：
+
+~~~text
+Cross-Storage Consistency
+│
+├── 第一层：Data Authority
+│     ↓
+│   Source of Truth
+│   Runtime Read Authority
+│
+├── 第二层：Transaction Boundary
+│     ↓
+│   Dual Write
+│   Partial Failure
+│
+├── 第三层：Business Impact
+│     ↓
+│   Session Revocation
+│   Cache Staleness
+│
+├── 第四层：Consistency Window
+│     ↓
+│   Immediate / Bounded / Eventual
+│
+└── 第五层：Recovery
+      ↓
+    Retry
+    TTL
+    Version
+    Outbox
+    Rebuild
+~~~
+
+### 【第一层：先确定数据职责，再讨论两个存储之间怎样保持一致】
+
+跨存储一致性的第一步不是先写 Redis 还是先写 PostgreSQL，而是先回答：
+
+~~~text
+如果两个存储的数据不同
+系统最终相信谁？
+~~~
+
+#### <u>1. Source of Truth 表示系统最终认定的权威业务状态</u>
+
+例如 Analytics：
+
+~~~text
+TimescaleDB
+    ↓
+Performance Samples
+Web Vitals
+Page Views
+Aggregated Data
+
 Redis
     ↓
-Dual Storage
+analytics:<projectId>:<version>:...
     ↓
-谁是 Source of Truth？
-    ↓
-Cache-Aside
-    ↓
-Invalidation
-    ↓
-Version Key
-    ↓
-Consistency Window
-    ↓
-Dual Write Failure
-    ↓
-Failure Recovery
+Query Result Cache
 ~~~
 
-重点会回到当前源码中的两个典型问题：
+所以：
 
 ~~~text
-Session
+TimescaleDB
+    ↓
+Source of Truth
 
-PostgreSQL INSERT / DELETE
-+
-Redis SET / DEL
-
-如果一边成功、一边失败怎么办？
+Redis
+    ↓
+Derived State
 ~~~
 
-以及：
+如果 TimescaleDB 已经是新数据而 Redis 还是旧数据，最终恢复方向应该是：
 
 ~~~text
-Analytics
-
-TimescaleDB Data
-+
-Redis Cache
-
-数据库变化以后
-如何让旧 Cache 不继续生效？
+TimescaleDB
+    ↓
+重新计算
+    ↓
+Redis
 ~~~
 
-从这一节开始，Redis 学习会从“单个 Redis State”进入“Redis 与主数据库共同构成一个完整服务端数据系统”。
+#### <u>2. Source of Truth 决定故障恢复方向</u>
 
+可以固定：
+
+~~~text
+Authoritative State
+        ↓
+Rebuild / Reconcile
+        ↓
+Derived State
+~~~
+
+例如 Analytics Cache 丢失以后：
+
+~~~text
+Cache Miss
+    ↓
+查询 TimescaleDB
+    ↓
+重新生成 Cache
+~~~
+
+#### <u>3. Persistent Record 与 Runtime Read Authority 不是同一个概念</u>
+
+当前 Session 同时存在：
+
+~~~text
+PostgreSQL
+user_sessions
+
+Redis
+session:<tokenHash>
+~~~
+
+但是请求认证真正读取：
+
+~~~text
+SessionGuard
+    ↓
+Redis GET
+~~~
+
+当前没有 Redis Miss 后再查询 PostgreSQL 的 fallback。
+
+所以：
+
+~~~text
+PostgreSQL
+    ↓
+持久 Session Record
+
+Redis
+    ↓
+当前认证热路径真正依赖的 Runtime State
+~~~
+
+Redis 即使不是整个业务系统的长期权威数据库，也可能在某条运行时链路中直接决定请求结果。
+
+### 【第二层：一次业务需要修改两个独立存储时，就形成 Dual Write】
+
+Dual Write 不要求两个写操作真正同时发生。
+
+只要一个业务操作需要：
+
+~~~text
+Write Store A
++
+Write Store B
+~~~
+
+就存在 Dual Write Problem。
+
+#### <u>1. PostgreSQL Transaction 不能自动把 Redis 包进来</u>
+
+真正的事务边界仍然是：
+
+~~~text
+PostgreSQL Transaction
+    ↓
+SQL A
+SQL B
+COMMIT / ROLLBACK
+
+----------------
+
+Redis
+    ↓
+SET / DEL / INCR
+~~~
+
+PostgreSQL ROLLBACK 无法撤销已经执行的 Redis SET。
+
+同样，Redis MULTI / Lua 也不能控制 PostgreSQL。
+
+所以：
+
+~~~text
+PostgreSQL Transaction
++
+Redis Transaction
+~~~
+
+不等于一个共同的 Cross-Storage Transaction。
+
+#### <u>2. Dual Write 真正危险的是 Partial Failure</u>
+
+应该建立 Failure Matrix：
+
+| Database | Redis | 需要分析的问题 |
+|---|---|---|
+| 成功 | 成功 | 正常完成 |
+| 成功 | 失败 | Redis State 怎样恢复 |
+| 失败 | 未执行 | 通常较容易处理 |
+| 状态未知 | 状态未知 | 能否安全 Retry、是否需要 Idempotency |
+
+#### <u>3. 写入顺序只能改变失败模式，不能消灭 Dual Write</u>
+
+Database → Redis 可能出现：
+
+~~~text
+DB ✓
+Redis ✗
+~~~
+
+Redis → Database 又可能出现：
+
+~~~text
+Redis ✓
+DB ✗
+~~~
+
+所以：
+
+> **调整写入顺序只能选择哪一种部分失败更容易恢复，不能让两个独立系统突然拥有共同原子事务。**
+
+### 【第三层：Session 展示跨存储写状态的一致性问题】
+
+Session 的 Login、Logout、Password Reset 都属于 Session State Synchronization，只是分别覆盖 Create、Delete、Security Revocation。
+
+#### <u>1. Login 存在 PostgreSQL 成功但 Redis 创建失败的窗口</u>
+
+当前源码顺序：
+
+~~~text
+Verify User
+    ↓
+INSERT PostgreSQL user_sessions
+    ↓
+SET Redis session:<tokenHash>
+    ↓
+Return Token
+~~~
+
+如果：
+
+~~~text
+PG ✓
+Redis ✗
+~~~
+
+则 PostgreSQL 中存在 user_sessions Row，但 Redis 中不存在 Session Key。
+
+由于 SessionGuard 只读取 Redis，这种失败主要留下一个暂时不可使用的数据库 Session Record，而不是认证绕过。
+
+#### <u>2. Logout 的双删存在更重要的 Session Revocation Window</u>
+
+当前：
+
+~~~ts
+await Promise.all([
+  this.redis.del("session:<tokenHash>"),
+  this.database.pool.query(
+    "DELETE FROM user_sessions WHERE token_hash = $1",
+    [tokenHash]
+  ),
+]);
+~~~
+
+Promise.all 只是并发等待，不是事务。
+
+如果：
+
+~~~text
+PostgreSQL DELETE ✓
+Redis DEL ✗
+~~~
+
+则数据库 Session 已删除，但 Redis Session 仍可能存在。
+
+由于 Guard 只读 Redis，旧 Session 可能继续通过认证，直到 Redis Key 被再次删除或 TTL 到期。
+
+这就是：
+
+~~~text
+Session Revocation Window
+~~~
+
+#### <u>3. Password Reset 把 Session Revocation Window 表现得最明显</u>
+
+当前：
+
+~~~text
+BEGIN PostgreSQL
+
+Consume Reset Token
+UPDATE Password
+DELETE user_sessions
+RETURNING token_hash
+
+COMMIT
+
+        ↓
+
+Redis DEL session:<hash> ...
+~~~
+
+如果 PG COMMIT 成功而 Redis DEL 失败，则 Password 与数据库 Session Record 已经完成更新，但旧 Redis Session 仍可能存在。
+
+所以这里真正的问题不是 PostgreSQL Transaction 不完整，而是：
+
+> **Redis Session Invalidation 位于 PostgreSQL Transaction 之外。**
+
+#### <u>4. Session 的不一致窗口具有安全语义</u>
+
+Analytics Cache 旧 10 秒通常意味着页面看到旧统计。
+
+Session 旧 10 秒可能意味着本应撤销的身份仍能继续请求。
+
+所以 Consistency Window 必须结合 State Semantics 判断。
+
+<!-- REDIS_SECTION_5_CONTINUE -->
 
 ## 参考资料
 
