@@ -5038,448 +5038,682 @@ SQL ACID Transaction
 
 这类场景通常应该重新评估真正权威状态是否更适合由 PostgreSQL 这样的事务型数据库承担。
 
-## 4. Redis 的工程使用边界由访问模型、数据职责与持久化要求共同决定
+## 4. Redis 的工程价值来自状态模型组合，而不是单个数据结构或命令
 
-前三节已经回答：
+前三节已经分别建立：
 
 ~~~text
-Redis 在哪里运行
+第一节
+Redis 在服务端系统中的位置
         ↓
-Redis 怎样组织 Key / Value
+Redis Server / Client / Shared State
+
+第二节
+Redis 如何组织状态
         ↓
-Redis 怎样安全修改并发状态
+Keyspace / Key / Data Type / Command / TTL
+
+第三节
+Redis 如何安全修改状态
+        ↓
+Atomic Command
+Pipeline
+MULTI / EXEC
+WATCH
+Lua
+Failure Semantics
 ~~~
 
-这一节继续回答两个更接近架构设计的问题：
+到了第四节，需要把这些底层能力重新组合成服务端真正会使用的工程模型。
+
+真实业务不会从下面的问题开始：
 
 ~~~text
-为什么 Redis 通常比 PostgreSQL 快？
+我要不要使用 Hash？
 
-哪些数据适合放 Redis，
-哪些数据应该继续由 PostgreSQL 保存？
+我要不要调用 ZADD？
+
+我要不要使用 HINCRBY？
 ~~~
 
-还要再区分一个很容易混淆的问题：
+而是从业务状态开始：
 
 ~~~text
-数据适合放 Redis
-        ≠
-Redis 一定要把它持久化到磁盘
+我要实现 Session
 
-Redis 支持持久化
-        ≠
-Redis 自动变成 PostgreSQL 的替代品
+我要实现 Counter
+
+我要实现限流
+
+我要保存最近一分钟状态
+
+我要做查询缓存
 ~~~
 
-完整框架：
+因此 Redis 的工程关系应该理解成：
 
 ~~~text
-Redis Performance Model
-        ↓
-Redis / PostgreSQL 数据职责
-        ↓
-State Classification
-        ↓
-Redis Persistence
-   ┌──────────┴──────────┐
-   ↓                     ↓
-  RDB                   AOF
-        ↓
+Redis Primitive
+│
+├── Key
+├── String / Hash / Sorted Set
+├── GET / SET / INCR / HINCRBY
+├── ZADD / ZRANGEBYSCORE
+├── TTL
+├── MULTI / EXEC
+└── Lua
+
+        ↓ 组合
+
+Redis State Model
+│
+├── Session
+├── Counter
+├── Rate Limit
+├── Recent Window
+└── Cache
+
+        ↓ 再继续判断
+
+Performance Requirement
+Data Responsibility
 Persistence Requirement
+Redis / PostgreSQL Boundary
+~~~
+
+所以这一节要完整回答三个层次的问题：
+
+~~~text
+第一层
+Redis 的基础能力
+如何组合成业务状态模型？
+
+第二层
+为什么这些状态适合 Redis，
+Redis 为什么通常比 PostgreSQL 更快？
+
+第三层
+这些状态中哪些可以丢，
+哪些需要持久化，
+哪些不应该只依赖 Redis？
+~~~
+
+### 【一个完整 Redis State Model 至少需要回答六个问题】
+
+以后看到任何 Redis 设计，都应该先问：
+
+~~~text
+① State 是什么？
         ↓
-回到 Browser Monitor
-判断每一类 Redis State
-到底需不需要持久化
+保存的业务状态是什么？
+
+② Scope 是什么？
+        ↓
+状态属于谁？
+
+③ Representation 是什么？
+        ↓
+String / Hash / Sorted Set？
+
+④ Mutation 是什么？
+        ↓
+GET / SET / INCR / Lua？
+
+⑤ Lifecycle 是什么？
+        ↓
+什么时候创建？
+什么时候过期？
+什么时候删除？
+
+⑥ Authority 是什么？
+        ↓
+Redis 是权威数据？
+还是可以重新生成？
 ~~~
 
-### 【Redis 快不是单一因为内存，而是整个执行路径更加直接】
-
-最常见的解释是：
+例如当前 Session：
 
 ~~~text
-Redis 在内存
-PostgreSQL 在磁盘
-所以 Redis 更快
+State
+    Login Session
+
+Scope
+    Session Token
+
+Representation
+    String JSON
+
+Mutation
+    SET / GET / DEL
+
+Lifecycle
+    Login 创建
+    TTL 到期
+    Logout 删除
+
+Authority
+    Redis 参与认证热路径
+    PostgreSQL 仍保存 Session Record
 ~~~
 
-这个方向没有错，但过于简化。
-
-PostgreSQL 同样会使用 shared_buffers 和 OS Page Cache，热点数据也可能已经在内存中。
-
-Redis 通常更快，真正来自多个因素叠加：
+Token Bucket：
 
 ~~~text
-内存访问
-+
-更直接的 Key 访问模型
-+
-更简单的数据结构操作
-+
-更轻的事务和约束语义
-+
-更短的执行路径
+State
+    Rate Limit Budget
+
+Scope
+    Project
+    Project + IP
+
+Representation
+    Hash
+
+Mutation
+    Lua
+      HMGET
+      Compute
+      HSET
+
+Lifecycle
+    请求时创建 / 刷新
+    60s TTL
+
+Authority
+    Redis Runtime State
 ~~~
 
-#### <u>1. Redis 的工作数据主要直接驻留在内存</u>
+只有把这六层一起看，才能真正判断一个 Redis 设计是否完整。
 
-Redis 的核心 Dataset：
+### 【Session State Model 将身份凭证映射成服务端共享状态】
+
+#### <u>1. 当前 Session 生命周期从登录开始</u>
+
+当前登录流程：
 
 ~~~text
-Key
-Value
-Data Structure
+Browser
+   ↓
+email + password
+   ↓
+AuthService.login()
 ~~~
 
-主要位于 RAM。
-
-例如：
-
-~~~text
-GET
-HGET
-INCR
-HINCRBY
-ZADD
-~~~
-
-通常直接在内存数据结构上完成。
-
-可以简化成：
-
-~~~text
-Client
-  ↓
-Redis Server
-  ↓
-定位 Key
-  ↓
-操作内存数据结构
-  ↓
-Response
-~~~
-
-这使 Redis 非常适合：
-
-~~~text
-高频读取
-高频计数
-短生命周期状态
-实时控制状态
-~~~
-
-但不能理解成：
-
-~~~text
-Redis 永远不访问磁盘
-~~~
-
-Redis 还可以通过 RDB / AOF 把内存 Dataset 持久化。
-
-区别是：
-
-> Redis 的普通数据操作主要围绕内存 Dataset 执行，持久化是另外一层机制。
-
-#### <u>2. PostgreSQL 即使命中内存缓存，仍然承担完整数据库语义</u>
-
-PostgreSQL 的典型执行链路更接近：
-
-~~~text
-Client
-  ↓
-SQL
-  ↓
-Parser
-  ↓
-Planner / Optimizer
-  ↓
-Executor
-  ↓
-MVCC
-  ↓
-Index / Heap
-  ↓
-Constraint
-  ↓
-Transaction / WAL
-  ↓
-Response
-~~~
-
-不同 SQL 不会每次经历完全相同的成本，但 PostgreSQL 必须支持：
-
-~~~text
-复杂 SQL
-JOIN
-Index
-Transaction
-MVCC
-Constraint
-Rollback
-WAL
-Crash Recovery
-~~~
-
-例如：
+首先查询 PostgreSQL：
 
 ~~~sql
-SELECT *
-FROM user_sessions
-WHERE token_hash = $1
-  AND expires_at > now();
+SELECT id,
+       email,
+       password_hash,
+       display_name,
+       email_verified_at
+FROM users
+WHERE email = $1
 ~~~
 
-数据库需要理解：
+验证通过以后生成：
 
 ~~~text
-访问哪张表
-使用什么索引
-哪些 Tuple 对当前 Transaction 可见
-WHERE 条件是否满足
+token
+csrfToken
+expiresAt
 ~~~
 
-而 Redis：
+其中原始 Session Token 先经过：
 
 ~~~text
-GET session:<tokenHash>
+token
+   ↓
+hashToken()
+   ↓
+tokenHash
 ~~~
 
-应用已经直接给出：
+数据库保存的是 tokenHash，而不是原始 Token。
+
+#### <u>2. Session 首先写入 PostgreSQL 持久记录</u>
+
+源码逻辑：
+
+~~~sql
+INSERT INTO user_sessions(
+    user_id,
+    token_hash,
+    csrf_token,
+    expires_at
+)
+VALUES (...)
+~~~
+
+形成：
 
 ~~~text
-我要访问哪一个 Key
+user_sessions
+│
+├── user_id
+├── token_hash
+├── csrf_token
+└── expires_at
 ~~~
 
-所以访问模型更直接。
+这是一份持久 Session Record。
 
-#### <u>3. Redis 使用 Key → Data Structure，而不是通用关系查询模型</u>
+#### <u>3. Redis 保存请求认证真正需要的热 Session State</u>
 
-Redis：
+随后：
+
+~~~ts
+await this.redis.set(
+  "session:<tokenHash>",
+  JSON.stringify(user),
+  "EX",
+  this.config.SESSION_TTL_SECONDS,
+);
+~~~
+
+形成：
 
 ~~~text
-Key
-  ↓
-Value / Data Structure
+session:<tokenHash>
+│
+├── Type
+│     String
+│
+├── Value
+│     AuthenticatedUser JSON
+│
+└── TTL
+      SESSION_TTL_SECONDS
 ~~~
 
-例如：
+其中 AuthenticatedUser 包含：
 
 ~~~text
-session:abc
-    ↓
-String
-
-ingestion:stats:p001
-    ↓
-Hash
-
-ingestion:rate:p001
-    ↓
-Sorted Set
+id
+email
+displayName
+sessionId
+csrfToken
 ~~~
 
-应用通常已经知道具体 Key。
-
-因此大量场景可以直接执行：
-
-~~~text
-GET
-HINCRBY
-ZADD
-ZRANGEBYSCORE
-~~~
-
-而 PostgreSQL 更像：
-
-~~~text
-Table
-  ↓
-Row
-  ↓
-Column
-  ↓
-Predicate
-  ↓
-Index / Scan
-  ↓
-Relational Operation
-~~~
-
-Redis 用更少的通用查询能力，换来了更直接的数据访问路径。
-
-#### <u>4. Redis 把常见高频状态操作直接做成原生命令和数据结构</u>
-
-例如：
-
-~~~text
-Counter
-    INCR / HINCRBY
-
-Collection
-    Set
-
-Ordered State
-    Sorted Set
-
-Time Range
-    ZRANGEBYSCORE
-~~~
-
-当前项目增加 accepted，不需要应用自己 SELECT → +1 → UPDATE，而是直接 HINCRBY。
-
-维护最近一分钟请求，则把 timestamp 映射成 Sorted Set Score，再使用 ZADD / ZRANGEBYSCORE / ZREMRANGEBYSCORE。
-
-这就是 Redis 作为 Data Structure Server 的工程价值。
-
-#### <u>5. Redis 没有承担关系数据库全部事务与约束成本</u>
-
-PostgreSQL 需要支持：
-
-~~~text
-PRIMARY KEY
-UNIQUE
-CHECK
-FOREIGN KEY
-MVCC
-Isolation Level
-Rollback
-WAL
-Crash Recovery
-~~~
-
-Redis 的 INCR counter 则对应更窄、更直接的状态变化。
-
-所以可以总结：
-
-> **Redis 通常比 PostgreSQL 快，不只是因为 RAM，而是因为 Redis 为 Key/Data Structure 的高频状态操作提供了更短、更简单的执行路径；PostgreSQL 则用更高的执行成本换取关系查询、事务、约束、恢复等更完整的数据库语义。**
-
-### 【Redis 和 PostgreSQL 的选择首先看数据职责，而不是只看性能】
-
-真正应该先判断：
-
-~~~text
-这份数据到底是什么性质？
-~~~
-
-| 数据职责 | Redis | PostgreSQL |
-|---|---|---|
-| Cache | 很适合 | 通常作为原始数据来源 |
-| Session Runtime State | 很适合 | 可以保存持久 Session Record |
-| Counter | 很适合 | 如果要求权威历史也可能需要持久保存 |
-| Rate Limit State | 很适合 | 通常不需要 |
-| Recent Window | 很适合 | 长期历史通常进入数据库 |
-| 排行榜 / 实时排序 | 很适合 | 长期事实仍可能来自数据库 |
-| 临时 Token / Coordination State | 很适合 | 视业务要求 |
-| 用户 / 订单 / 支付等权威事实 | 通常不是首选 | 很适合 |
-| 强关系数据 | 不擅长 | 很适合 |
-| 需要复杂事务和约束的数据 | 通常不是首选 | 很适合 |
-
-进一步抽象：
-
-~~~text
-Redis
-更擅长保存
-
-Runtime State
-Temporary State
-Derived State
-Coordination State
-High-frequency Shared State
-~~~
-
-而：
+因此可以理解为：
 
 ~~~text
 PostgreSQL
-更擅长保存
+    ↓
+保存 Session Record
 
-Authoritative State
-Business Fact
-Relational Data
-Durable History
-Transactional Data
+Redis
+    ↓
+保存 Request Path
+直接需要的 AuthenticatedUser
 ~~~
 
-### 【判断数据是否应该进入 Redis，需要从状态性质推导】
+#### <u>4. SessionGuard 的认证热路径只读取 Redis</u>
 
-#### <u>1. 高频读写是重要信号，但不是充分条件</u>
+当前 Guard：
 
-Session、Rate Limit、Counter 都具有高频访问，所以 Redis 很合适。
+~~~ts
+const token =
+  request.cookies?.bm_session;
 
-但账户余额也可能高频访问，不能因此直接只放 Redis。
+const session =
+  await this.redis.get(
+    "session:<hashToken(token)>"
+  );
 
-因为余额还具有：
+if (!session) {
+  throw new UnauthorizedException({
+    code: "session_expired",
+  });
+}
+
+request.auth =
+  JSON.parse(session);
+~~~
+
+完整链路：
 
 ~~~text
-权威业务事实
-强一致性
-事务
-审计
-不可随意丢失
+HTTP Request
+    ↓
+Cookie
+    ↓
+Session Token
+    ↓
+hashToken
+    ↓
+Redis GET
+    ↓
+Session 存在？
+ ┌────┴────┐
+No        Yes
+ ↓          ↓
+401       JSON.parse
+            ↓
+      request.auth
 ~~~
 
-这些要求往往比纯性能更重要。
+当前源码没有：
 
-#### <u>2. 短生命周期和自动过期是 Redis 非常擅长的状态</u>
+~~~text
+Redis Miss
+    ↓
+再去 PostgreSQL 查询 user_sessions
+~~~
+
+这样的 fallback。
+
+所以当前 Session Redis Key 不是一个单纯可随时丢弃的普通 Cache。
+
+Redis Session 丢失以后，即使 PostgreSQL user_sessions 仍然存在，当前 Guard 仍会把用户判断为 session_expired。
+
+#### <u>5. 当前 Session 是固定 TTL，不是 Sliding Session</u>
+
+登录时：
+
+~~~text
+SET session:<hash>
+    JSON
+    EX SESSION_TTL_SECONDS
+~~~
+
+而 SessionGuard 只执行：
+
+~~~text
+GET
+~~~
+
+没有：
+
+~~~text
+EXPIRE session:<hash> ...
+~~~
+
+因此当前实现是：
+
+~~~text
+Login
+  ↓
+设置固定过期时间
+
+Day 1
+GET
+不续期
+
+Day 3
+GET
+不续期
+
+TTL 到期
+    ↓
+Session Expired
+~~~
+
+更接近：
+
+~~~text
+Fixed / Absolute Session Lifetime
+~~~
+
+而不是：
+
+~~~text
+Sliding Session Lifetime
+~~~
+
+#### <u>6. Logout 与 Password Reset 都包含 Session Invalidation</u>
+
+Logout：
+
+~~~ts
+await Promise.all([
+  this.redis.del(
+    "session:<tokenHash>"
+  ),
+  this.database.pool.query(
+    "DELETE FROM user_sessions WHERE token_hash = $1",
+    [tokenHash]
+  ),
+]);
+~~~
+
+意味着：
+
+~~~text
+Logout
+   ↓
+Redis DEL
++
+PostgreSQL DELETE
+   ↓
+Session Invalidated
+~~~
+
+Password Reset 更进一步：
+
+~~~text
+PostgreSQL Transaction
+        ↓
+更新密码
+        ↓
+DELETE user_sessions
+RETURNING token_hash
+        ↓
+COMMIT
+        ↓
+Redis DEL session:<hash> ...
+~~~
+
+说明当前项目已经把 Session 设计成：
+
+~~~text
+Create
+Read
+Expire
+Logout Revoke
+Password Reset Revoke
+~~~
+
+一套完整生命周期。
+
+### 【Counter State Model 将高频增量状态压缩为原子数字变化】
+
+Counter 的通用模型是：
+
+~~~text
+State(t + 1)
+=
+State(t)
++
+Delta
+~~~
 
 例如：
 
 ~~~text
-Session
-Rate Limit Bucket
-Recent Window
-Temporary Token
-Cache
+Page Views += 1
+
+Accepted Events += 20
+
+Retry Count += 1
+
+Cache Version += 1
 ~~~
 
-天然具有 TTL，Redis 可以让 Key 到期后自动退出 Keyspace。
+Redis 的 INCR / INCRBY / HINCRBY 很适合这种状态。
 
-#### <u>3. 可重新计算的数据非常适合 Redis</u>
+#### <u>1. Ingestion Statistics 是统计型 Counter</u>
 
-例如 Analytics Cache：
+当前：
 
 ~~~text
-Redis Cache 丢失
-      ↓
-Cache Miss
-      ↓
-重新查询 TimescaleDB
-      ↓
-重新生成 Cache
+ingestion:stats:<projectId>
 ~~~
 
-所以它属于 Rebuildable State。
-
-#### <u>4. 多实例之间需要共享的运行状态也适合 Redis</u>
-
-如果有多个 API Instance：
+保存：
 
 ~~~text
-API A
-API B
-API C
+accepted
+duplicate
+rejected
 ~~~
 
-就不能各自在自己的 Node.js Memory 中维护独立 Rate Limit、Session、Counter，否则每个实例看到不同状态。
-
-Redis Server 可以提供 Shared State。
-
-#### <u>5. 复杂关系、强事务和权威历史更适合 PostgreSQL</u>
-
-如果一份数据需要：
+每次 Ingestion：
 
 ~~~text
-JOIN
-Foreign Key
-复杂筛选
-强 All-or-Nothing Transaction
-长期历史
-审计
-不可丢失
+HINCRBY accepted
+
+HINCRBY duplicate
+
+HINCRBY rejected
 ~~~
 
-通常更应该由 PostgreSQL 承担 Source of Truth。
+形成：
 
-> **Redis 快不是把所有 PostgreSQL 数据迁移进 Redis 的理由。性能只是数据存储决策中的一个维度。**
+~~~text
+Statistics(t + 1)
+       =
+Statistics(t)
+       +
+Current Request Result
+~~~
+
+这种 Counter 的核心特点：
+
+~~~text
+高频增加
+字段之间相互独立
+不需要每次扫描历史明细
+~~~
+
+所以 Hash + HINCRBY 很合适。
+
+#### <u>2. 这份统计不是普通数据库查询 Cache</u>
+
+源码明确说明：
+
+~~~text
+rejected events intentionally
+never enter the telemetry tables
+~~~
+
+也就是说 rejected 请求本来就不会进入 telemetry tables。
+
+所以：
+
+~~~text
+Redis Statistics 丢失
+    ↓
+重新 SELECT telemetry_events
+~~~
+
+不能完整恢复 rejected Count。
+
+因此它更接近：
+
+~~~text
+Operational Statistics
+~~~
+
+而不是：
+
+~~~text
+Database Query Cache
+~~~
+
+#### <u>3. 当前统计同时具有 Best-effort 特性</u>
+
+源码：
+
+~~~ts
+.exec()
+.catch(() => undefined);
+~~~
+
+注释说明：
+
+~~~text
+A statistics failure must not turn
+a successfully committed ingestion request
+into a retryable SDK error.
+~~~
+
+这表示：
+
+~~~text
+Primary Ingestion
+       ↓
+必须成功
+
+Operational Statistics
+       ↓
+应该记录
+但失败不能反过来
+让 SDK 重试已经提交的数据
+~~~
+
+所以 Counter 设计不能只问：
+
+~~~text
+怎么加 1？
+~~~
+
+还要问：
+
+~~~text
+这个 Counter
+是不是权威历史？
+丢失以后能不能接受？
+~~~
+
+#### <u>4. Analytics Version 是协调型 Counter</u>
+
+另一份 Counter：
+
+~~~text
+analytics:version:<projectId>
+~~~
+
+Worker：
+
+~~~ts
+INCR analytics:version:<projectId>
+~~~
+
+这里数字 8、9、10 本身不是业务统计。
+
+它表达的是：
+
+~~~text
+Analytics Data Generation
+Version
+~~~
+
+所以：
+
+~~~text
+Counter State
+│
+├── Measurement Counter
+│     ↓
+│   accepted / rejected
+│
+└── Coordination Counter
+      ↓
+    analytics version
+~~~
+
+Version Counter 的意义是：
+
+~~~text
+9 != 8
+    ↓
+数据已经发生变化
+    ↓
+旧 Cache Namespace
+不应该继续使用
+~~~
 
 <!-- REDIS_SECTION_4_CONTINUE -->
 
