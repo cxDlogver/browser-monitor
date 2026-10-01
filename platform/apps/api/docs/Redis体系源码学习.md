@@ -1271,52 +1271,1964 @@ Business State Model
 
 这就是后续所有 Redis 知识的父级框架。
 
-## 2. 下一节从 Keyspace 与数据结构进入 Redis 的数据组织体系
+## 2. Redis 通过 Keyspace、数据类型与命令语义组织共享状态
 
-第一节已经建立：
+第一节已经回答了 Redis 在系统中的位置：
 
 ~~~text
-Redis 不是 NestJS 内部对象
-
-Redis 是独立 Redis Server
-
-ioredis 是 Node.js Client
-
-NestJS DI 负责管理和注入 Client
-
-API 与 Worker 通过 Redis 共享状态
-
-Redis 的基础模型是 Key → Typed Value + TTL
-
-当前项目同时使用
-String / Hash / Sorted Set
-
-不同 Redis Key 分别承担
-Session / Rate Limit / Cache / Counter / Coordination
+Application
+    ↓
+Redis Client
+    ↓
+Redis Server
+    ↓
+Shared State
 ~~~
 
-下一节再从：
+这一节继续向 Redis Server 内部走一层，回答：
+
+> **Redis Server 中的状态究竟怎样被组织，以及为什么不同业务状态要选择不同的数据结构和命令。**
+
+当前项目已经出现：
+
+~~~text
+session:<tokenHash>
+
+ingest:project:<projectId>
+
+ingest:ip:<projectId>:<ip>
+
+analytics:version:<projectId>
+
+analytics:<projectId>:<version>:<namespace>:<filters>
+
+ingestion:stats:<projectId>
+
+ingestion:rate:<projectId>
+~~~
+
+如果只把 Redis 理解成：
+
+~~~text
+Key → Value
+~~~
+
+仍然不够。
+
+更完整的数据组织模型应该建立为：
+
+~~~text
+Redis Server
+      ↓
+Keyspace
+      ↓
+Key
+      ↓
+Value Type
+      ↓
+Commands
+      ↓
+Expiration
+      ↓
+Business State Model
+~~~
+
+每一层回答不同的问题：
+
+| 层次 | 回答的问题 |
+|---|---|
+| Keyspace | Redis 中有哪些状态对象 |
+| Key | 这一份状态属于谁 |
+| Value Type | 这一份状态内部怎样组织 |
+| Commands | 允许怎样读取和修改状态 |
+| Expiration | 状态应该存在多久 |
+| Business State Model | 这些能力最终解决什么业务问题 |
+
+因此这一节不会把 String、Hash、Sorted Set 当成几个互不相关的 API 集合，而是沿着“业务状态怎样映射为 Redis 数据模型”这一条主线展开。
+
+### 【Keyspace 负责组织 Redis Server 中全部状态对象】
+
+#### <u>1. Redis 不通过 Table 和 Row 组织核心数据</u>
+
+PostgreSQL 的基础数据组织模型是：
+
+~~~text
+Database
+   ↓
+Table
+   ↓
+Row
+   ↓
+Column
+~~~
+
+Redis 的核心模型不同。对于当前项目使用的 Redis 7.4，可以先建立：
+
+~~~text
+Redis Database
+      ↓
+Keyspace
+      ↓
+Key
+      ↓
+Typed Value
+~~~
+
+Keyspace 可以理解为当前 Redis Database 中所有 Key 共同组成的逻辑空间。
+
+Monitor 运行以后，Redis 中可能同时存在：
+
+~~~text
+session:8b31...
+session:91ac...
+
+ingest:project:p001
+ingest:project:p002
+
+ingest:ip:p001:192.168.1.10
+ingest:ip:p001:192.168.1.11
+
+analytics:version:p001
+
+analytics:p001:3:overview:{...}
+analytics:p001:3:performance:{...}
+
+ingestion:stats:p001
+ingestion:rate:p001
+~~~
+
+这些对象在 Redis 看来首先都是 Keyspace 中的 Key。
+
+Redis 并不知道：
+
+~~~text
+session 是一张表
+analytics 是一张表
+ingestion 是一张表
+~~~
+
+它看到的是一组独立 Key：
+
+~~~text
+session:8b31...
+analytics:version:p001
+ingestion:stats:p001
+~~~
+
+所以 Redis 的数据组织首先不是关系模型，而是：
+
+~~~text
+Key Identity
+     +
+Typed Value
+~~~
+
+Redis 官方将 Redis 定位为 Data Structure Server，核心原因就在这里：一个 Key 对应的 Value 不只是普通字符串，还可以直接使用 Hash、List、Set、Sorted Set、Stream 等数据结构。
+
+---
+
+#### <u>2. 冒号只是应用层 Key 命名约定，不会创建 Redis 目录</u>
+
+当前源码使用的 Key 可以抽象为：
+
+~~~text
+session:<tokenHash>
+
+ingest:project:<projectId>
+
+ingest:ip:<projectId>:<ip>
+
+analytics:version:<projectId>
+~~~
+
+在人脑中，可以把：
+
+~~~text
+analytics:version:p001
+~~~
+
+解释成：
+
+~~~text
+analytics
+   ↓
+version
+   ↓
+p001
+~~~
+
+但 Redis 内部并不存在：
+
+~~~text
+analytics/
+    version/
+        p001
+~~~
+
+这样的目录结构。
+
+Redis 实际保存的仍然只是一个完整 Key：
+
+~~~text
+analytics:version:p001
+~~~
+
+所以冒号只是 Key Naming Convention。
+
+常见 Key 设计可以抽象为：
+
+~~~text
+<domain>:<state-type>:<scope-id>:<sub-id>
+~~~
+
+当前项目中的：
+
+~~~text
+session:<tokenHash>
+
+ingestion:stats:<projectId>
+
+ingest:ip:<projectId>:<ip>
+~~~
+
+都符合这种思路。
+
+这种命名方式同时解决：
+
+~~~text
+机器层面
+    唯一标识一份状态
+
+人类层面
+    从 Key 名称理解业务作用和作用域
+~~~
+
+---
+
+#### <u>3. Key 的真正作用是定义共享状态的身份和隔离范围</u>
+
+分析 Redis 设计时，第一个问题不应该立即是：
+
+~~~text
+使用 String 还是 Hash？
+~~~
+
+而应该先问：
+
+~~~text
+这份状态属于谁？
+
+什么条件决定两个请求
+访问的是同一份状态？
+~~~
+
+例如 Project 级限流使用：
+
+~~~text
+ingest:project:<projectId>
+~~~
+
+如果 projectId 为 p001，那么所有属于 p001 的采集请求都会访问：
+
+~~~text
+ingest:project:p001
+~~~
+
+于是：
+
+~~~text
+Request A ─┐
+Request B ─┼──► ingest:project:p001
+Request C ─┘
+~~~
+
+这些请求共享同一个 Token Bucket。
+
+而 IP 级限流使用：
+
+~~~text
+ingest:ip:<projectId>:<ip>
+~~~
+
+于是：
+
+~~~text
+Project p001 + IP A
+        ↓
+ingest:ip:p001:A
+
+Project p001 + IP B
+        ↓
+ingest:ip:p001:B
+~~~
+
+不同 IP 被隔离成不同状态。
+
+因此 Key 设计可以抽象成：
+
+~~~text
+Business State
+      ↓
+确定 Scope
+      ↓
+确定 Identity
+      ↓
+生成 Redis Key
+~~~
+
+当前项目可以得到：
+
+| 状态 | Scope | Key |
+|---|---|---|
+| Session | Token | session:<tokenHash> |
+| Project Rate Limit | Project | ingest:project:<projectId> |
+| IP Rate Limit | Project + IP | ingest:ip:<projectId>:<ip> |
+| Analytics Version | Project | analytics:version:<projectId> |
+| Ingestion Statistics | Project | ingestion:stats:<projectId> |
+| Recent Ingestion Rate | Project | ingestion:rate:<projectId> |
+
+Key 解决“哪一份状态”的问题以后，才进入下一层：
+
+~~~text
+这份状态内部应该怎样组织？
+~~~
+
+### 【Redis 数据类型决定一份状态内部能够怎样被操作】
+
+Redis 官方当前的数据类型已经非常丰富，但当前项目运行的是 Redis 7.4，并且源码实际使用的是经典核心结构中的：
+
+~~~text
+String
+Hash
+Sorted Set
+~~~
+
+为了建立完整基础框架，还需要知道：
+
+~~~text
+List
+Set
+Stream
+~~~
+
+的位置。
+
+这一节先按访问模式建立它们之间的关系：
+
+~~~text
+一份整体值
+    ↓
+String
+
+一个对象包含多个可独立操作字段
+    ↓
+Hash
+
+强调元素左右顺序
+    ↓
+List
+
+只关心唯一成员和集合关系
+    ↓
+Set
+
+成员需要附带排序分值
+    ↓
+Sorted Set
+
+持续追加并被消费者读取的记录流
+    ↓
+Stream
+~~~
+
+Redis 数据结构选择的核心原则是：
+
+> **不要只看数据长什么样，要看业务需要对数据执行什么操作。**
+
+Redis 官方的 Compare data types 也采用类似思路：String 更适合整体数据或简单 Counter；Hash 更适合频繁访问独立字段；Sorted Set 更适合带 Score 的有序集合。
+
+### 【String 适合把一份状态作为整体进行读取、覆盖和计数】
+
+#### <u>1. String 的逻辑模型是一条 Key 到一段字节序列的映射</u>
+
+String 是 Redis 最基础的数据类型：
 
 ~~~text
 Key
  ↓
-Value Type
- ↓
-Command Semantics
- ↓
-适用的数据模型
+String Value
 ~~~
 
-展开完整的数据结构体系，并逐个映射当前源码中的：
+Redis String 不只表示普通文本，它可以承载：
 
 ~~~text
+普通文本
+JSON 序列化结果
+整数形式数据
+二进制数据
+~~~
+
+当前项目主要使用：
+
+~~~text
+JSON State
+Integer Counter
+~~~
+
+分别对应：
+
+~~~text
+Session / Analytics Cache
+Analytics Version
+~~~
+
+---
+
+#### <u>2. SET 写入或覆盖完整 String Value</u>
+
+SET 的基础语义是：
+
+~~~text
+SET key value
+~~~
+
+如果 Key 不存在，就创建；如果已经存在，就把该 Key 的 String Value 替换成新值。
+
+项目登录逻辑位于：
+
+[src/auth/auth.service.ts](../src/auth/auth.service.ts)
+
+原始逻辑是：
+
+~~~ts
+await this.redis.set(
+  "session:<tokenHash>",
+  JSON.stringify(user),
+  "EX",
+  this.config.SESSION_TTL_SECONDS,
+);
+~~~
+
+这里为了突出 Redis 语义，把实际模板 Key 记为 session:<tokenHash>。
+
+完整变化：
+
+~~~text
+AuthenticatedUser
+      ↓
+JSON.stringify
+      ↓
+String Value
+      ↓
+SET session:<tokenHash>
+~~~
+
+Redis 并不知道这个 String 内部有哪些 user 字段。
+
+对于 Redis 来说：
+
+~~~text
+Key
+    session:<tokenHash>
+
+Value
+    一整段 JSON String
+~~~
+
+当前 Session 的访问模式是：
+
+~~~text
+登录
+    整体写入 User
+
+认证
+    整体读取 User
+
+退出
+    整体删除 Session
+~~~
+
+没有明显的字段级修改需求，因此整个对象序列化成 String 很自然。
+
+---
+
+#### <u>3. GET 读取完整 String，应用负责反序列化</u>
+
+SessionGuard 的源码逻辑位于：
+
+[src/auth/session.guard.ts](../src/auth/session.guard.ts)
+
+核心过程：
+
+~~~ts
+const session = await this.redis.get(
+  "session:<hashToken(token)>"
+);
+
+if (!session) {
+  throw new UnauthorizedException({
+    code: "session_expired",
+  });
+}
+
+request.auth = JSON.parse(session);
+~~~
+
+运行链路：
+
+~~~text
+Cookie Token
+     ↓
+hashToken
+     ↓
+构造 Redis Key
+     ↓
+GET session:<hash>
+     ↓
+String | null
+     ↓
+JSON.parse
+     ↓
+AuthenticatedUser
+~~~
+
+因此：
+
+~~~text
+Redis String
+负责
+保存完整字节值
+
+Application
+负责
+理解内部 JSON 结构
+~~~
+
+如果 JSON 内部某个字段发生变化，Redis 本身不会知道具体变更了哪个 JSON Field。
+
+---
+
+#### <u>4. SET ... EX 把生命周期和写入一起定义</u>
+
+当前 Session 使用：
+
+~~~text
+SET key value EX seconds
+~~~
+
+EX 表示以秒为单位同时设置 Key 的过期时间。
+
+所以一次 SET 实际确定：
+
+~~~text
+session:<tokenHash>
+│
+├── Type = String
+├── Value = AuthenticatedUser JSON
+└── TTL = SESSION_TTL_SECONDS
+~~~
+
+认证热路径于是变成：
+
+~~~text
+Key 存在
+    ↓
+可以读取 Session
+
+Key 不存在
+    ↓
+session_expired
+~~~
+
+数据库中的 user_sessions 仍然承担持久化 Session 记录；Redis String + TTL 解决的是高频认证状态读取。
+
+---
+
+#### <u>5. DEL 删除整个 Key，而不是 String 内部字段</u>
+
+Logout 中执行：
+
+~~~text
+DEL session:<tokenHash>
+~~~
+
+DEL 是通用 Key 命令，不只作用于 String。
+
+语义是：
+
+~~~text
+删除整个 Key
+      ↓
+Value 和 TTL 一起消失
+~~~
+
+于是 Session 生命周期形成：
+
+~~~text
+Login
+  ↓
+SET + EX
+
+Request
+  ↓
+GET
+
+Logout
+  ↓
+DEL
+
+TTL 到期
+  ↓
+Key 自动失效
+~~~
+
+---
+
+#### <u>6. INCR 把 String 用作整数 Counter</u>
+
+Worker 处理任务完成以后会执行：
+
+[apps/worker/src/outbox-worker.ts](../../worker/src/outbox-worker.ts)
+
+~~~text
+INCR analytics:version:<projectId>
+~~~
+
+假设：
+
+~~~text
+analytics:version:p001
+        ↓
+8
+~~~
+
+执行 INCR 后：
+
+~~~text
+analytics:version:p001
+        ↓
+9
+~~~
+
+如果 Key 不存在，INCR 会把初始值视为 0，再增加到 1。
+
+这里 Value Type 仍然是 String，只是 Redis 把这份 String 解释成整数并执行计数操作。
+
+因此当前项目中的 String 已经形成两类模型：
+
+~~~text
+String
+│
+├── 整体数据
+│     ├── Session JSON
+│     └── Analytics Query Result JSON
+│
+└── Integer Counter
+      └── Analytics Version
+~~~
+
+---
+
+#### <u>7. Analytics Query Cache 同样属于整体 String 模型</u>
+
+AnalyticsService 的核心源码位于：
+
+[src/analytics/analytics.service.ts](../src/analytics/analytics.service.ts)
+
+逻辑可以还原为：
+
+~~~ts
+const version =
+  (await this.redis.get(
+    "analytics:version:<projectId>"
+  )) ?? "0";
+
+const cached = await this.redis.get(cacheKey);
+
+if (cached) {
+  return JSON.parse(cached);
+}
+
+const value = await loader();
+
+await this.redis.set(
+  cacheKey,
+  JSON.stringify(value),
+  "EX",
+  15,
+);
+~~~
+
+因此查询链路是：
+
+~~~text
+构造 Cache Key
+      ↓
+GET
+      ↓
+  ┌── Hit
+  │     ↓
+  │  JSON.parse
+  │     ↓
+  │  Response
+  │
+  └── Miss
+        ↓
+      loader()
+        ↓
+PostgreSQL / TimescaleDB
+        ↓
+   Query Result
+        ↓
+ JSON.stringify
+        ↓
+ SET ... EX 15
+        ↓
+     Response
+~~~
+
+查询结果主要是整体读取和整体替换，因此仍然适合 String。
+
+String 可以先收束成：
+
+~~~text
+整体读写
+    ↓
+String
+
+简单整数计数
+    ↓
+String + INCR
+~~~
+
+### 【Hash 适合一个 Key 下保存多个可以独立读取或修改的字段】
+
+#### <u>1. Hash 的逻辑模型是 Key → Field → Value</u>
+
+String：
+
+~~~text
+Key
+ ↓
+Value
+~~~
+
+Hash：
+
+~~~text
+Key
+ ↓
+Field
+ ↓
+Value
+~~~
+
+例如：
+
+~~~text
+ingestion:stats:p001
+│
+├── accepted  → 100
+├── duplicate → 20
+└── rejected  → 5
+~~~
+
+其中：
+
+~~~text
+ingestion:stats:p001
+    Redis Key
+
+accepted / duplicate / rejected
+    Hash Field
+
+100 / 20 / 5
+    Field Value
+~~~
+
+Hash 可以理解为一个 Redis Key 下组织多个 Field-Value Pair。
+
+它与关系数据库的一行数据在视觉上有相似之处，但不能直接理解成 SQL Row，因为 Hash 没有 Schema、Foreign Key、JOIN 等关系数据库能力。
+
+---
+
+#### <u>2. HSET 写入一个或多个 Hash Field</u>
+
+基础语义：
+
+~~~text
+HSET key field value
+~~~
+
+例如：
+
+~~~text
+HSET user:123 name Tom
+~~~
+
+逻辑结果：
+
+~~~text
+user:123
+└── name → Tom
+~~~
+
+当前 Token Bucket Lua 中会执行：
+
+~~~text
+HSET <bucket-key>
+     tokens <newTokens>
+     updated <now>
+~~~
+
+于是：
+
+~~~text
+<rate-limit-key>
+│
+├── tokens  → 当前剩余令牌数
+└── updated → 上一次更新时间
+~~~
+
+这里不是把整个 Bucket JSON.stringify 后 SET，而是直接保存两个可以独立访问的状态字段。
+
+---
+
+#### <u>3. HMGET 一次读取同一个 Hash 中多个指定 Field</u>
+
+Token Bucket 中：
+
+~~~text
+HMGET <bucket-key> tokens updated
+~~~
+
+语义：
+
+~~~text
+定位 Hash Key
+     ↓
+读取 tokens
+     ↓
+读取 updated
+     ↓
+按请求顺序返回两个 Value
+~~~
+
+如果使用 JSON String：
+
+~~~text
+GET 整个 JSON
+    ↓
+JSON.parse
+    ↓
+读取 tokens / updated
+~~~
+
+Hash 则可以直接进行 Field 级读取。
+
+---
+
+#### <u>4. HGETALL 读取一个 Hash 当前全部 Field</u>
+
+AnalyticsService 查询服务状态时执行：
+
+~~~text
+HGETALL ingestion:stats:<projectId>
+~~~
+
+如果当前：
+
+~~~text
+ingestion:stats:p001
+│
+├── accepted  → 100
+├── duplicate → 20
+└── rejected  → 5
+~~~
+
+HGETALL 会返回整组 Field / Value。
+
+因此这个 Hash 的访问模式是：
+
+~~~text
+写入
+    单独修改 Field
+
+读取
+    一次读取整个统计对象
+~~~
+
+---
+
+#### <u>5. HINCRBY 直接对某个 Field 做整数增量</u>
+
+项目中的采集统计源码位于：
+
+[src/ingestion/ingestion.service.ts](../src/ingestion/ingestion.service.ts)
+
+当前逻辑：
+
+~~~ts
+.hincrby(
+  statisticsKey,
+  "accepted",
+  accepted,
+)
+.hincrby(
+  statisticsKey,
+  "duplicate",
+  duplicate,
+)
+.hincrby(
+  statisticsKey,
+  "rejected",
+  rejections.length,
+)
+~~~
+
+HINCRBY 命令模型：
+
+~~~text
+HINCRBY key field increment
+~~~
+
+例如：
+
+~~~text
+ingestion:stats:p001
+
+accepted  = 100
+duplicate = 20
+rejected  = 5
+~~~
+
+本次请求 accepted = 8：
+
+~~~text
+HINCRBY ingestion:stats:p001 accepted 8
+~~~
+
+执行后：
+
+~~~text
+accepted  = 108
+duplicate = 20
+rejected  = 5
+~~~
+
+从状态变化角度可以理解为：
+
+~~~text
+定位 Key
+   ↓
+定位 Field
+   ↓
+对该 Field 当前整数值增加 increment
+   ↓
+保存新值
+   ↓
+返回增加后的值
+~~~
+
+如果用 JSON String 实现同样逻辑，应用可能需要：
+
+~~~text
+GET
+ ↓
+JSON.parse
+ ↓
+accepted += 8
+ ↓
+JSON.stringify
+ ↓
+SET
+~~~
+
+Hash + HINCRBY 则把“字段级整数累加”直接表达成一条 Redis 命令。
+
+这里暂时不展开“为什么两个并发 HINCRBY 不会产生普通 Read-Modify-Write 覆盖”，因为那属于下一节的命令原子性。
+
+---
+
+#### <u>6. Ingestion Statistics 是典型的 Hash Counter Model</u>
+
+当前源码先构造：
+
+~~~text
+statisticsKey
+    =
+ingestion:stats:<projectId>
+~~~
+
+然后：
+
+~~~text
+一次 Ingestion Request
+      ↓
+得到
+
+accepted
+duplicate
+rejected
+      ↓
+分别 HINCRBY
+      ↓
+同一个 Project Statistics Hash
+~~~
+
+完整设计推导：
+
+~~~text
+业务状态
+    Project 采集统计
+
+Scope
+    Project
+
+Key
+    ingestion:stats:<projectId>
+
+内部结构
+    多个独立 Counter
+
+访问模式
+    高频字段累加
+    Dashboard 整体读取
+
+Value Type
+    Hash
+
+Commands
+    HINCRBY
+    HGETALL
+~~~
+
+---
+
+#### <u>7. Token Bucket 同样使用 Hash，但访问模式不同</u>
+
+RateLimiter 中：
+
+~~~text
+Key
+ingest:project:<projectId>
+
+Hash
+│
+├── tokens
+└── updated
+~~~
+
+以及：
+
+~~~text
+Key
+ingest:ip:<projectId>:<ip>
+
+Hash
+│
+├── tokens
+└── updated
+~~~
+
+读取：
+
+~~~text
+HMGET key tokens updated
+~~~
+
+修改：
+
+~~~text
+HSET key tokens <newTokens> updated <now>
+~~~
+
+因此同样使用 Hash，并不意味着业务模型相同。
+
+Ingestion Statistics：
+
+~~~text
+Field = Counter
+操作 = HINCRBY
+~~~
+
+Token Bucket：
+
+~~~text
+Field = Algorithm State
+操作 = HMGET + 计算 + HSET
+~~~
+
+真正决定 Redis 数据结构和命令组合的是 Access Pattern。
+
+### 【Sorted Set 通过 Member + Score 表达需要排序和范围查询的集合】
+
+#### <u>1. Sorted Set 同时具有唯一 Member 和排序 Score</u>
+
+Sorted Set 为每一个 Member 关联一个 Score：
+
+~~~text
+Member
+  +
+Score
+~~~
+
+例如：
+
+~~~text
+request-A → 1000
+request-B → 1020
+request-C → 1050
+~~~
+
+Redis 按照 Score 维护顺序：
+
+~~~text
+Sorted Set Key
+      ↓
+Member A ── Score
+Member B ── Score
+Member C ── Score
+      ↓
+按照 Score 排序
+~~~
+
+Sorted Set 中 Member 是唯一的；同一个 Member 再次 ZADD 时，默认会更新它的 Score。不同 Member 可以拥有相同 Score。
+
+因此它适合：
+
+~~~text
+排行榜
+优先级
+时间排序
+时间窗口
+带评分的唯一成员集合
+~~~
+
+当前 Monitor 使用的是“时间窗口”。
+
+---
+
+#### <u>2. ZADD 写入 Score + Member，并由 Redis 维护排序关系</u>
+
+基础语义：
+
+~~~text
+ZADD key score member
+~~~
+
+当前源码：
+
+[src/ingestion/ingestion.service.ts](../src/ingestion/ingestion.service.ts)
+
+~~~ts
+.zadd(
+  recentRateKey,
+  recordedAt,
+  JSON.stringify([requestId, accepted]),
+)
+~~~
+
+这里映射为：
+
+~~~text
+Key
+    ingestion:rate:<projectId>
+
+Score
+    recordedAt
+
+Member
+    [requestId, accepted]
+~~~
+
+例如：
+
+~~~text
+recordedAt = 1760000001000
+requestId  = req-001
+accepted   = 20
+~~~
+
+逻辑写入：
+
+~~~text
+ZADD
+ingestion:rate:p001
+1760000001000
+["req-001",20]
+~~~
+
+继续收到请求后：
+
+~~~text
+1760000001000 → ["req-001",20]
+1760000003500 → ["req-002",18]
+1760000007200 → ["req-003",25]
+~~~
+
+Redis 不需要查询时再临时排序，因为 Score 就是 Sorted Set 数据模型的一部分。
+
+所以：
+
+~~~text
+timestamp
+   ↓
+Score
+   ↓
+天然得到时间顺序
+~~~
+
+---
+
+#### <u>3. ZADD 对已存在 Member 的默认行为是更新 Score</u>
+
+如果：
+
+~~~text
+ZADD ranking 100 user-A
+~~~
+
+然后再次：
+
+~~~text
+ZADD ranking 120 user-A
+~~~
+
+最终不是两个 user-A，而是：
+
+~~~text
+user-A → 120
+~~~
+
+所以 Sorted Set 的核心约束是：
+
+~~~text
+Member 唯一
+Score 可更新
+~~~
+
+当前项目使用包含 requestId 的 Member，因此正常情况下每个采集请求形成一个独立成员。
+
+---
+
+#### <u>4. ZRANGEBYSCORE 按 Score 范围读取 Member</u>
+
+AnalyticsService 查询最近采集请求时：
+
+~~~ts
+this.redis.zrangebyscore(
+  "ingestion:rate:<projectId>",
+  recentSince,
+  "+inf",
+)
+~~~
+
+命令模型：
+
+~~~text
+ZRANGEBYSCORE key min max
+~~~
+
+这里：
+
+~~~text
+min = recentSince
+max = +inf
+~~~
+
+所以条件是：
+
+~~~text
+score >= recentSince
+~~~
+
+由于 Score = recordedAt：
+
+~~~text
+score 范围查询
+        ↓
+时间范围查询
+~~~
+
+例如：
+
+~~~text
+当前时间
+10:01:00
+
+recentSince
+10:00:00
+~~~
+
+则：
+
+~~~text
+ZRANGEBYSCORE
+      ↓
+返回最近一分钟窗口中的请求
+~~~
+
+Redis 6.2 以后也提供 ZRANGE ... BYSCORE 统一语法；当前项目使用的 ZRANGEBYSCORE 在 Redis 7.4 中仍然可用，因此本文按源码保持原命令理解。
+
+---
+
+#### <u>5. ZREMRANGEBYSCORE 按 Score 范围删除旧 Member</u>
+
+写入当前请求后，源码继续执行：
+
+~~~ts
+.zremrangebyscore(
+  recentRateKey,
+  0,
+  recordedAt - 60_000,
+)
+~~~
+
+含义：
+
+~~~text
+删除 Score 位于
+
+0
+到
+recordedAt - 60_000
+
+之间的 Member
+~~~
+
+因为 Score = timestamp，所以：
+
+~~~text
+recordedAt - 60_000
+        ↓
+当前时间 - 60 秒
+~~~
+
+业务语义就是：
+
+~~~text
+删除一分钟窗口以前的数据
+~~~
+
+Redis 自身并不知道“一分钟窗口”是什么。
+
+它只提供：
+
+~~~text
+按 Score 范围删除
+~~~
+
+应用把时间映射成 Score 后，通用命令才获得业务含义。
+
+---
+
+#### <u>6. ZADD、ZREMRANGEBYSCORE、ZRANGEBYSCORE 共同形成滑动时间窗口</u>
+
+当前项目真正的数据模型不是单独一条 ZADD，而是三类操作组合。
+
+写入：
+
+~~~text
+ZADD
+    当前请求进入窗口
+~~~
+
+清理：
+
+~~~text
+ZREMRANGEBYSCORE
+    删除窗口以前的请求
+~~~
+
+读取：
+
+~~~text
+ZRANGEBYSCORE
+    读取窗口中的请求
+~~~
+
+完整链路：
+
+~~~text
+Request 到达
+    ↓
+recordedAt = Date.now()
+    ↓
+ZADD(score = recordedAt)
+    ↓
+加入当前请求
+    ↓
+ZREMRANGEBYSCORE
+    ↓
+删除 60 秒以前 Member
+    ↓
+EXPIRE 120
+~~~
+
+Dashboard 查询：
+
+~~~text
+recentSince
+    ↓
+ZRANGEBYSCORE recentSince +inf
+    ↓
+得到最近窗口中的请求
+    ↓
+根据 Member 中 accepted
+计算接收速率
+~~~
+
+抽象以后：
+
+~~~text
+Event / Request
+       ↓
+Member
+
+Timestamp
+       ↓
+Score
+
+Sorted Set
+       ↓
+Range Query
+       ↓
+Sliding Time Window
+~~~
+
+这种结构还可以迁移到滑动窗口限流、最近访问记录、最近错误等场景，但这些只是通用能力，不代表当前项目已经全部实现。
+
+### 【TTL 属于 Key 生命周期能力，而不是一种 Value Type】
+
+#### <u>1. String、Hash、Sorted Set 描述结构，TTL 描述 Key 能活多久</u>
+
+容易出现一个错误框架：
+
+~~~text
+Redis 数据类型
+
 String
 Hash
 Sorted Set
 TTL
 ~~~
 
-不会一开始把所有 Redis 命令平铺出来。
+TTL 实际不属于 Value Type。
+
+更准确的是：
+
+~~~text
+Redis Key
+│
+├── Value Type
+│     ├── String
+│     ├── Hash
+│     └── Sorted Set
+│
+└── Expiration
+      TTL
+~~~
+
+例如：
+
+~~~text
+session:abc
+│
+├── Type = String
+├── Value = User JSON
+└── TTL = SESSION_TTL_SECONDS
+~~~
+
+Token Bucket：
+
+~~~text
+ingest:project:p001
+│
+├── Type = Hash
+├── Value
+│     ├── tokens
+│     └── updated
+└── TTL = 60s
+~~~
+
+Recent Rate：
+
+~~~text
+ingestion:rate:p001
+│
+├── Type = Sorted Set
+├── Member + Score
+└── TTL = 120s
+~~~
+
+所以 Redis 状态建模必须同时包含：
+
+~~~text
+Structure
++
+Lifecycle
+~~~
+
+---
+
+#### <u>2. EXPIRE 给已经存在的 Key 设置过期时间</u>
+
+Token Bucket Lua 中：
+
+~~~text
+EXPIRE <bucket-key> 60
+~~~
+
+表示这个 Bucket 如果后续不再活跃，不需要永久留在 Keyspace。
+
+Ingestion Statistics：
+
+~~~text
+EXPIRE ingestion:stats:<projectId> 180days
+~~~
+
+Recent Rate：
+
+~~~text
+EXPIRE ingestion:rate:<projectId> 120s
+~~~
+
+因此 TTL 真正回答的是：
+
+~~~text
+这份状态什么时候已经没有继续存在的价值？
+~~~
+
+而不只是“怎么省内存”。
+
+---
+
+#### <u>3. Sorted Set 中删除旧 Member 和 Key TTL 解决的是两个层次的问题</u>
+
+Recent Rate 同时存在：
+
+~~~text
+ZREMRANGEBYSCORE
++
+EXPIRE
+~~~
+
+二者不能混为一谈。
+
+ZREMRANGEBYSCORE：
+
+~~~text
+控制 Key 内部
+保留哪些 Member
+~~~
+
+EXPIRE：
+
+~~~text
+控制整个 Key
+还能存在多久
+~~~
+
+所以：
+
+~~~text
+ingestion:rate:p001
+│
+├── ZREMRANGEBYSCORE
+│      维持最近 60 秒 Member
+│
+└── EXPIRE 120
+       如果 Project 长时间没有新请求
+       让整个 Key 自动消失
+~~~
+
+最终形成：
+
+~~~text
+Member Lifecycle
+       ↓
+范围删除
+
+Key Lifecycle
+       ↓
+TTL
+~~~
+
+### 【List、Set 与 Stream 需要建立知识位置，但当前项目没有作为主链路使用】
+
+为了形成能够脱离项目的 Redis 数据结构框架，还需要知道另外三种核心结构的位置。
+
+这里必须严格区分：
+
+~~~text
+Redis 能做什么
+        ≠
+当前 Browser Monitor 已经这样做
+~~~
+
+#### <u>1. List 表达强调左右顺序的一串元素</u>
+
+逻辑模型：
+
+~~~text
+Left
+ ↓
+A
+B
+C
+D
+ ↓
+Right
+~~~
+
+典型操作：
+
+~~~text
+LPUSH / RPUSH
+    从左侧或右侧加入
+
+LPOP / RPOP
+    从左侧或右侧取出
+~~~
+
+因此 List 很容易表达简单 Queue。
+
+但是当前项目的异步任务链路是：
+
+~~~text
+PostgreSQL
+outbox_tasks
+    ↓
+Worker Polling
+~~~
+
+而不是 Redis List Queue。
+
+---
+
+#### <u>2. Set 表达唯一成员集合和集合关系</u>
+
+逻辑模型：
+
+~~~text
+Set
+├── A
+├── B
+└── C
+
+成员不重复
+~~~
+
+典型操作：
+
+~~~text
+SADD
+SREM
+SISMEMBER
+SINTER
+SUNION
+SDIFF
+~~~
+
+因此 Set 更适合唯一成员、Membership 和集合关系运算。
+
+当前 Browser Monitor Redis 主链路没有使用 Set。
+
+---
+
+#### <u>3. Stream 表达持续追加的事件记录和消费者模型</u>
+
+Stream 更接近：
+
+~~~text
+Append-only Log
+
+Entry 1
+Entry 2
+Entry 3
+...
+~~~
+
+每个 Entry 拥有：
+
+~~~text
+ID
++
+Field / Value
+~~~
+
+并支持 Consumer Group 等消息消费能力。
+
+当前 Browser Monitor 的核心事件异步处理是：
+
+~~~text
+telemetry_events
++
+outbox_tasks
+        ↓
+Worker
+~~~
+
+而不是 Redis Stream + Consumer Group。
+
+因此这一阶段只需要知道 Stream 在 Redis 数据体系中的位置，不提前深入消息确认、Pending Entries 等机制。
+
+### 【数据结构选择的核心依据是访问模式，而不是数据外观】
+
+重新看一个对象：
+
+~~~json
+{
+  "accepted": 100,
+  "duplicate": 20,
+  "rejected": 5
+}
+~~~
+
+如果业务始终只需要：
+
+~~~text
+整体 SET
+整体 GET
+~~~
+
+那么 String + JSON 可能更简单。
+
+只有当业务需要：
+
+~~~text
+accepted 独立增加
+duplicate 独立增加
+rejected 独立增加
+~~~
+
+Hash + HINCRBY 才体现明显价值。
+
+因此：
+
+~~~text
+Data Shape
+    数据长什么样
+
+不是唯一依据
+
+真正关键的是
+
+Access Pattern
+    数据怎样被访问和修改
+~~~
+
+基础选择框架：
+
+| 访问模式 | 优先考虑 |
+|---|---|
+| 整体读取、整体覆盖 | String |
+| 简单整数计数 | String + INCR / INCRBY |
+| 一个对象多个字段独立访问 | Hash |
+| 多个字段分别累加 | Hash + HINCRBY |
+| 强调元素左右顺序 | List |
+| 唯一成员和集合关系 | Set |
+| 唯一成员 + Score 排序 | Sorted Set |
+| 按 Score 范围查询 | Sorted Set |
+| 持续追加事件并由消费者读取 | Stream |
+
+这是一套入门阶段建模框架，不是绝对规则。后续还要继续考虑命令复杂度、内存占用、并发修改、过期策略、数据规模和可靠性要求。
+
+### 【第二节回到源码形成完整 Redis 状态建模图】
+
+当前项目可以重新画成：
+
+~~~text
+Redis Keyspace
+│
+├── session:<tokenHash>
+│      ├── Type: String
+│      ├── Value: AuthenticatedUser JSON
+│      ├── Commands: SET / GET / DEL
+│      └── TTL: SESSION_TTL_SECONDS
+│
+├── analytics:version:<projectId>
+│      ├── Type: String Integer
+│      └── Commands: GET / INCR
+│
+├── analytics:<projectId>:<version>:<namespace>:<filters>
+│      ├── Type: String
+│      ├── Value: Query Result JSON
+│      ├── Commands: GET / SET
+│      └── TTL: 15s
+│
+├── ingestion:stats:<projectId>
+│      ├── Type: Hash
+│      ├── Fields: accepted / duplicate / rejected
+│      ├── Commands: HINCRBY / HGETALL
+│      └── TTL: 180 days
+│
+├── ingest:project:<projectId>
+│      ├── Type: Hash
+│      ├── Fields: tokens / updated
+│      ├── Commands: HMGET / HSET
+│      └── TTL: 60s
+│
+├── ingest:ip:<projectId>:<ip>
+│      └── 与 Project Bucket 相同结构
+│
+└── ingestion:rate:<projectId>
+       ├── Type: Sorted Set
+       ├── Score: recordedAt
+       ├── Member: [requestId, accepted]
+       ├── Commands:
+       │     ZADD
+       │     ZRANGEBYSCORE
+       │     ZREMRANGEBYSCORE
+       └── TTL: 120s
+~~~
+
+这张图已经能够回答：
+
+~~~text
+项目里有哪些 Redis State？
+
+每份 State 的 Scope 是什么？
+
+为什么有些使用 String？
+
+为什么统计使用 Hash？
+
+为什么时间窗口使用 Sorted Set？
+
+命令怎样改变这些状态？
+
+为什么还需要 TTL？
+~~~
+
+### 【第二节最终收敛为一套可迁移的 Redis 状态建模方法】
+
+以后遇到新的 Redis 需求，不应该先从命令表中找 API，而应该按下面顺序推导：
+
+~~~text
+第一步
+识别 Business State
+    ↓
+这份状态是什么？
+
+第二步
+确定 Scope
+    ↓
+状态属于 User / Project / IP / Request 中的谁？
+
+第三步
+设计 Key Identity
+    ↓
+怎样唯一定位这份状态？
+
+第四步
+分析 Access Pattern
+    ↓
+整体读写？
+字段读写？
+计数？
+排序？
+集合关系？
+事件流？
+
+第五步
+选择 Value Type
+    ↓
+String / Hash / List / Set / Sorted Set / Stream
+
+第六步
+选择 Command Semantics
+    ↓
+GET / SET
+HSET / HINCRBY
+ZADD / ZRANGEBYSCORE ...
+
+第七步
+设计 Lifecycle
+    ↓
+是否需要 TTL？
+成员是否也需要清理？
+
+第八步
+再进入并发和可靠性
+    ↓
+这些命令组合执行时是否安全？
+失败以后状态是否一致？
+~~~
+
+当前第二节完成的是数据组织和命令语义。
+
+下一节进入第八步。
+
+## 3. 下一节从单条命令进入 Redis 命令执行、事务与原子性体系
+
+当前源码已经出现三个不能只靠“数据结构”解释的问题。
+
+第一个：
+
+~~~text
+HINCRBY statisticsKey accepted accepted
+~~~
+
+为什么多个请求并发执行 HINCRBY 时，不需要应用自己做普通的 GET → 计算 → SET？
+
+第二个：
+
+~~~text
+multi()
+  ↓
+HINCRBY
+ZADD
+EXPIRE
+  ↓
+exec()
+~~~
+
+这里的 multi() 到底是什么？它与 Pipeline 是否是一回事？
+
+第三个：
+
+~~~text
+EVAL TOKEN_BUCKET_SCRIPT
+~~~
+
+为什么 Token Bucket 不在 Node.js 中：
+
+~~~text
+HMGET
+  ↓
+JavaScript 计算
+  ↓
+HSET
+~~~
+
+而是把 Read-Modify-Write 放进 Lua？
+
+因此下一节会建立：
+
+~~~text
+Redis Command Execution
+        ↓
+单条 Command
+        ↓
+Command Atomicity
+        ↓
+多条 Command
+   ┌────┴────┐
+   ↓         ↓
+Pipeline   MULTI / EXEC
+              ↓
+          Transaction
+              ↓
+      Read-Modify-Write
+              ↓
+             Lua
+              ↓
+     Server-side Atomic Logic
+~~~
+
+再回到当前项目逐段解释 HINCRBY、multi()、Pipeline、Transaction 和 Token Bucket Lua 的执行语义。
 
 ## 参考资料
 
@@ -1331,3 +3243,25 @@ TTL
 [5] Redis/ioredis. RedisOptions.ts. https://github.com/redis/ioredis/blob/main/lib/redis/RedisOptions.ts
 
 [6] Redis/ioredis. README and connection behavior. https://github.com/redis/ioredis
+
+[7] Redis. Compare data types. https://redis.io/docs/latest/develop/data-types/compare-data-types/
+
+[8] Redis. Redis Strings. https://redis.io/docs/latest/develop/data-types/strings/
+
+[9] Redis. Redis Hashes. https://redis.io/docs/latest/develop/data-types/hashes/
+
+[10] Redis. Redis Sorted Sets. https://redis.io/docs/latest/develop/data-types/sorted-sets/
+
+[11] Redis. HINCRBY Command. https://redis.io/docs/latest/commands/hincrby/
+
+[12] Redis. ZADD Command. https://redis.io/docs/latest/commands/zadd/
+
+[13] Redis. ZRANGEBYSCORE Command. https://redis.io/docs/latest/commands/zrangebyscore/
+
+[14] Redis. ZREMRANGEBYSCORE Command. https://redis.io/docs/latest/commands/zremrangebyscore/
+
+[15] Redis. Redis Lists. https://redis.io/docs/latest/develop/data-types/lists/
+
+[16] Redis. Redis Sets. https://redis.io/docs/latest/develop/data-types/sets/
+
+[17] Redis. Redis Streams. https://redis.io/docs/latest/develop/data-types/streams/
