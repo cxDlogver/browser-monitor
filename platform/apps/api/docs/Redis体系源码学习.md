@@ -3511,6 +3511,417 @@ MULTI / EXEC
 解决 Transaction Execution Boundary
 ~~~
 
+### 【MULTI / EXEC 把预先确定的多条 Command 组成不可穿插的事务执行单元】
+
+#### <u>1. MULTI 进入事务队列模式，EXEC 才真正执行命令</u>
+
+Redis Transaction 的基本过程：
+
+~~~text
+MULTI
+   ↓
+进入 Transaction Context
+   ↓
+Command A
+   ↓
+QUEUED
+Command B
+   ↓
+QUEUED
+Command C
+   ↓
+QUEUED
+   ↓
+EXEC
+   ↓
+依次真正执行
+A
+B
+C
+~~~
+
+所以在 MULTI 之后、EXEC 之前，Command 主要处于 Queue 中。
+
+真正的数据修改在 EXEC 触发以后发生。
+
+#### <u>2. EXEC 执行事务期间不会插入其他 Client 的 Command</u>
+
+假设：
+
+~~~text
+Client A
+
+MULTI
+A1
+A2
+A3
+EXEC
+~~~
+
+另一个 Client：
+
+~~~text
+Client B
+
+B1
+~~~
+
+事务执行阶段不会变成：
+
+~~~text
+A1
+B1
+A2
+A3
+~~~
+
+而会是事务整体在前或在后。
+
+因此 Redis Transaction 的一个核心保证是：
+
+~~~text
+Transaction Commands
+       ↓
+Serialized
+       ↓
+Sequential
+       ↓
+No Other Client Interleaving
+~~~
+
+#### <u>3. 当前 Ingestion Statistics 使用的就是 MULTI / EXEC</u>
+
+项目源码：
+
+[src/ingestion/ingestion.service.ts](../src/ingestion/ingestion.service.ts)
+
+~~~ts
+await this.redis
+  .multi()
+  .hincrby(statisticsKey, "accepted", accepted)
+  .hincrby(statisticsKey, "duplicate", duplicate)
+  .hincrby(statisticsKey, "rejected", rejections.length)
+  .expire(statisticsKey, 180 * 24 * 60 * 60)
+  .zadd(
+    recentRateKey,
+    recordedAt,
+    JSON.stringify([requestId, accepted]),
+  )
+  .zremrangebyscore(
+    recentRateKey,
+    0,
+    recordedAt - 60_000,
+  )
+  .expire(recentRateKey, 120)
+  .exec()
+  .catch(() => undefined);
+~~~
+
+一次 Ingestion Request 同时更新：
+
+~~~text
+Project Statistics
+│
+├── accepted
+├── duplicate
+├── rejected
+└── TTL
+
+Recent Rate
+│
+├── ZADD Current Request
+├── Remove Old Members
+└── TTL
+~~~
+
+这些值在事务开始之前已经全部知道。
+
+所以业务过程可以提前准备成：
+
+~~~text
+HINCRBY
+HINCRBY
+HINCRBY
+EXPIRE
+ZADD
+ZREMRANGEBYSCORE
+EXPIRE
+~~~
+
+然后：
+
+~~~text
+MULTI
+    ↓
+Queue
+    ↓
+EXEC
+    ↓
+连续执行
+~~~
+
+这正是 MULTI / EXEC 适合的场景。
+
+#### <u>4. ioredis 的 multi() 与 Pipeline 有联系，但事务保证来自 MULTI / EXEC</u>
+
+ioredis 的 multi() 支持链式收集命令，并利用客户端 Pipeline 机制组织发送。
+
+因此当前源码同时存在两个不同层次：
+
+~~~text
+ioredis Client
+     ↓
+Command Buffering / Pipeline
+     ↓
+减少发送和 RTT 开销
+~~~
+
+以及：
+
+~~~text
+Redis Server
+     ↓
+MULTI / EXEC
+     ↓
+Transaction Execution Boundary
+~~~
+
+不能因为 ioredis multi() 内部使用 Pipeline，就得出：
+
+~~~text
+Pipeline = Transaction
+~~~
+
+正确关系是：
+
+~~~text
+Pipeline
+是发送和性能机制
+
+MULTI / EXEC
+才提供 Redis Transaction 语义
+~~~
+
+### 【MULTI / EXEC 不适合直接完成需要中途读取结果再决定写入的逻辑】
+
+#### <u>1. MULTI 后的读取命令先进入队列，Node.js 拿不到真正数据</u>
+
+重新看 Token Bucket。
+
+假设尝试：
+
+~~~text
+MULTI
+
+HMGET bucket tokens updated
+
+HSET bucket tokens ??? updated ???
+
+EXEC
+~~~
+
+关键问题是：
+
+~~~text
+???
+~~~
+
+到底是什么。
+
+MULTI 以后发送：
+
+~~~text
+HMGET bucket tokens updated
+~~~
+
+Redis 此时不会立刻把 tokens 和 updated 的真实值作为普通查询结果交给 Node.js。
+
+它先返回：
+
+~~~text
+QUEUED
+~~~
+
+因为 HMGET 真正执行要等到 EXEC。
+
+所以 Node.js 在 EXEC 之前并不知道：
+
+~~~text
+tokens
+updated
+~~~
+
+也就无法执行：
+
+~~~text
+elapsed = now - updated
+
+refill = elapsed × rate
+
+newTokens = min(
+  burst,
+  tokens + refill
+)
+
+allowed =
+  newTokens >= cost
+~~~
+
+因此 MULTI / EXEC 更适合：
+
+~~~text
+我要执行哪些 Command
+在事务提交之前已经全部确定
+~~~
+
+而不适合直接表达：
+
+~~~text
+先读取 Redis 当前值
+      ↓
+根据读取结果计算
+      ↓
+再决定后面到底执行什么
+~~~
+
+#### <u>2. 在 MULTI 外先读取再写回会重新产生 Race Condition</u>
+
+另一种写法：
+
+~~~text
+HMGET
+  ↓
+Node.js 拿到 tokens / updated
+  ↓
+Compute
+  ↓
+MULTI
+HSET
+EXPIRE
+EXEC
+~~~
+
+功能上可以写出来，但读取和写事务之间存在并发窗口。
+
+假设：
+
+~~~text
+tokens = 10
+
+Request A cost = 7
+Request B cost = 7
+~~~
+
+可能发生：
+
+~~~text
+A HMGET → 10
+
+B HMGET → 10
+
+A 判断 10 >= 7
+Allowed
+
+B 判断 10 >= 7
+Allowed
+
+A HSET tokens = 3
+
+B HSET tokens = 3
+~~~
+
+最终：
+
+~~~text
+tokens = 3
+~~~
+
+但两个请求都被允许，相当于实际消耗了 14 Token，Redis 状态却只体现一次 7 Token 的消耗。
+
+所以只要：
+
+~~~text
+Read
+和
+Write
+~~~
+
+不是同一个受保护的并发执行过程，就仍然可能产生状态覆盖。
+
+### 【WATCH 通过乐观锁保护客户端 Read-Modify-Write】
+
+当前项目没有使用 WATCH，但完整 Redis 并发框架需要知道它的位置。
+
+基本过程：
+
+~~~text
+WATCH bucket
+      ↓
+HMGET bucket
+      ↓
+Node.js Compute
+      ↓
+MULTI
+HSET ...
+EXPIRE ...
+EXEC
+~~~
+
+Redis 会监测：
+
+~~~text
+WATCH 以后
+到 EXEC 之前
+
+bucket 是否被修改
+~~~
+
+如果没有变化：
+
+~~~text
+EXEC
+   ↓
+执行事务
+~~~
+
+如果被其他操作修改：
+
+~~~text
+EXEC
+   ↓
+Abort
+~~~
+
+客户端再：
+
+~~~text
+重新读取
+重新计算
+重新尝试
+~~~
+
+所以 WATCH 是：
+
+~~~text
+Optimistic Lock
+~~~
+
+它不是：
+
+~~~text
+真正锁住 Key
+不允许别人修改
+~~~
+
+而是：
+
+~~~text
+允许别人修改
+
+如果发生修改
+我的事务就不再基于旧状态执行
+~~~
+
 <!-- REDIS_SECTION_3_CONTINUE -->
 
 ## 参考资料
