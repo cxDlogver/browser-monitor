@@ -3161,74 +3161,357 @@ ZADD / ZRANGEBYSCORE ...
 
 下一节进入第八步。
 
-## 3. 下一节从单条命令进入 Redis 命令执行、事务与原子性体系
+## 3. Redis 通过命令原子性、事务与 Lua 控制并发状态修改
 
-当前源码已经出现三个不能只靠“数据结构”解释的问题。
-
-第一个：
+第二节已经建立：
 
 ~~~text
-HINCRBY statisticsKey accepted accepted
+Business State
+      ↓
+Key
+      ↓
+Value Type
+      ↓
+Command
+      ↓
+TTL
 ~~~
 
-为什么多个请求并发执行 HINCRBY 时，不需要应用自己做普通的 GET → 计算 → SET？
+这一节继续进入 Redis 的执行层，回答：
 
-第二个：
+> **当多个请求同时修改同一份 Redis State 时，怎样避免状态被并发覆盖，以及 Redis Transaction、Pipeline、WATCH、Lua 分别解决什么问题。**
+
+当前 Browser Monitor 已经同时出现：
 
 ~~~text
-multi()
-  ↓
 HINCRBY
-ZADD
-EXPIRE
-  ↓
-exec()
-~~~
 
-这里的 multi() 到底是什么？它与 Pipeline 是否是一回事？
+multi()
+  .hincrby(...)
+  .zadd(...)
+  .expire(...)
+  .exec()
 
-第三个：
-
-~~~text
 EVAL TOKEN_BUCKET_SCRIPT
 ~~~
 
-为什么 Token Bucket 不在 Node.js 中：
+它们不是三个平级 API，而是不同执行层级：
+
+~~~text
+Redis Command Execution
+        │
+        ├── 单条 Command
+        │      ↓
+        │   Command Atomicity
+        │
+        ├── 多条已确定 Command
+        │      │
+        │      ├── Pipeline
+        │      │      ↓
+        │      │   Network Optimization
+        │      │
+        │      └── MULTI / EXEC
+        │             ↓
+        │          Transaction
+        │
+        └── Read → Compute → Conditional Write
+               │
+               ├── WATCH + MULTI / EXEC
+               │      ↓
+               │   Optimistic Lock
+               │
+               └── Lua / EVAL
+                      ↓
+                Server-side Atomic Logic
+~~~
+
+这一节的重点不是记住命令名称，而是建立判断：
+
+~~~text
+一个业务状态变化
+到底应该使用
+
+单条原子命令
+Pipeline
+MULTI / EXEC
+WATCH
+还是 Lua
+~~~
+
+### 【并发问题产生于一个业务操作被拆成多条独立 Command】
+
+#### <u>1. 一次业务操作不一定等于一条 Redis Command</u>
+
+第二节中的 HINCRBY 已经可以在一条 Redis Command 中完成：
+
+~~~text
+读取 Field 当前整数值
+      ↓
+增加 increment
+      ↓
+保存新值
+~~~
+
+但是 Token Bucket 一次限流判断需要：
+
+~~~text
+读取 tokens / updated
+      ↓
+计算经过时间
+      ↓
+补充 token
+      ↓
+判断 token 是否足够
+      ↓
+如果足够则扣除
+      ↓
+写回 tokens / updated
+~~~
+
+如果完全使用普通 Redis 命令，会被拆成：
 
 ~~~text
 HMGET
   ↓
-JavaScript 计算
+Node.js Compute
   ↓
 HSET
+  ↓
+EXPIRE
 ~~~
 
-而是把 Read-Modify-Write 放进 Lua？
-
-因此下一节会建立：
+所以必须区分：
 
 ~~~text
-Redis Command Execution
-        ↓
-单条 Command
-        ↓
-Command Atomicity
-        ↓
-多条 Command
-   ┌────┴────┐
-   ↓         ↓
-Pipeline   MULTI / EXEC
-              ↓
-          Transaction
-              ↓
-      Read-Modify-Write
-              ↓
-             Lua
-              ↓
-     Server-side Atomic Logic
+Business Operation
+        ≠
+Redis Command
 ~~~
 
-再回到当前项目逐段解释 HINCRBY、multi()、Pipeline、Transaction 和 Token Bucket Lua 的执行语义。
+一个业务操作需要多条 Command 才能完成时，就必须继续分析这些 Command 之间是否存在并发竞争。
+
+#### <u>2. GET → Compute → SET 会产生 Lost Update</u>
+
+假设：
+
+~~~text
+counter = 10
+~~~
+
+两个请求同时执行：
+
+~~~text
+GET counter
+     ↓
+value + 1
+     ↓
+SET counter
+~~~
+
+可能发生：
+
+~~~text
+Request A                  Request B
+
+GET counter
+    ↓
+   10
+
+                           GET counter
+                               ↓
+                              10
+
+10 + 1 → 11               10 + 1 → 11
+
+SET 11                     SET 11
+~~~
+
+最终 counter = 11，但实际发生了两次 +1，正确结果应该是 12。
+
+问题不是 Redis 算错，而是：
+
+~~~text
+Read
+ ↓
+Compute
+ ↓
+Write
+~~~
+
+被拆成多个独立步骤后，其他 Client 可以在中间修改同一份状态。
+
+### 【单条 Redis Command 是最基础的原子执行边界】
+
+#### <u>1. HINCRBY 把字段级 Read-Modify-Write 收进一条 Command</u>
+
+当前采集统计：
+
+[src/ingestion/ingestion.service.ts](../src/ingestion/ingestion.service.ts)
+
+~~~ts
+.hincrby(
+  statisticsKey,
+  "accepted",
+  accepted,
+)
+~~~
+
+逻辑上它完成：
+
+~~~text
+读取 accepted
+      ↓
+accepted += increment
+      ↓
+写回 accepted
+~~~
+
+但应用没有自己执行 HGET → JavaScript 计算 → HSET，而是发送一条 HINCRBY。
+
+所以两个客户端同时执行：
+
+~~~text
+A: HINCRBY accepted 5
+B: HINCRBY accepted 8
+~~~
+
+结果只能按某个顺序完成：
+
+~~~text
+100 → 105 → 113
+~~~
+
+或者：
+
+~~~text
+100 → 108 → 113
+~~~
+
+不会出现两个 Client 都读到 100 后互相覆盖。
+
+因此 HINCRBY 的价值不仅是少写代码，而是：
+
+> **把字段级整数 Read-Modify-Write 表达成 Redis Server 能直接原子执行的一条 Command。**
+
+#### <u>2. INCR 同样是 Counter 的单命令原子更新</u>
+
+Worker：
+
+[apps/worker/src/outbox-worker.ts](../../worker/src/outbox-worker.ts)
+
+~~~ts
+await this.redis.incr(
+  "analytics:version:<projectId>"
+);
+~~~
+
+逻辑上虽然可以理解为 GET version → version + 1 → SET version，但真正发给 Redis 的是一条 INCR。
+
+所以多个 Worker 同时增加同一 Project 的 version，也不会产生普通 GET / SET 的 Lost Update。
+
+#### <u>3. Command 顺序执行模型是单命令原子性的基础</u>
+
+不能简单理解成“Redis 整个程序只有一个线程”。现代 Redis 可以使用后台线程和 I/O Threads 处理部分工作。
+
+但从 Command Execution 角度，可以建立：
+
+~~~text
+多个 Client
+     ↓
+Command Requests
+     ↓
+Redis Command Execution
+     ↓
+一条 Command 完整执行后
+再进入下一条 Command
+~~~
+
+核心边界是：
+
+~~~text
+一条普通 Redis Command
+执行过程中
+不会被另一条普通 Command
+插入到一半
+~~~
+
+所以：
+
+~~~text
+Single Command
+      ↓
+Natural Atomic Execution Boundary
+~~~
+
+但这只能保证一条 Command，不能自动保证多条独立 Command 组成的整个业务流程。
+
+### 【Pipeline 只解决网络往返成本，不提供事务原子性】
+
+Redis 是 Client / Server Request-Response 模型。
+
+普通连续命令：
+
+~~~text
+Client → Command A → Redis → Response A
+Client → Command B → Redis → Response B
+Client → Command C → Redis → Response C
+~~~
+
+每轮都需要 Round Trip Time。
+
+Pipeline 则变成：
+
+~~~text
+Client
+
+Command A
+Command B
+Command C
+Command D
+    ↓
+连续发送
+    ↓
+Redis
+    ↓
+依次处理
+    ↓
+Responses
+    ↓
+Client 批量读取
+~~~
+
+它减少的是：
+
+~~~text
+RTT
++
+Socket I/O Overhead
+~~~
+
+因此 Pipeline 首先属于 Performance Optimization。
+
+它并没有表达：
+
+~~~text
+A1
+A2
+A3
+
+必须形成一个事务边界
+其他 Client 不能在中间执行
+~~~
+
+所以必须固定：
+
+~~~text
+Pipeline
+解决 Network Efficiency
+
+MULTI / EXEC
+解决 Transaction Execution Boundary
+~~~
+
+<!-- REDIS_SECTION_3_CONTINUE -->
 
 ## 参考资料
 
