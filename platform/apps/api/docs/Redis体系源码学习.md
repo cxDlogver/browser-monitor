@@ -6414,6 +6414,455 @@ Versioned Invalidation
 
 这不一定代表当前项目已经存在性能问题，只有 Query 成本、并发和热点程度达到一定规模时才值得治理。
 
+### 【Redis 快不是单一因为内存，而是整个执行路径更加直接】
+
+最常见的解释是：
+
+~~~text
+Redis 在内存
+PostgreSQL 在磁盘
+所以 Redis 更快
+~~~
+
+这个方向没有错，但过于简化。
+
+PostgreSQL 同样会使用 shared_buffers 和 OS Page Cache，热点数据也可能已经在内存中。
+
+Redis 通常更快，真正来自多个因素叠加：
+
+~~~text
+内存访问
++
+更直接的 Key 访问模型
++
+更简单的数据结构操作
++
+更轻的事务和约束语义
++
+更短的执行路径
+~~~
+
+#### <u>1. Redis 的工作数据主要直接驻留在内存</u>
+
+Redis 的核心 Dataset：
+
+~~~text
+Key
+Value
+Data Structure
+~~~
+
+主要位于 RAM。
+
+例如：
+
+~~~text
+GET
+HGET
+INCR
+HINCRBY
+ZADD
+~~~
+
+通常直接在内存数据结构上完成。
+
+可以简化成：
+
+~~~text
+Client
+  ↓
+Redis Server
+  ↓
+定位 Key
+  ↓
+操作内存数据结构
+  ↓
+Response
+~~~
+
+这使 Redis 非常适合：
+
+~~~text
+高频读取
+高频计数
+短生命周期状态
+实时控制状态
+~~~
+
+但不能理解成：
+
+~~~text
+Redis 永远不访问磁盘
+~~~
+
+因为 Redis 还可以通过 RDB / AOF 把内存 Dataset 持久化。
+
+区别是：
+
+> Redis 的普通数据操作主要围绕内存 Dataset 执行，持久化是另外一层机制。
+
+#### <u>2. PostgreSQL 即使命中内存缓存，仍然承担完整数据库语义</u>
+
+PostgreSQL 的典型执行链路更接近：
+
+~~~text
+Client
+  ↓
+SQL
+  ↓
+Parser
+  ↓
+Planner / Optimizer
+  ↓
+Executor
+  ↓
+MVCC
+  ↓
+Index / Heap
+  ↓
+Constraint
+  ↓
+Transaction / WAL
+  ↓
+Response
+~~~
+
+不同 SQL 不会每次经历完全相同的成本，但 PostgreSQL 必须支持：
+
+~~~text
+复杂 SQL
+JOIN
+Index
+Transaction
+MVCC
+Constraint
+Rollback
+WAL
+Crash Recovery
+~~~
+
+例如：
+
+~~~sql
+SELECT *
+FROM user_sessions
+WHERE token_hash = $1
+  AND expires_at > now();
+~~~
+
+数据库需要理解：
+
+~~~text
+访问哪张表
+使用什么索引
+哪些 Tuple 对当前 Transaction 可见
+WHERE 条件是否满足
+~~~
+
+而 Redis：
+
+~~~text
+GET session:<tokenHash>
+~~~
+
+应用已经直接给出：
+
+~~~text
+我要访问哪一个 Key
+~~~
+
+所以访问模型更直接。
+
+#### <u>3. Redis 使用 Key → Data Structure，而不是通用关系查询模型</u>
+
+Redis：
+
+~~~text
+Key
+  ↓
+Value / Data Structure
+~~~
+
+例如：
+
+~~~text
+session:abc
+    ↓
+String
+
+ingestion:stats:p001
+    ↓
+Hash
+
+ingestion:rate:p001
+    ↓
+Sorted Set
+~~~
+
+应用通常已经知道具体 Key。
+
+因此大量场景可以直接执行：
+
+~~~text
+GET
+HINCRBY
+ZADD
+ZRANGEBYSCORE
+~~~
+
+而 PostgreSQL 更像：
+
+~~~text
+Table
+  ↓
+Row
+  ↓
+Column
+  ↓
+Predicate
+  ↓
+Index / Scan
+  ↓
+Relational Operation
+~~~
+
+Redis 用更少的通用查询能力，换来了更直接的数据访问路径。
+
+#### <u>4. Redis 把常见高频状态操作直接做成原生命令和数据结构</u>
+
+例如：
+
+~~~text
+Counter
+    INCR / HINCRBY
+
+Collection
+    Set
+
+Ordered State
+    Sorted Set
+
+Time Range
+    ZRANGEBYSCORE
+~~~
+
+当前项目增加 accepted，不需要应用自己 SELECT → +1 → UPDATE，而是直接 HINCRBY。
+
+维护最近一分钟请求，则把 timestamp 映射成 Sorted Set Score，再使用 ZADD / ZRANGEBYSCORE / ZREMRANGEBYSCORE。
+
+这就是 Redis 作为 Data Structure Server 的工程价值。
+
+#### <u>5. Redis 没有承担关系数据库全部事务与约束成本</u>
+
+PostgreSQL 需要支持：
+
+~~~text
+PRIMARY KEY
+UNIQUE
+CHECK
+FOREIGN KEY
+MVCC
+Isolation Level
+Rollback
+WAL
+Crash Recovery
+~~~
+
+Redis 的 INCR counter 对应的状态操作更窄、更直接。
+
+所以可以总结：
+
+> **Redis 通常比 PostgreSQL 快，不只是因为 RAM，而是因为 Redis 为 Key/Data Structure 的高频状态操作提供了更短、更简单的执行路径；PostgreSQL 则用更高的执行成本换取关系查询、事务、约束、恢复等更完整的数据库语义。**
+
+### 【Redis 和 PostgreSQL 的选择首先看数据职责，而不是只看性能】
+
+真正应该先判断：
+
+~~~text
+这份数据到底是什么性质？
+~~~
+
+| 数据职责 | Redis | PostgreSQL |
+|---|---|---|
+| Cache | 很适合 | 通常作为原始数据来源 |
+| Session Runtime State | 很适合 | 可以保存持久 Session Record |
+| Counter | 很适合 | 如果要求权威历史也可能需要持久保存 |
+| Rate Limit State | 很适合 | 通常不需要 |
+| Recent Window | 很适合 | 长期历史通常进入数据库 |
+| 排行榜 / 实时排序 | 很适合 | 长期事实仍可能来自数据库 |
+| 临时 Token / Coordination State | 很适合 | 视业务要求 |
+| 用户 / 订单 / 支付等权威事实 | 通常不是首选 | 很适合 |
+| 强关系数据 | 不擅长 | 很适合 |
+| 需要复杂事务和约束的数据 | 通常不是首选 | 很适合 |
+
+进一步抽象：
+
+~~~text
+Redis
+更擅长保存
+
+Runtime State
+Temporary State
+Derived State
+Coordination State
+High-frequency Shared State
+~~~
+
+而：
+
+~~~text
+PostgreSQL
+更擅长保存
+
+Authoritative State
+Business Fact
+Relational Data
+Durable History
+Transactional Data
+~~~
+
+### 【判断数据是否应该进入 Redis，需要从状态性质推导】
+
+#### <u>1. 高频读写是重要信号，但不是充分条件</u>
+
+Session、Rate Limit、Counter 都具有高频访问，所以 Redis 很合适。
+
+但账户余额也可能高频访问，不能因此直接只放 Redis。
+
+因为余额还具有：
+
+~~~text
+权威业务事实
+强一致性
+事务
+审计
+不可随意丢失
+~~~
+
+这些要求往往比纯性能更重要。
+
+#### <u>2. 短生命周期和自动过期是 Redis 非常擅长的状态</u>
+
+例如：
+
+~~~text
+Session
+Rate Limit Bucket
+Recent Window
+Temporary Token
+Cache
+~~~
+
+天然具有 TTL。
+
+Redis 可以让：
+
+~~~text
+Key
+    ↓
+Expiration
+    ↓
+自动退出 Keyspace
+~~~
+
+这类状态非常适合 Redis。
+
+#### <u>3. 可重新计算的数据非常适合 Redis</u>
+
+例如 Analytics Cache：
+
+~~~text
+Redis Cache 丢失
+      ↓
+Cache Miss
+      ↓
+重新查询 TimescaleDB
+      ↓
+重新生成 Cache
+~~~
+
+所以它属于：
+
+~~~text
+Rebuildable State
+~~~
+
+#### <u>4. 多实例之间需要共享的运行状态也适合 Redis</u>
+
+如果有多个 API Instance：
+
+~~~text
+API A
+API B
+API C
+~~~
+
+不能各自在自己的 Node.js Memory 中维护独立 Rate Limit、Session、Counter，否则每个实例会看到不同状态。
+
+Redis Server 可以提供 Shared State。
+
+#### <u>5. 复杂关系、强事务和权威历史更适合 PostgreSQL</u>
+
+如果一份数据需要：
+
+~~~text
+JOIN
+Foreign Key
+复杂筛选
+强 All-or-Nothing Transaction
+长期历史
+审计
+不可丢失
+~~~
+
+通常更应该由 PostgreSQL 承担 Source of Truth。
+
+> **Redis 快不是把所有 PostgreSQL 数据迁移进 Redis 的理由。性能只是数据存储决策中的一个维度。**
+
+### 【数据适合放 Redis 与 Redis 是否需要持久化是两个不同问题】
+
+决定一份 State 适不适合 Redis，和决定 Redis Restart 以后这份 State 要不要恢复，不是同一个问题。
+
+可以理解成两层：
+
+~~~text
+第一层
+Storage Model
+    ↓
+Redis 还是 PostgreSQL？
+
+第二层
+Redis Reliability
+    ↓
+Redis 内的数据
+是否需要通过 Persistence 恢复？
+~~~
+
+例如：
+
+~~~text
+Analytics Cache
+很适合 Redis
+~~~
+
+但：
+
+~~~text
+Cache 丢失
+    ↓
+重新查询数据库
+    ↓
+重新生成
+~~~
+
+所以：
+
+~~~text
+Redis Suitable
+≠
+Persistence Required
+~~~
+
 <!-- REDIS_SECTION_4_CONTINUE -->
 
 ## 参考资料
