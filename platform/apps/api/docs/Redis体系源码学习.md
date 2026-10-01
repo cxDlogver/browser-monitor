@@ -585,7 +585,7 @@ Redis 官方对 Key Expiration 的定义是：可以为 Key 设置 Time To Live�
 
 ~~~ts
 await this.redis.set(
-  \`session:\${tokenHash}\`,
+  `session:${tokenHash}`,
   JSON.stringify(user),
   'EX',
   this.config.SESSION_TTL_SECONDS,
@@ -748,7 +748,7 @@ Response Cookie
 
 ~~~ts
 await this.redis.set(
-  \`session:\${tokenHash}\`,
+  `session:${tokenHash}`,
   JSON.stringify(user),
   'EX',
   this.config.SESSION_TTL_SECONDS,
@@ -761,7 +761,7 @@ await this.redis.set(
 
 ~~~ts
 const session = await this.redis.get(
-  \`session:\${hashToken(token)}\`
+  `session:${hashToken(token)}`
 );
 
 if (!session) {
@@ -891,11 +891,11 @@ Redis Cache
 ~~~ts
 const version =
   (await this.redis.get(
-    \`analytics:version:\${projectId}\`
+    `analytics:version:${projectId}`
   )) ?? "0";
 
 const key =
-  \`analytics:\${projectId}:\${version}:\${namespace}:\${JSON.stringify(filters)}\`;
+  `analytics:${projectId}:${version}:${namespace}:${JSON.stringify(filters)}`;
 
 const cached = await this.redis.get(key);
 
@@ -966,7 +966,7 @@ Worker 处理一条 Outbox Task 后：
 
 ~~~ts
 await this.redis.incr(
-  \`analytics:version:\${task.project_id}\`
+  `analytics:version:${task.project_id}`
 );
 ~~~
 
@@ -975,7 +975,7 @@ API 查询缓存时先读取同一个 Version：
 ~~~ts
 const version =
   (await this.redis.get(
-    \`analytics:version:\${projectId}\`
+    `analytics:version:${projectId}`
   )) ?? "0";
 ~~~
 
