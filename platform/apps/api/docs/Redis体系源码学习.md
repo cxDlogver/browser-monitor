@@ -9814,6 +9814,313 @@ Restart Replay
 
 而不是单纯的“无限追加一个文件”。
 
+## 【第二层：Memory Safety 解决 Dataset 持续增长以后 Redis 怎样继续运行】
+
+Persistence 解决：
+
+~~~text
+Redis Restart 后
+数据能不能恢复
+~~~
+
+但它不能解决另一个问题：
+
+~~~text
+Redis 运行过程中
+内存会不会不断增长到不可控
+~~~
+
+Redis 的核心 Dataset 主要驻留 RAM，所以：
+
+~~~text
+Memory
+    ↓
+Finite Resource
+~~~
+
+如果业务持续：
+
+~~~text
+SET
+HSET
+ZADD
+~~~
+
+却没有：
+
+~~~text
+TTL
+DEL
+Range Cleanup
+~~~
+
+Dataset 就会持续增长。
+
+因此可靠运行的第二层是：
+
+~~~text
+Memory Governance
+│
+├── TTL / Cleanup
+├── maxmemory
+└── maxmemory-policy
+~~~
+
+### 【maxmemory 定义 Redis Dataset 可以使用的内存上界】
+
+假设：
+
+~~~text
+maxmemory = 1GB
+~~~
+
+当 Redis Dataset 接近这个上限时，再有新写入，就需要决定：
+
+~~~text
+删除谁？
+
+还是拒绝继续增长？
+~~~
+
+所以：
+
+~~~text
+maxmemory
+    ↓
+Capacity Boundary
+~~~
+
+而：
+
+~~~text
+maxmemory-policy
+    ↓
+Reached Limit 后的处理策略
+~~~
+
+是两个不同配置。
+
+Redis 官方说明，在 64 位系统中 maxmemory = 0 表示 Redis 不主动设置 Dataset 内存上限，这是默认行为。
+
+### 【Eviction Policy 决定达到内存上限以后牺牲哪些 Key】
+
+#### <u>1. noeviction 不主动删除现有 Key，而是拒绝新的内存增长</u>
+
+模型：
+
+~~~text
+Memory reaches maxmemory
+        ↓
+Existing Keys 保留
+        ↓
+需要增加内存的写命令
+返回错误
+~~~
+
+读取已有数据仍然可以继续。
+
+这适合：
+
+~~~text
+Key 不能被 Redis
+自行删除
+~~~
+
+的场景。
+
+#### <u>2. allkeys-* 可以从全部 Key 中选择驱逐对象</u>
+
+例如：
+
+~~~text
+allkeys-lru
+~~~
+
+会优先驱逐近似最久没有使用的 Key。
+
+常见还有：
+
+~~~text
+allkeys-lfu
+allkeys-random
+~~~
+
+这类策略更接近：
+
+~~~text
+Pure Cache Instance
+~~~
+
+因为：
+
+~~~text
+Cache 被删
+    ↓
+可以重新加载
+~~~
+
+#### <u>3. volatile-* 只从设置了 TTL 的 Key 中选择候选对象</u>
+
+例如：
+
+~~~text
+volatile-lru
+~~~
+
+只会把：
+
+~~~text
+具有 Expiration 的 Key
+~~~
+
+加入候选集合。
+
+因此：
+
+~~~text
+allkeys-*
+    ↓
+全部 Key 都可能被驱逐
+
+volatile-*
+    ↓
+只有带 TTL 的 Key
+可能被驱逐
+~~~
+
+### 【当前项目混合保存多种状态，因此 Eviction Policy 不能只按 Cache 思维选择】
+
+当前同一个 Redis Instance 中存在：
+
+~~~text
+session:<tokenHash>
+        ↓
+Authentication Runtime State
+
+analytics:<...>
+        ↓
+Derived Cache
+
+ingest:project:<id>
+ingest:ip:<id>:<ip>
+        ↓
+Rate Limit State
+
+ingestion:rate:<id>
+        ↓
+Recent Window
+
+ingestion:stats:<id>
+        ↓
+Operational Statistics
+
+analytics:version:<id>
+        ↓
+Coordination State
+~~~
+
+其中很多 Key 都有 TTL：
+
+~~~text
+Session
+Rate Limit
+Recent Window
+Analytics Cache
+Statistics
+~~~
+
+因此如果简单使用：
+
+~~~text
+volatile-lru
+~~~
+
+候选集合并不只有 Cache。
+
+它还可能包含：
+
+~~~text
+Session
+Rate Limit
+Statistics
+~~~
+
+这意味着：
+
+~~~text
+一次 Memory Eviction
+~~~
+
+可能不只是：
+
+~~~text
+Cache Miss
+~~~
+
+而可能变成：
+
+~~~text
+用户 Session 消失
+限流预算重置
+统计状态缺失
+~~~
+
+所以：
+
+> **Eviction Policy 是 Redis Instance 级的数据治理策略，必须结合整个实例承载的 State 类型选择。**
+
+### 【当前 Browser Monitor 没有显式配置 maxmemory 或 maxmemory-policy】
+
+当前 Docker Compose 只显式配置：
+
+~~~text
+appendonly yes
+~~~
+
+没有看到：
+
+~~~text
+--maxmemory
+--maxmemory-policy
+~~~
+
+也没有看到 Redis Service 的显式容器内存限制。
+
+因此当前仓库能够确认的是：
+
+~~~text
+没有通过 Compose
+显式建立
+
+Redis Dataset Memory Budget
++
+Eviction Strategy
+~~~
+
+这并不代表当前一定会 OOM。
+
+当前内存控制仍然主要依赖：
+
+~~~text
+TTL
+主动删除
+Sorted Set Window Cleanup
+实际流量规模
+Host / Container Memory
+~~~
+
+但如果 Redis 数据量和流量继续增大：
+
+~~~text
+maxmemory
++
+Eviction Policy
++
+Memory Observability
+~~~
+
+就会进入可靠运行的必要设计范围。
+
 <!-- REDIS_SECTION_6_CONTINUE -->
 
 ## 参考资料
