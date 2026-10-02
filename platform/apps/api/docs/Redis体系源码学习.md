@@ -12995,7 +12995,870 @@ Application Discipline
 Authorization Boundary
 ~~~
 
-<!-- REDIS_SECTION_8_CONTINUE -->
+### 【第三层：Connection Governance 控制 Redis Client 本身不能成为资源风险】
+
+生产治理不仅是：
+
+~~~text
+谁能连
+~~~
+
+还要解决：
+
+~~~text
+同时有多少连接？
+
+连接什么时候建立？
+
+失败以后重试多少次？
+
+应用关闭时怎样释放？
+
+慢 Client 会不会占满资源？
+~~~
+
+这就是：
+
+~~~text
+Connection Lifecycle
+~~~
+
+### 【Redis Server 的 Client 数量本身就是有限资源】
+
+每个 Redis Client 都需要：
+
+~~~text
+Socket
+File Descriptor
+Client State
+Input Buffer
+Output Buffer
+~~~
+
+所以不能假设：
+
+~~~text
+Connection
+可以无限创建
+~~~
+
+Redis 的 maxclients 用于限制最大并发 Client 数量。
+
+当前 Redis 官方文档说明：
+
+~~~text
+default maxclients = 10000
+~~~
+
+但实际可用值还受操作系统 File Descriptor 上限影响。
+
+因此：
+
+~~~text
+Application Instances
+×
+Redis Connections per Instance
+~~~
+
+必须纳入 Capacity Planning。
+
+例如：
+
+~~~text
+100 API Instances
+
+每个 Instance
+10 Redis Connections
+~~~
+
+就已经：
+
+~~~text
+1000 Connections
+~~~
+
+再加：
+
+~~~text
+Worker
+Admin Tool
+Monitoring
+Sentinel / Replica
+~~~
+
+才是整体连接规模。
+
+### 【当前 Browser Monitor 使用进程级 Redis Client，而不是请求级连接】
+
+当前 InfrastructureModule：
+
+~~~ts
+new Redis(config.REDIS_URL, {
+  maxRetriesPerRequest: 2,
+  enableReadyCheck: true,
+  lazyConnect: false,
+})
+~~~
+
+作为：
+
+~~~text
+Global Infrastructure Provider
+~~~
+
+因此：
+
+~~~text
+API Request A ─┐
+API Request B ─┤
+API Request C ─┤
+               └──► Redis Client
+~~~
+
+而不是：
+
+~~~text
+Request A
+    ↓
+new Redis()
+
+Request B
+    ↓
+new Redis()
+~~~
+
+API 与 Worker 则分别拥有自己的 Redis Client：
+
+~~~text
+API Process
+    ↓
+Redis Client A
+
+Worker Process
+    ↓
+Redis Client B
+~~~
+
+共同访问同一个 Redis Server。
+
+#### <u>1. lazyConnect: false 表示 Client 创建后主动进入连接流程</u>
+
+当前：
+
+~~~text
+Application Start
+    ↓
+new Redis(...)
+    ↓
+开始 Redis Connection Lifecycle
+~~~
+
+而不是等第一次真正 Command 到达以后才开始初始化连接。
+
+因此 Redis Availability 会更早进入应用运行状态。
+
+#### <u>2. enableReadyCheck: true 让 Client 等 Redis 真正 Ready</u>
+
+仅仅：
+
+~~~text
+TCP Connected
+~~~
+
+不一定等于：
+
+~~~text
+Redis 已经可以正常处理业务请求
+~~~
+
+Redis Startup 时可能仍在：
+
+~~~text
+Loading Dataset
+~~~
+
+Ready Check 的目标是：
+
+~~~text
+Connected
+    ↓
+Redis Ready?
+    ↓
+Ready Event
+~~~
+
+避免过早把 Redis 当成可用状态。
+
+#### <u>3. maxRetriesPerRequest: 2 给单个请求的自动重试设置上限</u>
+
+当前：
+
+~~~text
+maxRetriesPerRequest = 2
+~~~
+
+表达的是：
+
+~~~text
+Redis 暂时不可用
+        ↓
+允许有限 Retry
+
+但
+
+不能无限等待
+~~~
+
+否则可能：
+
+~~~text
+Redis Down
+    ↓
+大量业务请求不断堆积
+    ↓
+Memory / Latency
+进一步失控
+~~~
+
+所以 Retry 既是 Reliability 机制，也是 Resource Governance。
+
+### 【Retry 必须和业务 Timeout 共同设计】
+
+假设：
+
+~~~text
+HTTP Request Timeout = 3s
+~~~
+
+但 Redis Client：
+
+~~~text
+持续重连
+持续 Retry
+~~~
+
+那么上层 Request 即使已经失去继续等待的价值，底层仍可能继续积累工作。
+
+因此应该把：
+
+~~~text
+Business Timeout
+        ↓
+Redis Command Retry
+        ↓
+Connection Retry
+~~~
+
+放进同一个 End-to-end Time Budget。
+
+当前仓库明确配置：
+
+~~~text
+maxRetriesPerRequest = 2
+~~~
+
+但在这个 Redis Client 构造中没有显式看到：
+
+~~~text
+connectTimeout
+commandTimeout
+retryStrategy
+keepAlive
+~~~
+
+所以这些属于：
+
+~~~text
+Current Repository
+Not Explicitly Configured
+~~~
+
+不能描述成已有治理能力。
+
+### 【Application Shutdown 也属于 Connection Lifecycle】
+
+当前：
+
+~~~ts
+async onApplicationShutdown(): Promise<void> {
+  await Promise.allSettled([
+    this.database.close(),
+    this.redis.quit(),
+  ]);
+}
+~~~
+
+说明：
+
+~~~text
+Nest Application Shutdown
+        ↓
+redis.quit()
+~~~
+
+而不是简单依赖 Process Exit。
+
+这属于：
+
+~~~text
+Graceful Shutdown
+~~~
+
+所以当前项目连接治理已经有：
+
+~~~text
+Process-level Client Reuse
+
+Ready Check
+
+Retry Limit
+
+Graceful Quit
+~~~
+
+但还没有完整建立：
+
+~~~text
+maxclients Capacity
+
+Explicit Timeout Budget
+
+Connection Metrics
+
+ACL Identity
+
+TLS
+~~~
+
+### 【第四层：Operational Governance 控制配置和基础设施变更本身的风险】
+
+Redis 生产事故不一定来自 Redis Bug。
+
+很多时候来自：
+
+~~~text
+错误配置
+
+错误 Command
+
+Secret 泄露
+
+升级行为变化
+
+容量估计错误
+~~~
+
+所以最后一层是：
+
+~~~text
+Operational Governance
+~~~
+
+### 【Redis 配置应该成为受控的 Infrastructure Configuration】
+
+例如：
+
+~~~text
+appendonly
+
+appendfsync
+
+maxmemory
+
+maxmemory-policy
+
+timeout
+
+maxclients
+
+ACL
+
+TLS
+~~~
+
+这些参数会直接影响：
+
+~~~text
+Durability
+Availability
+Performance
+Security
+~~~
+
+因此生产环境不应该依赖：
+
+~~~text
+某个人
+临时进入 Redis
+CONFIG SET ...
+~~~
+
+然后没有任何记录。
+
+更合理的过程：
+
+~~~text
+Configuration
+    ↓
+Version Control / IaC
+    ↓
+Review
+    ↓
+Deploy
+    ↓
+Verify
+~~~
+
+这样：
+
+~~~text
+当前运行配置
+为什么是这样
+什么时候改过
+谁改的
+~~~
+
+才可以追踪。
+
+### 【CONFIG 等管理命令应该和业务权限隔离】
+
+Redis ACL 中，CONFIG、DEBUG、SHUTDOWN、REPLICAOF、ACL 等管理能力普通业务程序通常不需要。
+
+所以生产环境可以区分：
+
+~~~text
+Application User
+    ↓
+Business Commands Only
+
+Operations User
+    ↓
+Admin Commands
+~~~
+
+这和数据库：
+
+~~~text
+Application DB User
+
+DBA User
+~~~
+
+是同一个 Least Privilege 思想。
+
+### 【Secret 不应该和普通配置拥有相同生命周期】
+
+Redis Credential：
+
+~~~text
+username
+password
+certificate
+private key
+~~~
+
+属于：
+
+~~~text
+Secret
+~~~
+
+而不是普通：
+
+~~~text
+Port
+Host
+Timeout
+~~~
+
+所以应该进入：
+
+~~~text
+Secret Manager
+Environment Injection
+Kubernetes Secret
+Cloud Secret Service
+~~~
+
+等专门生命周期。
+
+需要支持：
+
+~~~text
+Generate
+Distribute
+Rotate
+Revoke
+~~~
+
+而不是：
+
+~~~text
+写死在源码
+长期不变
+~~~
+
+当前项目 REDIS_URL 已经从运行时配置读取，这意味着代码层具备：
+
+~~~text
+Runtime Configuration Injection
+~~~
+
+但当前 .env.example：
+
+~~~text
+redis://localhost:6379
+~~~
+
+没有体现 Redis Credential。
+
+因此生产 Secret 管理仍属于后续治理能力。
+
+### 【升级 Redis 不是单纯替换 Docker Image】
+
+当前：
+
+~~~text
+redis:7.4-alpine
+~~~
+
+未来如果升级：
+
+~~~text
+7.4
+ ↓
+8.x
+~~~
+
+不能只理解成：
+
+~~~text
+改一个 Image Tag
+~~~
+
+还应该检查：
+
+~~~text
+Command Compatibility
+
+Persistence Compatibility
+
+ACL / Security Changes
+
+Client Compatibility
+
+Cluster Behavior
+
+Memory Behavior
+
+Performance Regression
+~~~
+
+并经过：
+
+~~~text
+Test
+    ↓
+Staging
+    ↓
+Backup / Rollback Plan
+    ↓
+Production Rollout
+~~~
+
+### 【Capacity Planning 把前几节所有治理能力连接起来】
+
+Capacity Planning 不只是：
+
+~~~text
+Redis 要多少 GB RAM
+~~~
+
+而应该同时估算：
+
+~~~text
+Capacity
+│
+├── Key Count
+├── Average Key Size
+├── Peak Key Size
+├── Ops / second
+├── Read / Write Ratio
+├── Hot Key Distribution
+├── Connected Clients
+├── Network Throughput
+├── Persistence I/O
+└── Growth Rate
+~~~
+
+例如：
+
+~~~text
+Session Count
+        ×
+Average Session Size
+        ↓
+Session Memory
+~~~
+
+再加：
+
+~~~text
+Analytics Cache
+
+Rate Limit
+
+Recent Window
+
+Statistics
+
+Redis Internal Overhead
+~~~
+
+才接近：
+
+~~~text
+Real Memory Requirement
+~~~
+
+然后还要留 Headroom 用于：
+
+~~~text
+Traffic Spike
+
+AOF Rewrite
+
+Replication
+
+Fragmentation
+
+Temporary Growth
+~~~
+
+所以生产容量不是：
+
+~~~text
+当前用了 4GB
+    ↓
+机器买 4GB
+~~~
+
+而是：
+
+~~~text
+Peak Requirement
++
+Growth
++
+Failure Headroom
+~~~
+
+### 【当前 Browser Monitor 的生产治理能力可以重新放进一张表】
+
+| 治理维度 | 当前仓库 | 当前判断 |
+|---|---|---|
+| Redis 网络访问 | 6379:6379 Host Port Mapping | 开发友好，生产需重新审查暴露边界 |
+| Internal Connection | redis://redis:6379 | Docker Service 内部连接 |
+| Redis Authentication | 未显式配置 | 当前仓库没有 ACL / password |
+| Redis ACL | 未看到 | 未实现 Least Privilege |
+| Redis TLS | 未看到 | 当前仓库没有显式传输加密 |
+| Client Reuse | Global Redis Provider | 已实现 |
+| Ready Check | enableReadyCheck: true | 已实现 |
+| Request Retry Limit | maxRetriesPerRequest: 2 | 已实现 |
+| Graceful Shutdown | redis.quit() | 已实现 |
+| Explicit Client Timeout | 未看到 | 需要后续治理 |
+| maxclients Planning | 未看到 | 需要结合实例规模 |
+| Secret Injection | REDIS_URL 走配置 | 有配置入口，但暂无 Redis Credential 示例 |
+| Dangerous Command ACL | 未看到 | 需要生产 ACL |
+| Configuration Governance | Compose 管理部分配置 | 尚未形成完整 Redis 配置体系 |
+
+因此当前系统准确地说：
+
+~~~text
+Current Browser Monitor
+
+开发 / 基础部署能力
+        ↓
+Redis Client Lifecycle
++
+AOF
++
+Volume
++
+Healthcheck
++
+Restart
+
+但 Production Security Governance
+仍未完整建立
+~~~
+
+### 【第八节最终形成 Redis Production Governance 的四层框架】
+
+以后把 Redis 推向生产环境，可以固定按四层检查。
+
+第一层：
+
+~~~text
+Network Boundary
+    ↓
+谁能够连接？
+
+Public？
+Private？
+Firewall？
+Container Network？
+TLS？
+~~~
+
+第二层：
+
+~~~text
+Identity & Authorization
+    ↓
+连接以后能做什么？
+
+Authentication
+ACL User
+Command Permission
+Key Pattern
+Least Privilege
+~~~
+
+第三层：
+
+~~~text
+Connection Governance
+    ↓
+Client 会不会成为资源风险？
+
+Reuse
+maxclients
+Retry
+Timeout
+Ready Check
+Graceful Shutdown
+~~~
+
+第四层：
+
+~~~text
+Operational Governance
+    ↓
+基础设施本身怎样安全变化？
+
+Secret
+Config
+Dangerous Command
+Upgrade
+Capacity Planning
+Audit
+~~~
+
+最终形成：
+
+~~~text
+                Redis Production
+                       │
+       ┌───────────────┼───────────────┐
+       │               │               │
+       ▼               ▼               ▼
+    Network         Identity        Connection
+    Boundary          & ACL         Governance
+       │               │               │
+ Private Network   Least Privilege   Retry / Limit
+ Firewall          TLS / Auth        Timeout
+       └───────────────┼───────────────┘
+                       ▼
+               Operational Governance
+                       │
+                Config / Secret
+                Upgrade / Capacity
+                       │
+                       ▼
+              Production Redis
+~~~
+
+这一节最重要的结论是：
+
+> **Redis 生产治理不是“加一个密码”。网络层决定谁能到达 Redis，ACL 决定连接以后能执行什么，TLS 保护传输过程，连接治理控制 Client 对服务器资源的占用，而配置、Secret、升级和容量规划则保证 Redis 基础设施本身能够被安全、可追踪地长期运维。**
+
+对于当前 Browser Monitor，最需要明确的是：
+
+~~~text
+当前已经有：
+
+Global Redis Client
+Ready Check
+Retry Limit
+Graceful Shutdown
+AOF / Volume
+Healthcheck
+
+当前仓库尚未显式建立：
+
+Redis Authentication / ACL
+TLS
+Production Network Isolation
+Explicit Timeout Budget
+maxclients Capacity Planning
+Dangerous Command Restriction
+Redis Credential Rotation
+~~~
+
+因此后续如果把这个项目从：
+
+~~~text
+Local / Basic Deployment
+~~~
+
+推进到：
+
+~~~text
+Production Deployment
+~~~
+
+Redis 的重点已经不再是继续增加新的数据结构，而是把这些访问、权限、连接和运维边界补完整。
+
+## 9. 下一节进入 Redis 总结与系统级设计回收
+
+到这里 Redis 的完整主链路已经基本建立：
+
+~~~text
+Redis Position
+    ↓
+Data Model
+    ↓
+Execution / Atomicity
+    ↓
+Engineering State Model
+    ↓
+PostgreSQL Consistency
+    ↓
+Reliability
+    ↓
+Scale
+    ↓
+Production Governance
+~~~
+
+下一节适合不再继续增加零散 Redis 功能，而是回到整个服务端系统：
+
+~~~text
+Redis
+PostgreSQL
+TimescaleDB
+Worker
+Outbox
+API
+~~~
+
+重新回答：
+
+> **面对一个新的服务端状态，怎样判断它应该进入 PostgreSQL、Redis、TimescaleDB，怎样设计读写链路、可靠性、一致性与扩展边界。**
+
+这样可以把 Redis 从一个独立技术点重新收回到完整的服务端架构体系里。
+
 
 ## 参考资料
 
@@ -13089,3 +13952,14 @@ Authorization Boundary
 [42] Redis. SLOWLOG. https://redis.io/docs/latest/commands/slowlog/
 
 [43] Redis. Latency Monitoring. https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency-monitor/
+
+
+[44] Redis. Security. https://redis.io/docs/latest/operate/oss_and_stack/management/security/
+
+[45] Redis. Access Control List. https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
+
+[46] Redis. TLS. https://redis.io/docs/latest/operate/oss_and_stack/management/security/encryption/
+
+[47] Redis. Client Handling and maxclients. https://redis.io/docs/latest/develop/reference/clients/
+
+[48] Redis. ACL SETUSER. https://redis.io/docs/latest/commands/acl-setuser/
