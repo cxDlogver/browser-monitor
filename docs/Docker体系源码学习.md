@@ -2852,56 +2852,589 @@ API
 
 这才是 Compose Runtime Dependency 的真实含义。
 
-### 【One-shot Job 与 Long-running Service 生命周期不同】
+### 【Service 是否长期运行由主进程生命周期决定，restart 与 depends_on 负责配合】
 
-Database Migration 很适合 One-shot Job：
+Compose 中没有 `type: job` 或 `type: service` 这样的字段，用来显式声明“这是 One-shot Job”或“这是 Long-running Service”。
+
+两者首先来自 **Container 启动后主进程本身的行为**：
 
 ~~~text
 Container Start
+      ↓
+执行 Main Command
+      ↓
+Application Process
+      │
+      ├── 完成一次任务后主动 Exit
+      │      → One-shot Job
+      │
+      └── 持续监听 / 轮询 / 消费任务
+             → Long-running Service
+~~~
+
+然后 Compose 再通过 `restart`、`depends_on.condition`、`healthcheck` 等配置，配合这种 Process Lifecycle（进程生命周期）。
+
+#### <u>1. One-shot Job 的“正常结果”就是进程完成后退出</u>
+
+先看一个完整通用例子：
+
+~~~yaml
+services:
+  db:
+    image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+
+  migrate:
+    image: my-app:1.0
+    command: ["node", "migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+~~~
+
+`migrate` Container 启动以后：
+
+~~~text
+Container Start
+↓
+node migrate.js
+↓
+连接 Database
+↓
+执行 Schema Migration
+↓
+Migration 完成
+↓
+Process Exit 0
+↓
+Container 进入 Exited 状态
+~~~
+
+这里的 `Exited` 不是故障。对于一次性迁移任务来说：
+
+~~~text
+Process 成功退出
+=
+Job 成功完成
+~~~
+
+所以：
+
+~~~yaml
+restart: "no"
+~~~
+
+很自然，因为这个 Container 本来就不应该永远保持 Running。
+
+#### <u>2. Long-running Service 的预期状态是主进程持续存活</u>
+
+再看 API：
+
+~~~yaml
+services:
+  api:
+    image: my-api:1.0
+    command: ["node", "dist/main.js"]
+    restart: unless-stopped
+~~~
+
+如果 `dist/main.js` 启动 HTTP Server：
+
+~~~text
+Container Start
+↓
+node dist/main.js
+↓
+listen :3000
+↓
+等待 Request
+↓
+处理 Request
+↓
+继续等待
+↓
+长期保持 Running
+~~~
+
+这里如果 Node Process 意外退出，通常意味着 API Service 已经停止工作，而不是“任务完成”。
+
+因此 Long-running Service 常搭配：
+
+~~~yaml
+restart: unless-stopped
+~~~
+
+表示它的正常目标状态是持续运行，而不是执行一次后结束。
+
+#### <u>3. restart 不负责定义类型，只负责“进程退出后怎么办”</u>
+
+需要特别避免一个误解：
+
+> `restart: "no"` 并不会把 Service 变成 One-shot Job；`restart: unless-stopped` 也不会把 Service 变成长期服务。
+
+真正决定生命周期的是 Main Command 启动的 Process。
+
+`restart` 只是处理：
+
+~~~text
+Process 已经退出
+↓
+Docker 接下来要不要重新启动 Container
+~~~
+
+所以：
+
+~~~text
+command / CMD
+决定运行什么 Process
+
+Process 本身
+决定是执行一次还是持续运行
+
+restart
+决定 Process 退出以后 Docker 怎么处理
+~~~
+
+#### <u>4. service_completed_successfully 让其他 Service 等待 One-shot Job 成功结束</u>
+
+如果 API 必须在 Migration 成功后启动：
+
+~~~yaml
+services:
+  api:
+    image: my-api:1.0
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+~~~
+
+这里 API 等待的不是：
+
+~~~text
+migrate Container 已经启动
+~~~
+
+而是：
+
+~~~text
+migrate Process
+已经执行结束
++
+Exit Status 表示成功
+~~~
+
+完整生命周期：
+
+~~~text
+Database Healthy
+↓
+Migration Container Start
 ↓
 Run Migration
 ↓
 Exit 0
+↓
+service_completed_successfully
+↓
+API Container Start
+~~~
+
+这正是 One-shot Job 与下游 Long-running Service 最典型的组合。Docker Compose 官方使用 `service_completed_successfully` 表示等待依赖 Service 成功完成。[[10]](https://docs.docker.com/compose/how-tos/startup-order/)
+
+#### <u>5. Browser Monitor 当前 migrate 与 api 正好体现这两种生命周期</u>
+
+当前文件：
+
+~~~text
+browser-monitor/platform/infra/docker-compose.yml
+~~~
+
+Migration：
+
+~~~yaml
+services:
+  migrate:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+    command:
+      ["pnpm", "--filter", "@browser-monitor/database", "migrate"]
+
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+    restart: "no"
+~~~
+
+运行链：
+
+~~~text
+TimescaleDB Healthy
+↓
+migrate Container Start
+↓
+pnpm --filter @browser-monitor/database migrate
+↓
+执行数据库迁移
+↓
+迁移完成
+↓
+Process Exit
 ~~~
 
 API：
 
-~~~text
-Container Start
-↓
-Node Process
-↓
-持续处理请求
-↓
-长期运行
+~~~yaml
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
 ~~~
 
-所以 Restart Policy 不应该一刀切：
+API 最终运行：
 
 ~~~text
-Migration
-成功退出是正常结果
-
-API
-意外退出通常需要恢复
+node dist/main.js
+↓
+Node API Process
+↓
+持续处理 HTTP Request
+↓
+Long-running
 ~~~
 
-### 【Profile 用于可选 Service】
+因此项目里的差异不是某个 `type` 字段，而是：
+
+~~~text
+migrate
+一次性 Command
++
+成功后 Exit
++
+restart: no
++
+被 API 以 service_completed_successfully 等待
+
+api
+长期运行 Command
++
+持续 Node Process
++
+restart: unless-stopped
+~~~
+
+可以最终收束为：
+
+| 维度 | One-shot Job | Long-running Service |
+| --- | --- | --- |
+| Main Command | 完成一个有限任务 | 启动长期服务 |
+| Process 预期 | 完成后退出 | 持续运行 |
+| Exit 0 | 正常成功结果 | 通常表示服务停止 |
+| restart | 常见 `no` | 常见 `unless-stopped` / `always` 等 |
+| 下游依赖 | 常用 `service_completed_successfully` | 常用 `service_healthy` / `service_started` |
+| 典型场景 | Migration、初始化、数据导入 | API、Worker、Database、Redis |
+
+### 【Profiles 控制可选 Service 是否参与本次 Compose 应用启动】
+
+一个 Compose 文件可能同时描述：
+
+~~~text
+核心 Runtime Service
+API / Database / Redis
+
+和
+
+可选辅助 Service
+Mail Tool / Debug Tool / Mock Server / Admin UI
+~~~
+
+如果所有 Service 每次 `docker compose up` 都启动，会出现：
+
+~~~text
+不需要的 Container 也运行
+↓
+占用 CPU / Memory / Port
+↓
+本次运行拓扑比实际需求更复杂
+~~~
+
+Profiles（配置档）解决的就是：
+
+> 在同一份 Compose 文件中声明可选 Service，并决定当前这次启动是否把它们纳入运行系统。
+
+Docker 官方说明，没有配置 Profile 的 Service 默认启用；配置了 Profile 的 Service 通常只有在对应 Profile 被激活时才启用。[[14]](https://docs.docker.com/compose/how-tos/profiles/)
+
+#### <u>1. 没有 profiles 的 Service 默认属于核心启动集合</u>
 
 例如：
 
 ~~~yaml
-mail:
-  profiles: ["dev"]
+services:
+  db:
+    image: postgres:17
+
+  api:
+    image: my-api:1.0
 ~~~
 
-适合：
+执行：
+
+~~~bash
+docker compose up
+~~~
+
+Compose 会启动：
 
 ~~~text
-Local Mail Tool
-Debug Tool
-Mock Service
-Development-only Dependency
+db
+api
+~~~
+
+因为它们没有被放入任何可选 Profile。
+
+#### <u>2. 配置 profiles 后，这个 Service 变成条件启用</u>
+
+加入 Mail Tool：
+
+~~~yaml
+services:
+  db:
+    image: postgres:17
+
+  api:
+    image: my-api:1.0
+
+  mailpit:
+    image: axllent/mailpit
+    profiles:
+      - dev
+~~~
+
+普通执行：
+
+~~~bash
+docker compose up
+~~~
+
+结果可以理解为：
+
+~~~text
+db       启动
+api      启动
+mailpit  不因为普通 up 自动启动
+~~~
+
+此时 `profiles: [dev]` 并不是在说：
+
+~~~text
+这个 Container 的 NODE_ENV = development
+~~~
+
+而是在说：
+
+~~~text
+mailpit 属于 dev 这个可选运行集合
+~~~
+
+#### <u>3. --profile dev 会把 dev Service 加入默认启动集合</u>
+
+执行：
+
+~~~bash
+docker compose --profile dev up
+~~~
+
+启动集合变成：
+
+~~~text
+没有 Profile 的核心 Service
+db
+api
+
++
+
+dev Profile Service
+mailpit
+~~~
+
+所以：
+
+~~~text
+--profile dev
+≠
+只启动 dev Service
+
+而是
+
+默认 Service
++
+激活的 dev Profile Service
+~~~
+
+Docker Compose 也允许显式指定某个带 Profile 的 Service；这种情况下，目标 Service 的 Profile 会被自动激活用于这次目标运行，但不会因此自动启用同 Profile 下所有其他 Service。这个细节属于 Profile 的目标启动行为。[[14]](https://docs.docker.com/compose/how-tos/profiles/)
+
+#### <u>4. 多个 Profile 可以表达不同运行场景</u>
+
+例如：
+
+~~~yaml
+services:
+  api:
+    image: api
+
+  db:
+    image: postgres
+
+  mailpit:
+    image: mailpit
+    profiles: ["dev"]
+
+  adminer:
+    image: adminer
+    profiles: ["debug"]
+
+  mock-payment:
+    image: mock-payment
+    profiles: ["test"]
+~~~
+
+那么：
+
+~~~bash
+docker compose up
+~~~
+
+表示核心运行：
+
+~~~text
+api
+db
+~~~
+
+执行：
+
+~~~bash
+docker compose --profile dev up
+~~~
+
+则加入：
+
+~~~text
+mailpit
+~~~
+
+执行：
+
+~~~bash
+docker compose --profile debug up
+~~~
+
+则加入：
+
+~~~text
+adminer
+~~~
+
+Profile 因此可以理解为：
+
+~~~text
+同一份 Compose Runtime Topology
+        ↓
+根据当前场景
+选择额外启用哪些可选 Service
+~~~
+
+#### <u>5. Browser Monitor 当前把 Mailpit 放在 dev Profile</u>
+
+当前：
+
+~~~yaml
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    profiles: ["dev"]
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: unless-stopped
+~~~
+
+Mailpit 主要承担开发邮件调试：
+
+~~~text
+Application
+↓ SMTP
+Mailpit
+↓
+截获开发邮件
+↓
+开发者通过 Mailpit Web UI 查看
+~~~
+
+它不是 TimescaleDB、Redis、API 这类所有运行场景都必须存在的核心 Service，因此被放入 `dev` Profile。
+
+于是可以得到：
+
+~~~text
+普通 Compose 启动
+→ 不自动加入 Mailpit
+
+启用 dev Profile
+→ 默认 Service + Mailpit
+~~~
+
+#### <u>6. Profile 与其他 Compose 配置解决的问题完全不同</u>
+
+| 配置 | 回答的问题 |
+| --- | --- |
+| `profiles` | 这个 Service 当前要不要参与 Compose 启动 |
+| `command` | Container 启动后执行什么 Process |
+| `environment` | Process 运行时获得什么配置 |
+| `depends_on` | 这个 Service 启动前依赖谁 |
+| `healthcheck` | 怎样判断 Service 是否健康 / Ready |
+| `restart` | Process 退出后是否重新启动 Container |
+
+所以 Profile 不是“开发环境变量”，也不是“启动顺序”，更不是“One-shot / Long-running 类型声明”。
+
+把这一组配置放在一起，可以形成完整 Service Lifecycle：
+
+~~~text
+profiles
+↓
+本次是否参与启动
+
+command / CMD
+↓
+启动什么 Process
+
+Process Lifecycle
+↓
+一次性结束 or 长期运行
+
+healthcheck
+↓
+当前是否 Ready
+
+depends_on
+↓
+其他 Service 什么时候可以继续
+
+restart
+↓
+Process 退出以后怎么办
 ~~~
 
 ---
@@ -3966,13 +4499,14 @@ Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 11. Docker Docs, **Bind mounts**：https://docs.docker.com/engine/storage/bind-mounts/
 12. Docker Docs, **Port publishing and mapping**：https://docs.docker.com/engine/network/port-publishing/
 13. Docker Docs, **tmpfs mounts**：https://docs.docker.com/engine/storage/tmpfs/
-12. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
-13. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
-14. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
-15. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
-16. Browser Monitor：browser-monitor/platform/infra/Caddyfile
-17. Browser Monitor：browser-monitor/platform/apps/api/package.json
-18. Browser Monitor：browser-monitor/platform/apps/worker/package.json
-19. Browser Monitor：browser-monitor/platform/apps/web/package.json
-20. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
-21. Browser Monitor：browser-monitor/sdk/package.json
+14. Docker Docs, **Using profiles with Compose**：https://docs.docker.com/compose/how-tos/profiles/
+15. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
+16. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
+17. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
+18. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
+19. Browser Monitor：browser-monitor/platform/infra/Caddyfile
+20. Browser Monitor：browser-monitor/platform/apps/api/package.json
+21. Browser Monitor：browser-monitor/platform/apps/worker/package.json
+22. Browser Monitor：browser-monitor/platform/apps/web/package.json
+23. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
+24. Browser Monitor：browser-monitor/sdk/package.json
