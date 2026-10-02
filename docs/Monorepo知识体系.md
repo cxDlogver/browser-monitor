@@ -1168,6 +1168,171 @@ package.json scripts
 
 ---
 
+### 【开发阶段的长期任务需要区分 Watch Build、Process Restart 与 Dev Server】
+
+**结论**
+
+Project 的 `build` 与 `dev` 不只是命令名字不同，它们代表的生命周期也不同。一次性 `build` 通常执行完成后退出；开发态 `dev` 往往会启动一个长期存在的进程，但这个长期进程的职责可能完全不同。
+
+browser-monitor 当前正好包含三种典型模式：
+
+~~~text
+SDK
+→ tsup --watch
+→ 持续构建
+
+API / Worker
+→ tsx watch
+→ 源码变化后重新执行 Node 程序
+
+Web
+→ vite
+→ Dev Server + 模块转换 + HMR
+~~~
+
+因此“某个 dev 命令长期运行”不能直接推出“这个 Project 是一个运行时服务”。
+
+**SDK 的 tsup --watch**
+
+SDK 当前定义：
+
+~~~json
+{
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  }
+}
+~~~
+
+`tsup` 是一次性 Build：
+
+~~~text
+SDK Source
+    ↓
+tsup
+    ↓
+生成 dist
+    ↓
+进程退出
+~~~
+
+`tsup --watch` 则进入 Watch Mode（监听模式）：
+
+~~~text
+启动 tsup
+    ↓
+先构建一次
+    ↓
+生成 / 更新 dist
+    ↓
+构建工具进程保持运行
+    ↓
+监听源码文件变化
+    ↓
+源码保存
+    ↓
+重新 Build dist
+    ↓
+继续监听
+~~~
+
+这里长期运行的是 **Builder Process（构建工具进程）**，而不是 SDK 自己的业务运行时。
+
+SDK 真正的执行位置仍然是浏览器：
+
+~~~text
+sdk/src
+    ↓
+tsup --watch
+    ↓
+持续生成最新 SDK Artifact
+    ↓
+业务 Web 应用引用 SDK
+    ↓
+Browser 加载并执行 SDK
+~~~
+
+所以：
+
+> `tsup --watch` 的作用是把开发阶段重复执行的 SDK Build 自动化，不是启动一个 SDK Server。
+
+**API / Worker 的 tsx watch**
+
+API 当前定义：
+
+~~~json
+{
+  "scripts": {
+    "dev": "tsx watch src/main.ts"
+  }
+}
+~~~
+
+这里的重点不是持续生成一个给其他 Package 消费的 dist，而是保持开发程序处于运行状态：
+
+~~~text
+src/main.ts
+    ↓
+tsx watch
+    ↓
+启动 Node Application
+    ↓
+监听相关源码变化
+    ↓
+源码变化
+    ↓
+重新执行应用
+~~~
+
+因此 API/Worker 的长期进程属于 **Application Process（应用进程）**。
+
+**Web 的 Vite Dev Server**
+
+Web 当前：
+
+~~~json
+{
+  "scripts": {
+    "dev": "vite"
+  }
+}
+~~~
+
+开发链路是：
+
+~~~text
+React / TypeScript Source
+    ↓
+Vite Dev Server
+    ↓
+Browser 请求开发模块
+    ↓
+源码变化
+    ↓
+Vite 重新处理受影响模块
+    ↓
+HMR / 页面更新
+~~~
+
+这里长期存在的是 **Development Server（开发服务器）**。
+
+三者可以统一放进 `dev` 任务，但不能把内部行为混为一谈：
+
+| Project | Dev 命令 | 长期进程真正负责什么 | 业务代码最终在哪里运行 |
+| --- | --- | --- | --- |
+| SDK | `tsup --watch` | 监听源码并持续重新构建 | Browser |
+| API / Worker | `tsx watch` | 运行并在变化后重启 Node Application | Node.js |
+| Web | `vite` | Dev Server、模块转换与 HMR | Browser |
+
+这一区分对后续设计“一条命令启动整个 Monorepo 开发环境”非常重要：这些任务都可以作为长期 Dev Task 并行启动，但它们并不都是 Runtime Service。
+
+**面试与答辩收束**
+
+> `tsup --watch` 是 Watch Build，不是运行 SDK。它让 tsup 常驻并在源码变化后刷新 dist；SDK 业务代码最终仍然由浏览器执行。相比之下，`tsx watch` 负责重新执行 Node 应用，Vite 则负责开发服务器和浏览器模块更新。
+
+---
+
 ### 【当前 browser-monitor 用 Script 显式写出任务执行顺序】
 
 **结论**
@@ -1650,7 +1815,7 @@ Package / Server / Static Assets
 
 **结论**
 
-Library/SDK 的 Build 目标通常是生成 JavaScript、Type Declaration 或不同模块格式，使其他应用可以通过 Package Name import。
+Library/SDK 的 Build 目标通常是生成 JavaScript、Type Declaration 或不同模块格式，使其他应用可以通过 Package Name import。开发阶段如果这个 Package 需要频繁修改，还可以采用 Watch Build：先生成一次 Artifact，再持续监听源码并在变化后重新构建。SDK 当前的 `tsup --watch` 就属于这一类，它改变的是“构建触发方式”，并没有改变 SDK 最终仍由浏览器执行的运行模型。
 
 **browser-monitor 实践映射**
 
