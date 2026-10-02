@@ -9357,60 +9357,464 @@ Redis 挂掉以后
 
 > **跨存储一致性不是“让两个系统永远同时成功”，而是先明确权威状态，再识别部分失败，并用可恢复机制把暂时不一致控制在业务可接受范围内，最终让系统重新收敛。**
 
-## 6. 下一节进入 Redis 自身的可靠运行体系
+## 6. Redis 的可靠运行需要同时解决数据持久性、内存可控性与服务可用性
 
-到这里已经完成：
+前五节主要站在应用视角理解 Redis：
 
 ~~~text
 第一节
 Redis 在系统中的位置
-
+        ↓
 第二节
-Redis 数据组织
-
+Redis 怎样组织状态
+        ↓
 第三节
-Redis 命令执行、事务与原子性
-
+Redis 怎样安全修改状态
+        ↓
 第四节
-Redis 工程状态模型、存储选择与持久化边界
-
+Redis 怎样形成工程状态模型
+        ↓
 第五节
-Redis + PostgreSQL
-跨存储一致性与 Outbox
+Redis 怎样与 PostgreSQL 保持可接受的一致性
 ~~~
 
-下一节会从：
-
-~~~text
-应用怎样使用 Redis
-~~~
-
-切换到：
+到了这一节，需要把视角切换到：
 
 ~~~text
 Redis Server 自己
-如果发生故障怎么办？
 ~~~
 
-进入：
+即使业务代码完全正确，Redis 本身仍然可能面对：
+
+~~~text
+Process Crash
+Container Restart
+机器掉电
+内存耗尽
+磁盘故障
+Redis Node 故障
+网络中断
+~~~
+
+所以 Redis Reliability 不能只理解成：
+
+~~~text
+开了 AOF
+    ↓
+Redis 就可靠了
+~~~
+
+完整框架应该是：
 
 ~~~text
 Redis Reliability
 │
-├── Memory Dataset
-├── RDB
-├── AOF
-├── fsync
-├── AOF Rewrite
-├── Memory Limit
-├── Eviction Policy
-├── Restart Recovery
-├── Replication
-└── Failure Mode
+├── 第一层：Durability
+│     ↓
+│   Redis 重启后数据还在不在？
+│   RDB / AOF / fsync
+│
+├── 第二层：Memory Safety
+│     ↓
+│   内存满了以后怎么办？
+│   maxmemory / Eviction
+│
+├── 第三层：Availability
+│     ↓
+│   Redis 节点挂了还能不能提供服务？
+│   Replication / Failover
+│
+└── 第四层：Recovery
+      ↓
+    故障以后恢复多少数据？
+    多久能够恢复服务？
+    Backup / RPO / RTO
 ~~~
 
-第四节只建立了 RDB / AOF 的位置，第六节再真正深入 Redis 自身怎样做到长期运行、内存可控与故障恢复。
+这四层解决的是不同问题：
 
+~~~text
+Persistence
+    ≠
+Memory Management
+    ≠
+High Availability
+    ≠
+Backup / Disaster Recovery
+~~~
+
+### 【第一层：Durability 解决 Redis 重启以后内存状态能否恢复】
+
+Redis 的主要 Dataset 在 RAM 中。
+
+如果完全没有 Persistence：
+
+~~~text
+Redis Memory
+
+SET A
+SET B
+SET C
+
+    ↓
+
+Process Crash
+Power Off
+Restart
+
+    ↓
+
+Memory Dataset 消失
+~~~
+
+Redis Persistence 的核心作用就是：
+
+> **把内存 Dataset 的某种可恢复表示保存到持久存储，使 Redis Restart 后能够重新构建内存状态。**
+
+Redis Open Source 主要支持：
+
+~~~text
+RDB
+AOF
+No Persistence
+RDB + AOF
+~~~
+
+#### <u>1. RDB 通过周期性 Snapshot 保存某个时间点的 Dataset</u>
+
+RDB 可以理解成：
+
+~~~text
+Redis Memory
+
+Key A
+Key B
+Key C
+   │
+   │ Snapshot
+   ▼
+dump.rdb
+~~~
+
+假设：
+
+~~~text
+10:00
+生成 Snapshot
+
+10:01
+SET A
+
+10:02
+SET B
+
+10:03
+机器突然故障
+~~~
+
+如果 10:00 之后没有新的 Snapshot，那么恢复时只能依赖最近一次可用 Snapshot。
+
+所以 RDB 的基本模型是：
+
+~~~text
+Point-in-time Snapshot
+~~~
+
+它适合：
+
+~~~text
+备份
+灾难恢复
+较紧凑的数据集表示
+较快的大数据集重启恢复
+~~~
+
+但代价是：
+
+~~~text
+Snapshot 之间
+存在数据丢失窗口
+~~~
+
+#### <u>2. AOF 保存改变 Dataset 的写操作</u>
+
+AOF：
+
+~~~text
+Append Only File
+~~~
+
+它不是每次都保存完整 Redis Memory，而是记录类似：
+
+~~~text
+SET session:a ...
+HINCRBY stats accepted 10
+ZADD rate ...
+DEL session:b
+~~~
+
+这些修改 Dataset 的写操作。
+
+可以理解成：
+
+~~~text
+Redis Write Command
+        ↓
+Memory Dataset
+        +
+Append AOF
+~~~
+
+Redis Restart：
+
+~~~text
+AOF
+ ↓
+Replay
+ ↓
+重新执行状态变化
+ ↓
+Rebuild Dataset
+~~~
+
+所以：
+
+~~~text
+RDB
+    ↓
+Snapshot
+
+AOF
+    ↓
+Write Operation Log
+~~~
+
+是两种不同恢复模型。
+
+### 【AOF 的可靠程度真正由 fsync 策略决定】
+
+不能简单理解成：
+
+~~~text
+appendonly yes
+    ↓
+每条写操作已经永久进入磁盘
+~~~
+
+写入路径中通常还有：
+
+~~~text
+Redis
+    ↓
+OS Buffer / Page Cache
+    ↓
+Disk
+~~~
+
+真正控制 AOF 多久同步到底层存储的是 fsync 策略。
+
+Redis 提供：
+
+~~~text
+appendfsync always
+
+appendfsync everysec
+
+appendfsync no
+~~~
+
+#### <u>1. appendfsync always 更偏向 Durability</u>
+
+模型：
+
+~~~text
+Write
+  ↓
+AOF
+  ↓
+fsync
+  ↓
+Disk
+  ↓
+Reply
+~~~
+
+它会增加写路径中的磁盘同步成本。
+
+所以：
+
+~~~text
+Durability 更强
+        ↔
+Write Latency 更高
+~~~
+
+#### <u>2. appendfsync everysec 在性能与持久性之间折中</u>
+
+模型可以近似理解成：
+
+~~~text
+Redis Write
+    ↓
+Memory + AOF Buffer
+    ↓
+
+约每秒执行 fsync
+    ↓
+Disk
+~~~
+
+如果：
+
+~~~text
+Write
+ ↓
+还没 fsync
+ ↓
+机器突然掉电
+~~~
+
+最近的一小段写操作可能丢失。
+
+因此：
+
+~~~text
+Durability
+和
+Performance
+~~~
+
+本身就是 Trade-off。
+
+#### <u>3. appendfsync no 把刷盘时机更多交给操作系统</u>
+
+这种模式：
+
+~~~text
+Redis 不主动要求
+每次或每秒 fsync
+~~~
+
+通常性能更高，但持久性保证更弱。
+
+### 【当前 Browser Monitor 明确开启 AOF，但 Compose 没有显式指定 fsync 策略】
+
+当前 Docker Compose：
+
+~~~yaml
+redis:
+  image: redis:7.4-alpine
+  command:
+    - redis-server
+    - --appendonly
+    - "yes"
+  volumes:
+    - monitor-redis-data:/data
+~~~
+
+源码能够明确确认：
+
+~~~text
+AOF
+    Enabled
+
+/data
+    Docker Volume
+~~~
+
+所以：
+
+~~~text
+Redis Container Restart
+~~~
+
+不等于：
+
+~~~text
+Dataset 一定全部消失
+~~~
+
+因为持久化文件位于 Volume 中。
+
+但是当前 Compose 没有显式写出：
+
+~~~text
+appendfsync always
+appendfsync everysec
+appendfsync no
+~~~
+
+因此文档需要区分：
+
+~~~text
+项目明确配置
+    ↓
+appendonly yes
+
+Redis 默认行为
+    ↓
+appendfsync everysec
+~~~
+
+后者是 Redis 默认策略，不是当前仓库显式配置。
+
+### 【AOF 不能无限增长，因此还需要 Rewrite】
+
+假设：
+
+~~~text
+INCR count
+INCR count
+INCR count
+...
+~~~
+
+执行很多次。
+
+当前 Dataset 可能最终只有：
+
+~~~text
+count = 1000000
+~~~
+
+但如果 AOF 永远保留所有历史写操作，文件会持续增长。
+
+所以 Redis 需要：
+
+~~~text
+AOF Rewrite
+~~~
+
+它的目标不是改变当前 Dataset，而是根据当前状态生成更紧凑的恢复表示。
+
+可以理解成：
+
+~~~text
+Old AOF
+大量历史写操作
+        ↓
+Background Rewrite
+        ↓
+New AOF
+只保留恢复当前状态
+真正需要的信息
+~~~
+
+因此 AOF 体系应该理解成：
+
+~~~text
+Append
++
+fsync
++
+Background Rewrite
++
+Restart Replay
+~~~
+
+而不是单纯的“无限追加一个文件”。
+
+<!-- REDIS_SECTION_6_CONTINUE -->
 
 ## 参考资料
 
