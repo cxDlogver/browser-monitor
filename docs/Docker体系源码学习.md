@@ -1831,7 +1831,7 @@ Container
 
 所以 Bind Mount 的核心不是“把文件复制进 Container”，而是让 Container 某个路径直接映射到 Host 的真实路径，双方默认共享并可修改同一份挂载内容。
 
-### 【tmpfs 为 Container 提供独立于 Writable Layer 的临时文件系统】
+### 【tmpfs 为只读 Root Filesystem 提供受控的临时可写区域】
 
 理解 tmpfs 前，先把 Container 的几种写入位置放在一起：
 
@@ -1839,7 +1839,7 @@ Container
 Container 运行时写文件
         │
         ├── Container Writable Layer
-        │      随 Container 删除
+        │      默认可写层，Container 删除后一起消失
         │
         ├── Named Volume
         │      Docker 管理，独立持久化
@@ -1853,13 +1853,11 @@ Container 运行时写文件
                Container 停止后不保留
 ~~~
 
-tmpfs 解决的是：
-
-> 程序需要写文件，但这些文件既不应该进入 Container Writable Layer，也不需要长期持久化。
+tmpfs 适合处理：程序运行期间必须写，但不需要长期保存，并且希望这部分写入与普通 Container Writable Layer 分离的数据。
 
 Docker 官方说明，tmpfs Mount 是临时存储，主要位于 Host Memory 中；Container 停止后 Mount 被移除，数据不会继续保留。Linux 可能把内存页换出到 Swap，所以不能绝对理解成“永远只在物理 RAM 中”。[[13]](https://docs.docker.com/engine/storage/tmpfs/)
 
-#### <u>1. tmpfs 也需要指定 Container Path</u>
+#### <u>1. tmpfs 也需要指定 Container 内的 Mount Path</u>
 
 完整 Compose：
 
@@ -1872,25 +1870,23 @@ services:
       - /tmp
 ~~~
 
-含义：
+这里不是创建一个叫 tmp 的 Volume，而是：
 
 ~~~text
 services.app.tmpfs
 ↓
-给 app Container 创建一个 tmpfs
+为 app Container 创建 tmpfs
 ↓
-挂到 Container 内 /tmp
+Mount 到 Container 内 /tmp
 ~~~
 
-应用还是正常读写：
+应用仍然正常读写：
 
 ~~~text
 /tmp/file.txt
 ~~~
 
-只是这个路径背后的存储不再是 Container Writable Layer，而是 tmpfs。
-
-#### <u>2. tmpfs 改变的是某个 Container Path 背后的 Storage Backend</u>
+只是 /tmp 背后的 Storage Backend 改变了。
 
 没有 tmpfs：
 
@@ -1914,60 +1910,100 @@ Process
 tmpfs Temporary Storage
 ~~~
 
-所以：
+所以 Container Path 没变，变的是 Path 背后的实际存储位置。
 
-~~~text
-Container Path
-没有变化
-
-Path 背后的 Storage Backend
-发生变化
-~~~
-
-这和 Volume 的 Mount 机制很像，但目的不同：
+#### <u>2. tmpfs 与 Named Volume 的核心差异是数据生命周期</u>
 
 ~~~text
 Named Volume
-为了长期持久化
+→ Container 删除后仍希望数据保留
+→ Database / Upload / Persistent State
 
 tmpfs
-为了临时写入
+→ 只需要当前 Container 运行期间存在
+→ Temporary File / Cache / Browser Profile
 ~~~
 
-#### <u>3. tmpfs 适合哪些数据</u>
+适合 tmpfs 的内容包括 Temporary Files、Runtime Cache、Browser Temporary Profile、PID / Lock 等短生命周期运行文件、一次任务的中间结果、不需要长期保留的临时敏感数据。
 
-适合：
+通常不适合 Database Data、User Upload、长期日志归档、审计记录，以及 Container 重建后仍需要恢复的数据。
+
+#### <u>3. read_only: true 限制的是普通 Root Filesystem 写入</u>
+
+默认 Container 可以把运行时文件写入 Container Writable Layer。
+
+如果 Compose 设置：
+
+~~~yaml
+services:
+  app:
+    read_only: true
+~~~
+
+可以理解为：
 
 ~~~text
-Temporary Files
-Runtime Cache
-Browser Temporary Profile
-短生命周期中间结果
-不希望长期持久化的临时敏感数据
+Container Root Filesystem
+↓
+以 Read-only 方式使用
+↓
+程序不能再通过普通 Root Filesystem
+随意写入 Container Writable Layer
 ~~~
 
-不适合：
+于是：
 
 ~~~text
-Database Data
-User Upload
-长期日志归档
-Container 重建后仍需恢复的数据
+write /app/a.txt
+→ 失败
+
+write /etc/a.conf
+→ 失败
 ~~~
 
-#### <u>4. Browser Monitor 的 Audit Worker 为什么使用 tmpfs</u>
+但 read_only: true 不意味着 Container 任何地方都不能写。仍然可以通过 tmpfs、Volume、Bind Mount 显式开放可写区域。
 
-当前 Compose：
+例如：
+
+~~~yaml
+services:
+  app:
+    read_only: true
+    tmpfs:
+      - /tmp
+~~~
+
+形成：
+
+~~~text
+Container
+/
+├── app/   Read-only
+├── etc/   Read-only
+├── usr/   Read-only
+└── tmp/   Writable ← tmpfs
+~~~
+
+因此：
+
+~~~text
+write /app/a.txt
+→ 失败
+
+write /tmp/a.txt
+→ 成功
+~~~
+
+这也是 read_only 与 tmpfs 经常一起出现的原因：大部分 Root Filesystem 禁止写，只给确实需要 Runtime 写入的路径显式开放可写空间。
+
+#### <u>4. Browser Monitor 的 Audit Worker 正是这个组合</u>
+
+当前：
 
 ~~~yaml
 services:
   audit-worker:
-    build:
-      context: ../..
-      dockerfile: platform/infra/Dockerfile.audit-worker
-
     read_only: true
-
     tmpfs:
       - /tmp:size=1g,mode=1777
 ~~~
@@ -1980,61 +2016,29 @@ ENV XDG_CONFIG_HOME=/tmp/.config
 ENV XDG_CACHE_HOME=/tmp/.cache
 ~~~
 
-需要一起看：
-
-~~~text
-read_only: true
-↓
-Container Root Filesystem 默认只读
-~~~
-
-但 Chromium / Lighthouse 运行时仍需要：
-
-~~~text
-Temporary File
-Browser Profile
-Cache
-Config
-~~~
-
-于是：
-
-~~~text
-HOME=/tmp
-XDG_CONFIG_HOME=/tmp/.config
-XDG_CACHE_HOME=/tmp/.cache
-        ↓
-把临时写入集中到 /tmp
-~~~
-
-再通过：
-
-~~~yaml
-tmpfs:
-  - /tmp:size=1g,mode=1777
-~~~
-
-给 /tmp 一个明确可写的临时文件系统。
-
 完整链：
 
 ~~~text
 Audit Worker Container
-Root FS = Read-only
-        │
-        └── /tmp
-             ↓ tmpfs mount
-          Temporary Writable Area
-             ↓
-          Chromium / Lighthouse
-          写临时文件和 Cache
-             ↓
-          Container Stop
-             ↓
-          Temporary Data Discarded
+↓
+Root Filesystem = Read-only
+│
+├── /app   不允许普通写入
+├── /etc   不允许普通写入
+│
+└── /tmp
+     ↓ tmpfs Mount
+  Temporary Writable Area
+     ↓
+  Chromium / Lighthouse
+  写 Profile / Cache / Temporary File
+     ↓
+  Container Stop
+     ↓
+  Temporary Data Discarded
 ~~~
 
-所以当前 tmpfs 的主要价值不是简单“加速”，而是在 Root Filesystem 只读的安全约束下，只开放一个明确、临时、可丢弃的写入区域。
+所以当前 tmpfs 的主要价值不是简单“加速”，而是在 Root Filesystem 只读的安全约束下，只为 Chromium / Lighthouse 提供一个明确、受控、可丢弃的写入区域。
 
 ### 【Compose Default Network 让 Service 获得可互通的 Container 网络】
 
@@ -4214,42 +4218,317 @@ Deployment Environment
 
 当前 Compose 有开发默认值，但这不能理解为 Production Secret Management 已完成。
 
-### 【Debug 应沿对象链逐层排查】
+### 【Docker 常用命令围绕初始化、启动、验证和排障展开】
 
-固定顺序：
+Docker CLI 命令很多，但日常项目开发真正高频的命令并不多。命令应该继续挂在前面的对象模型上理解：
 
 ~~~text
-1. Image 是否 Build 成功
-2. Container 是否创建
-3. Container 是否 Running / Exited
-4. Main Command 是什么
-5. Logs 报什么
-6. Environment 是否正确
-7. Network 是否可达
-8. Volume 是否挂载
-9. Healthcheck 是否通过
+Project
+↓ docker init
+Dockerfile / compose.yaml / .dockerignore
+↓
+Image Build
+↓
+Container / Compose Runtime
+↓
+Status / Logs / Exec / Inspect
+↓
+Stop / Down
 ~~~
 
-Image：
+这一节不做命令大全，只保留能完成一次完整 Docker 工作流的核心命令。
 
-~~~bash
-docker images
-docker image history <image>
-docker inspect <image>
+#### <u>1. docker init 为项目生成 Docker 初始配置</u>
+
+假设原始 Node 项目：
+
+~~~text
+my-api/
+├── package.json
+├── package-lock.json
+└── src/
+    └── main.js
 ~~~
 
-Container：
+项目原来通过 npm install、npm start 运行，并监听 3000。
+
+进入项目根目录：
 
 ~~~bash
-docker ps
-docker ps -a
-docker logs <container>
-docker logs -f <container>
-docker exec -it <container> sh
+cd my-api
+docker init
+~~~
+
+Docker Desktop 提供的 docker init 会交互式询问 Application Platform、Runtime Version、Package Manager、Build、Start Command、Port 等信息，并生成 Docker Starter Files。[[15]](https://docs.docker.com/reference/cli/docker/init/)
+
+通常生成：
+
+~~~text
+my-api/
+├── src/
+├── package.json
+├── package-lock.json
+├── Dockerfile
+├── compose.yaml
+├── .dockerignore
+└── README.Docker.md
+~~~
+
+docker init 只是生成起点，生成后仍要根据真实项目检查 Runtime Boundary、Port、Volume、Environment 和启动命令。
+
+#### <u>2. 初始化后先检查最终 Compose 配置</u>
+
+至少确认：
+
+~~~text
+Dockerfile
+├── FROM 使用什么 Runtime
+├── COPY 哪些文件
+├── RUN 如何安装 / Build
+└── CMD 启动什么 Process
+
+compose.yaml
+├── build / image
+├── environment
+├── ports
+├── volumes
+└── depends_on / healthcheck / restart
+~~~
+
+然后执行：
+
+~~~bash
+docker compose config
+~~~
+
+它用于确认 Compose YAML、Environment Variable、Service、Port、Volume、Network、Profile 等最终解析结果。
+
+#### <u>3. 一条命令完成 Build 与启动</u>
+
+配置确认后：
+
+~~~bash
+docker compose up -d --build
+~~~
+
+执行链：
+
+~~~text
+读取 compose.yaml
+↓
+需要 Build 的 Service 构建 Image
+↓
+需要 Pull 的 Service 获取 Image
+↓
+创建 Network / Volume
+↓
+Create Container
+↓
+按 Dependency Start Container
+↓
+-d 后台运行
+~~~
+
+Docker 官方将 docker compose up 定义为创建并启动 Service Container；--build 表示启动前构建需要构建的 Image。[[16]](https://docs.docker.com/reference/cli/docker/compose/up/)
+
+#### <u>4. 启动以后按“状态 → 日志 → Container 内部”排查</u>
+
+先看状态：
+
+~~~bash
+docker compose ps
+~~~
+
+如果有 Migration 等 One-shot Job：
+
+~~~bash
+docker compose ps --all
+~~~
+
+再看某个 Service 日志：
+
+~~~bash
+docker compose logs -f api
+~~~
+
+需要进入 Container：
+
+~~~bash
+docker compose exec api sh
+~~~
+
+最基本排障链：
+
+~~~text
+docker compose ps
+↓
+哪个 Service 状态异常？
+
+docker compose logs -f <service>
+↓
+Process 为什么失败？
+
+docker compose exec <service> sh
+↓
+进入 Container 检查 Environment / Filesystem / Network
+~~~
+
+如果要查看底层 Docker 配置，可以使用：
+
+~~~bash
 docker inspect <container>
 ~~~
 
-Storage：
+常用于检查 Environment、Port Binding、Network、Mount、Image、Command 和 Restart Policy。
+
+#### <u>5. 从 Docker 初始化到运行的一条完整示例</u>
+
+第一次给普通 Node API 配置 Docker，可以按下面一条链执行：
+
+~~~bash
+# 1. 进入项目
+cd my-api
+
+# 2. 生成 Docker 初始配置
+docker init
+
+# 3. 检查最终 Compose 配置
+docker compose config
+
+# 4. Build Image 并后台启动 Service
+docker compose up -d --build
+
+# 5. 查看运行状态
+docker compose ps
+
+# 6. 查看 API 日志
+docker compose logs -f api
+~~~
+
+假设生成后的 Compose 中 API 为：
+
+~~~yaml
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "8080:3000"
+~~~
+
+而 Node Process 在 Container 内监听：
+
+~~~text
+0.0.0.0:3000
+~~~
+
+那么完整运行链：
+
+~~~text
+Host Project
+my-api/
+↓
+docker init
+↓
+Dockerfile + compose.yaml + .dockerignore
+↓
+docker compose config
+↓
+确认最终 Runtime Configuration
+↓
+docker compose up -d --build
+↓
+Dockerfile + Build Context
+↓
+Image
+↓
+API Container
+↓
+Node Process listen :3000
+↓
+ports: 8080:3000
+↓
+Host Browser
+http://localhost:8080
+~~~
+
+如果访问异常：
+
+~~~bash
+docker compose ps
+docker compose logs -f api
+docker compose exec api sh
+~~~
+
+调试完成后：
+
+~~~bash
+docker compose down
+~~~
+
+Docker 官方说明，docker compose down 默认停止并移除 Compose 创建的 Service Container 与 Network。[[17]](https://docs.docker.com/reference/cli/docker/compose/down/)
+
+所以最值得记住的完整指令链就是：
+
+~~~text
+docker init
+↓
+docker compose config
+↓
+docker compose up -d --build
+↓
+docker compose ps
+↓
+docker compose logs -f <service>
+↓
+docker compose exec <service> sh
+↓
+docker compose down
+~~~
+
+#### <u>6. 单 Container 项目才更多直接使用 docker build 与 docker run</u>
+
+没有 Compose 时：
+
+~~~bash
+docker build -t my-api:1.0 .
+
+docker run -d \
+  --name my-api \
+  -p 8080:3000 \
+  my-api:1.0
+~~~
+
+关系：
+
+~~~text
+docker build
+Dockerfile + Build Context
+↓
+Image
+
+docker run
+Image
+↓
+Create Container
+↓
+Start Container
+~~~
+
+查看与排障保留几个关键命令即可：
+
+~~~bash
+docker ps -a
+docker logs -f my-api
+docker exec -it my-api sh
+docker inspect my-api
+~~~
+
+需要区分：docker run 是从 Image 创建并启动新 Container；docker compose up 是按照 Compose Runtime Topology 一次组织多个 Service。
+
+#### <u>7. Volume 与 Network 命令主要用于排障</u>
+
+Volume：
 
 ~~~bash
 docker volume ls
@@ -4263,17 +4542,25 @@ docker network ls
 docker network inspect <network>
 ~~~
 
-Compose：
+最后把高频命令压缩为：
 
-~~~bash
-docker compose ps
-docker compose logs
-docker compose logs -f api
-docker compose exec api sh
-docker compose config
+~~~text
+初始化        docker init
+检查配置      docker compose config
+启动          docker compose up -d --build
+状态          docker compose ps
+日志          docker compose logs -f <service>
+进入 Container docker compose exec <service> sh
+关闭          docker compose down
 ~~~
 
-docker compose config 很适合确认 Environment Interpolation、Anchor、Profile 和最终生效配置。
+需要特别谨慎：
+
+~~~bash
+docker compose down -v
+~~~
+
+`-v` 会连相关 Volume 一起删除，如果其中保存数据库数据，就可能一起被清除。
 
 ### 【Docker 在 CI/CD 中连接 Build、Release 与 Deploy】
 
@@ -4500,13 +4787,16 @@ Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 12. Docker Docs, **Port publishing and mapping**：https://docs.docker.com/engine/network/port-publishing/
 13. Docker Docs, **tmpfs mounts**：https://docs.docker.com/engine/storage/tmpfs/
 14. Docker Docs, **Using profiles with Compose**：https://docs.docker.com/compose/how-tos/profiles/
-15. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
-16. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
-17. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
-18. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
-19. Browser Monitor：browser-monitor/platform/infra/Caddyfile
-20. Browser Monitor：browser-monitor/platform/apps/api/package.json
-21. Browser Monitor：browser-monitor/platform/apps/worker/package.json
-22. Browser Monitor：browser-monitor/platform/apps/web/package.json
-23. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
-24. Browser Monitor：browser-monitor/sdk/package.json
+15. Docker Docs, **docker init**：https://docs.docker.com/reference/cli/docker/init/
+16. Docker Docs, **docker compose up**：https://docs.docker.com/reference/cli/docker/compose/up/
+17. Docker Docs, **docker compose down**：https://docs.docker.com/reference/cli/docker/compose/down/
+18. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
+19. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
+20. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
+21. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
+22. Browser Monitor：browser-monitor/platform/infra/Caddyfile
+23. Browser Monitor：browser-monitor/platform/apps/api/package.json
+24. Browser Monitor：browser-monitor/platform/apps/worker/package.json
+25. Browser Monitor：browser-monitor/platform/apps/web/package.json
+26. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
+27. Browser Monitor：browser-monitor/sdk/package.json
