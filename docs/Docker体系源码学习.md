@@ -1918,75 +1918,375 @@ Container
 Compose Service
 ~~~
 
-### 【image 与 build 表示两种 Image 来源】
+### 【image 与 build 必须放在 Compose Service 中理解 Image 从哪里来】
 
-直接使用 Registry Image：
-
-~~~yaml
-redis:
-  image: redis:7.4-alpine
-~~~
-
-表示：
-
-~~~text
-Registry
-↓ pull
-Image
-↓
-Container
-~~~
-
-自己构建：
+先看完整 Compose 结构：
 
 ~~~yaml
-api:
-  build:
-    context: .
-    dockerfile: Dockerfile
+services:
+  redis:
+    image: redis:7.4-alpine
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
 ~~~
 
-表示：
+这里：
 
 ~~~text
-Local Build Context
-+
-Dockerfile
-↓
-Build Image
-↓
-Container
+services
+├── redis
+│   └── image
+│
+└── api
+    └── build
 ~~~
 
-### 【depends_on 解决启动依赖，但 Ready 需要 Condition】
+也就是说 `image` 和 `build` 都属于某个 Service。
 
-仅仅“Container 已启动”不代表内部应用已经 Ready。
+#### <u>1. image 表示使用已经存在的 Image</u>
 
-例如：
+~~~yaml
+services:
+  redis:
+    image: redis:7.4-alpine
+~~~
+
+执行链：
 
 ~~~text
+我要运行 redis Service
+↓
+需要 redis:7.4-alpine Image
+↓
+本机没有时从 Registry Pull
+↓
+Image 进入本地 Docker Image Store
+↓
+根据 Image 创建 Redis Container
+↓
+Redis Process 启动
+~~~
+
+所以 `image` 主要回答：这个 Service 用哪一个已经构建好的 Image？
+
+#### <u>2. build 表示先根据 Dockerfile 构建 Image</u>
+
+~~~yaml
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+~~~
+
+执行链：
+
+~~~text
+Compose 读取 api.build
+↓
+context: .
+确定 Build Context
+↓
+dockerfile: Dockerfile
+确定 Build Rule
+↓
+执行 Image Build
+↓
+得到本地 Image
+↓
+Create API Container
+~~~
+
+所以 `build` 主要回答：这个 Service 的 Image 应该怎样从当前源码构建出来？
+
+#### <u>3. Browser Monitor 中两种方式同时存在</u>
+
+文件：
+
+~~~text
+browser-monitor/platform/infra/docker-compose.yml
+~~~
+
+基础设施：
+
+~~~yaml
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg17
+
+  redis:
+    image: redis:7.4-alpine
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+~~~
+
+这些使用已经发布的第三方 Image。
+
+业务应用：
+
+~~~yaml
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+  web:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.web
+~~~
+
+这些要把当前仓库源码 Build 成 Image。
+
+因此当前项目可以先分成：
+
+~~~text
+Third-party Infrastructure
+→ image
+
+Project-owned Application
+→ build
+~~~
+
+这不是单纯语法差异，而是 Image 来源不同。
+
+### 【depends_on 与 healthcheck 要从“被依赖 Service”和“依赖 Service”两边一起理解】
+
+只写：
+
+~~~yaml
+depends_on:
+  db:
+    condition: service_healthy
+~~~
+
+没有完整上下文。
+
+至少应该看到两个 Service：
+
+~~~yaml
+services:
+  db:
+    image: postgres:17
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    image: my-api:1.0
+
+    depends_on:
+      db:
+        condition: service_healthy
+~~~
+
+这里有两个配置位置：
+
+~~~text
+services.db.healthcheck
+写在 db 自己身上
+回答：
+“怎么判断 db 是否健康？”
+
+services.api.depends_on
+写在 api 身上
+回答：
+“api 启动前要等谁达到什么状态？”
+~~~
+
+#### <u>1. 为什么只知道 Container Started 还不够</u>
+
+数据库启动通常经历：
+
+~~~text
+Docker 创建 Container
+↓
 Database Process Started
-≠
-Database Ready for Query
+↓
+读取配置
+↓
+初始化数据目录
+↓
+加载内部状态
+↓
+开始真正接受连接
 ~~~
 
-因此需要 Healthcheck，并在依赖方使用 service_healthy。
+所以：
 
-Docker 官方明确区分：
+~~~text
+Process Started
+≠
+Service Ready
+~~~
+
+如果 API 太早连接：
+
+~~~text
+API Start
+↓
+Connect DB
+↓
+DB 仍在初始化
+↓
+Connection Failed
+~~~
+
+这就是 Startup Race。
+
+#### <u>2. healthcheck 定义“如何判断这个 Service Ready”</u>
+
+~~~yaml
+services:
+  db:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+~~~
+
+Docker 会：
+
+~~~text
+启动 DB Container
+↓
+周期执行 pg_isready
+↓
+检查成功
+↓
+DB Health = healthy
+~~~
+
+所以 `healthcheck` 属于被依赖的 `db` Service。
+
+#### <u>3. depends_on condition 定义“依赖方要等到哪个状态”</u>
+
+~~~yaml
+services:
+  api:
+    depends_on:
+      db:
+        condition: service_healthy
+~~~
+
+表示：
+
+~~~text
+API 想启动
+↓
+检查 db Dependency
+↓
+要求 db = healthy
+↓
+满足后再启动 API
+~~~
+
+Docker 官方 Compose 文档明确说明 `service_healthy` 会等待依赖 Service 的 Healthcheck 通过。[[10]](https://docs.docker.com/compose/how-tos/startup-order/)
+
+#### <u>4. 三种 Condition 对应依赖方的三个生命周期状态</u>
 
 ~~~text
 service_started
+只要求 Container 已启动
+
 service_healthy
+要求 Healthcheck 已通过
+
 service_completed_successfully
+要求一次性 Job 成功退出
 ~~~
 
-三类依赖条件。[[10]](https://docs.docker.com/compose/how-tos/startup-order/)
+它们回答的是：我需要等依赖方走到生命周期的哪一步？
 
-| Condition | 适合场景 |
-| --- | --- |
-| service_started | 只要求依赖 Container 已启动 |
-| service_healthy | 要求依赖通过 Health Check |
-| service_completed_successfully | 要求一次性 Job 成功退出 |
+#### <u>5. Browser Monitor 当前第一条依赖：TimescaleDB → Migration</u>
+
+~~~yaml
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg17
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor -d monitor"]
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+~~~
+
+执行：
+
+~~~text
+TimescaleDB Container Start
+↓
+pg_isready
+↓
+healthy
+↓
+migrate Container 才启动
+~~~
+
+#### <u>6. Browser Monitor 当前第二条依赖：Migration / Redis → API</u>
+
+~~~yaml
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.backend
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+~~~
+
+含义：
+
+~~~text
+API 要启动
+├── Migration 必须 Exit 0
+└── Redis 必须 Healthy
+↓
+两个条件都满足
+↓
+API Container Start
+~~~
+
+所以完整关系不是抽象的 `DB → API`，而是：
+
+~~~text
+TimescaleDB
+↓ healthy
+Migration
+↓ completed successfully
+API
+
+Redis
+↓ healthy
+API
+~~~
+
+这才是 Compose Runtime Dependency 的真实含义。
 
 ### 【One-shot Job 与 Long-running Service 生命周期不同】
 
