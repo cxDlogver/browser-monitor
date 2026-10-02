@@ -1172,102 +1172,602 @@ Host 如何访问它
 
 因此 Runtime 还要理解 Storage 和 Network。
 
-### 【Container Writable Layer 与 Container 生命周期绑定】
+### 【Container Writable Layer 是“这个 Container 自己临时拥有的可写文件层”】
 
-运行中的 Container 可以修改自己的文件系统：
+理解 Volume 前，必须先理解一个 Container 的文件系统是怎样组成的。
+
+Image 可以先看成一组只读 Layer：
 
 ~~~text
-Image Read-only Layers
-        +
+Image
+
+Layer A
+Base Linux Files
+
+Layer B
+Node Runtime
+
+Layer C
+Application Files
+
+Layer D
+Dependencies
+~~~
+
+Docker 根据 Image 创建 Container 时，不直接修改这些 Image Layer，而是在最上面增加一个只属于这个 Container 的 Writable Layer（可写层）。
+
+~~~text
+Container
+
+Container Writable Layer   ← 当前 Container 自己写文件的位置
+────────────────────────
+Image Layer D              ← Read-only
+Image Layer C              ← Read-only
+Image Layer B              ← Read-only
+Image Layer A              ← Read-only
+~~~
+
+Docker 官方说明，默认情况下 Container 内新建或修改的文件会写入这个 writable container layer。[[1]](https://docs.docker.com/engine/storage)
+
+#### <u>1. 为什么 Container 需要 Writable Layer</u>
+
+假设 Image 里原来只有：
+
+~~~text
+/app/
+└── server.js
+~~~
+
+Container 启动以后，应用可能生成：
+
+~~~text
+/app/log.txt
+/tmp/cache.json
+/data/result.json
+~~~
+
+这些是 Runtime 新产生的文件。如果没有额外挂载 Volume / Bind Mount，它们默认进入这个 Container 自己的 Writable Layer。
+
+所以：
+
+~~~text
+Image
+提供初始文件
+
+Container Writable Layer
+保存这个 Container 运行后产生的文件变化
+~~~
+
+#### <u>2. stop 和 remove 必须区分</u>
+
+只执行：
+
+~~~bash
+docker stop my-container
+~~~
+
+Container 还存在。
+
+再次：
+
+~~~bash
+docker start my-container
+~~~
+
+仍然是同一个 Container、同一个 Writable Layer，因此这些运行时文件通常还在。
+
+但如果：
+
+~~~bash
+docker rm my-container
+~~~
+
+或者 Compose 删除旧 Container 后重新创建一个新的 Container：
+
+~~~text
+old Container
+被删除
+↓
+它自己的 Writable Layer 一起删除
+↓
+new Container
+从 Image 创建新的 Writable Layer
+~~~
+
+因此长期数据不能只依赖 Writable Layer。
+
+#### <u>3. 数据库为什么特别不能只写 Writable Layer</u>
+
+假设数据库程序把数据写到：
+
+~~~text
+/var/lib/database
+~~~
+
+没有 Volume：
+
+~~~text
+Database Process
+    ↓ write
+/var/lib/database
+    ↓
 Container Writable Layer
 ~~~
 
-如果只把数据库数据写进 Container Writable Layer：
+如果 Container 被删除并重新创建：
 
 ~~~text
-Database Container
-└── database files
+Writable Layer 删除
+↓
+数据库文件一起丢失
 ~~~
 
-这些数据和 Container 生命周期强绑定。
+数据库真正需要的是：
 
-Docker 官方说明，Container 删除时，没有保存到 Persistent Storage 的状态会消失。[[1]](https://docs.docker.com/get-started/docker-overview/)
+~~~text
+Application Container
+可以替换
 
-长期状态应该从 Container 生命周期中分离。
+Database Data
+独立保留
+~~~
 
-### 【Volume 用于 Docker 管理的持久化数据】
+因此需要把 Data Lifecycle 从 Container Lifecycle 中分离，这正是 Volume 的作用。
 
-Named Volume：
+### 【Named Volume 把 Container 内某个目录改为独立持久化存储】
+
+先看完整 Compose 上下文：
 
 ~~~yaml
 services:
   db:
+    image: postgres:17
+
     volumes:
-      - db-data:/var/lib/database
+      - db-data:/var/lib/postgresql/data
 
 volumes:
   db-data:
 ~~~
 
-关系：
+这里有两处 `db-data`：
+
+~~~text
+services.db.volumes
+使用这个 Volume
+
+顶层 volumes.db-data
+声明这个 Named Volume
+~~~
+
+#### <u>1. db-data:/var/lib/postgresql/data 是 SOURCE:TARGET 语法</u>
+
+短语法：
+
+~~~text
+SOURCE : TARGET
+~~~
+
+这里：
+
+~~~text
+db-data : /var/lib/postgresql/data
+~~~
+
+左边 `db-data` 是 Docker Named Volume 名称。
+
+右边 `/var/lib/postgresql/data` 是 Container 内部路径。
+
+所以这不是两个 Host 路径。
+
+完整关系：
+
+~~~text
+Docker Host
+Docker Managed Volume
+db-data
+      │
+      │ mount
+      ▼
+Container Filesystem
+/var/lib/postgresql/data
+      │
+      ▼
+PostgreSQL Process
+在这里读写数据库文件
+~~~
+
+#### <u>2. 右边的 Container Path 从哪里来</u>
+
+`/var/lib/postgresql/data` 不是 Docker 自动猜出来的。
+
+它来自应用本身对“数据目录”的约定。
+
+例如：
+
+~~~text
+PostgreSQL
+有自己的数据库数据目录
+
+Redis
+常见数据目录是 /data
+
+自定义应用
+可能使用 /app/uploads
+或 /app/storage
+~~~
+
+配置 Volume 时，要先知道：
+
+> 应用真正把长期数据写到 Container 内哪个路径。
+
+然后把 Volume Mount 到这个路径。
+
+#### <u>3. mount 之后到底发生什么</u>
+
+没有 Volume：
+
+~~~text
+PostgreSQL
+↓ write
+/var/lib/postgresql/data
+↓
+Container Writable Layer
+~~~
+
+使用 Volume：
+
+~~~text
+PostgreSQL
+↓ write
+/var/lib/postgresql/data
+↓
+这个 Container Path 已被 Volume Mount 接管
+↓
+实际数据写进 db-data Volume
+~~~
+
+所以**改变的是这个 Container Path 的底层存储来源**。
+
+从 PostgreSQL 看，它仍然只是在读写：
+
+~~~text
+/var/lib/postgresql/data
+~~~
+
+程序不需要知道 Docker 在 Host 上把 Volume 放在哪里。
+
+Docker 负责 Volume Creation、Storage Location、Mount、Lifecycle、Inspection 和 Removal。Docker 官方明确说明 Named Volume 由 Docker Daemon 创建和管理，数据位于 Docker Host 的 Docker Storage 中。[[8]](https://docs.docker.com/engine/storage/volumes/)
+
+#### <u>4. 为什么删除 Container 后数据还在</u>
+
+第一次：
+
+~~~text
+db Container A
+    ↓ mount
+db-data Volume
+    ↓
+写入业务数据
+~~~
+
+删除 Container A：
+
+~~~text
+Container A Writable Layer
+删除
+
+db-data Volume
+仍然存在
+~~~
+
+重新创建：
+
+~~~text
+db Container B
+    ↓ mount same db-data
+    ↓
+继续读取以前的数据
+~~~
+
+所以：
 
 ~~~text
 Container
-/var/lib/database
-        │
-        ↓ mount
-Docker Volume
-db-data
+可替换
+
+Volume
+独立生命周期
 ~~~
 
-即使重新创建 Container：
+#### <u>5. Docker 怎么管理这个 Volume</u>
+
+查看：
+
+~~~bash
+docker volume ls
+~~~
+
+检查：
+
+~~~bash
+docker volume inspect db-data
+~~~
+
+删除：
+
+~~~bash
+docker volume rm db-data
+~~~
+
+Named Volume 不是“复制一份目录”，而是 Docker 在 Host 上管理的一份独立持久存储，再把它 Mount 到 Container 指定路径。
+
+#### <u>6. Browser Monitor 当前真实例子</u>
+
+文件：
 
 ~~~text
-old Container deleted
-↓
-new Container created
-↓
-mount same Volume
-↓
-继续读取原数据
+browser-monitor/platform/infra/docker-compose.yml
 ~~~
 
-Docker 官方建议 Volume 用于持久化数据，并指出它由 Docker 管理。[[8]](https://docs.docker.com/engine/storage/volumes/)
+TimescaleDB：
 
-### 【Bind Mount 直接映射 Host 路径】
+~~~yaml
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg17
 
-例如：
+    volumes:
+      - monitor-timescale-data:/home/postgres/pgdata/data
+
+volumes:
+  monitor-timescale-data:
+~~~
+
+拆解：
+
+~~~text
+monitor-timescale-data
+= Docker Named Volume
+
+/home/postgres/pgdata/data
+= TimescaleDB Container 内的数据目录
+~~~
+
+关系：
+
+~~~text
+TimescaleDB Process
+↓ write
+/home/postgres/pgdata/data
+↓ mount
+monitor-timescale-data Volume
+↓
+Docker 管理持久数据
+~~~
+
+Redis：
+
+~~~yaml
+services:
+  redis:
+    image: redis:7.4-alpine
+
+    volumes:
+      - monitor-redis-data:/data
+
+volumes:
+  monitor-redis-data:
+~~~
+
+表示：
+
+~~~text
+Redis Process
+↓ write
+/data
+↓
+monitor-redis-data Volume
+~~~
+
+Volume 的核心不是“把一个目录复制出去”，而是把 Container 内指定路径的存储后端，从 Container Writable Layer 换成独立的 Docker-managed Persistent Storage。
+
+### 【Bind Mount 让 Container 直接读写 Host 上指定的真实文件或目录】
+
+Bind Mount 和 Named Volume 都使用“挂载”概念，但左边的来源完全不同。
+
+Named Volume：
+
+~~~text
+Docker 管理一块存储
+↓
+挂到 Container Path
+~~~
+
+Bind Mount：
+
+~~~text
+Host 上已经存在的具体 Path
+↓
+直接挂到 Container Path
+~~~
+
+完整 Compose：
+
+~~~yaml
+services:
+  web-dev:
+    image: node:22
+
+    volumes:
+      - ./src:/app/src
+~~~
+
+这里：
+
+~~~text
+./src : /app/src
+~~~
+
+仍然是：
+
+~~~text
+SOURCE : TARGET
+~~~
+
+但 SOURCE 变成 Host Path：
+
+~~~text
+./src
+= Host Path
+~~~
+
+TARGET：
+
+~~~text
+/app/src
+= Container Path
+~~~
+
+#### <u>1. 实际映射关系</u>
+
+假设 Host 项目：
+
+~~~text
+Host
+
+/project/
+├── compose.yaml
+└── src/
+    └── App.tsx
+~~~
+
+Compose：
 
 ~~~yaml
 volumes:
   - ./src:/app/src
 ~~~
 
-关系：
+Container 中 `/app/src/App.tsx` 看到的就是 Host 的 `/project/src/App.tsx`。
 
 ~~~text
-Host
-./src
-  ↕
-Container
+Host Filesystem
+
+/project/src
+      ↕
+Bind Mount
+      ↕
+Container Filesystem
+
 /app/src
 ~~~
 
-Bind Mount 常用于：
+Docker 官方把 Bind Mount 定义为 Host Path 与 Container Path 之间的直接映射。[[11]](https://docs.docker.com/engine/storage/bind-mounts/)
+
+#### <u>2. “改变的是什么”</u>
+
+Mount 后，Container 访问 `/app/src` 时，看到的不再是 Image 原本在 `/app/src` 中的内容，而是 Host `./src` 的内容。
+
+例如 Image 原来：
 
 ~~~text
-本地开发源码
-配置文件
-需要 Host 直接编辑 / 查看的数据
+/app/src/
+└── old.js
 ~~~
 
-Volume 与 Bind Mount 更准确的区别：
+Host：
 
-| 类型 | 存储位置由谁决定 | Host 是否直接按路径操作 |
-| --- | --- | --- |
-| Volume | Docker | 通常不依赖固定 Host Path |
-| Bind Mount | 用户指定 Host Path | 是 |
-| tmpfs | Memory | 不做长期持久化 |
+~~~text
+./src/
+└── new.js
+~~~
+
+挂载后 Container 看到：
+
+~~~text
+/app/src/
+└── new.js
+~~~
+
+`old.js` 不是永久被删除，而是在 Mount 存在期间被遮蔽。Docker 官方明确说明，Mount 到非空目录时，原有内容会被 obscured。[[11]](https://docs.docker.com/engine/storage/bind-mounts/)
+
+#### <u>3. 默认情况下 Host 和 Container 修改的是同一份挂载数据</u>
+
+Host 编辑：
+
+~~~text
+/project/src/App.tsx
+~~~
+
+Container 中：
+
+~~~text
+/app/src/App.tsx
+~~~
+
+会看到变化。
+
+反过来，如果 Container 对 `/app/src/App.tsx` 写入，默认也会直接改 Host 文件。
+
+因此 Bind Mount 很适合本地开发：
+
+~~~text
+IDE 在 Host 修改源码
+↓
+Bind Mount
+↓
+Container 看到最新源码
+↓
+Dev Server / Watch Process 重新执行
+~~~
+
+这和 COPY 完全不同：
+
+~~~text
+COPY
+Build 时复制一次
+Host 后续修改不会自动同步进已有 Image
+
+Bind Mount
+Runtime 直接共享 Host Path
+双方看到同一份挂载内容
+~~~
+
+#### <u>4. Bind Mount 为什么更依赖具体机器</u>
+
+如果写：
+
+~~~yaml
+volumes:
+  - /Users/alice/project/config:/app/config
+~~~
+
+则要求 Docker Host 上真实存在 `/Users/alice/project/config`。
+
+换一台机器，Host Path 可能不同。
+
+Named Volume 不要求业务自己固定 Host Path，因此迁移性通常更好。
+
+#### <u>5. 可以配置只读</u>
+
+~~~yaml
+volumes:
+  - ./config:/app/config:ro
+~~~
+
+表示：
+
+~~~text
+Host
+可以编辑
+
+Container
+只能读取
+不能写回
+~~~
+
+所以 Bind Mount 的核心不是“把文件复制进 Container”，而是让 Container 某个路径直接映射到 Host 的真实路径，双方默认共享并可修改同一份挂载内容。
 
 ### 【tmpfs 适合不需要持久化的临时写入】
 
