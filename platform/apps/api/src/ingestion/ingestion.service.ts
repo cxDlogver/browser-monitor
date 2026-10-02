@@ -1,3 +1,6 @@
+// 采集侧核心服务：解码上报 → 校验协议/批头 → 解析项目并校验来源(Origin)与限流 →
+// 逐条校验事件（结构/归属/时间窗）→ 幂等去重 → 落库 telemetry_events 并写入 outbox_tasks
+// 供异步投影，最后把统计计数写入 Redis。
 import {
   ForbiddenException,
   Inject,
@@ -27,12 +30,14 @@ import { API_CONFIG, DATABASE, REDIS } from "../infrastructure/tokens.js";
 import { MetricsService } from "../observability/metrics.service.js";
 import { IngestionRateLimiter } from "./rate-limiter.service.js";
 
+// 从 ingestion_keys 关联出的项目上下文；user_hash_salt 用于把用户标识哈希成匿名 id
 interface IngestionProject {
   project_id: string;
   app_name: string;
   user_hash_salt: string;
 }
 
+// 单次采集请求的汇总结果：accepted 入库成功、duplicate 被幂等去重、rejected 校验不通过
 export interface IngestionResult {
   accepted: number;
   duplicate: number;
@@ -58,6 +63,7 @@ export class IngestionService {
     ip: string,
     requestId: string,
   ): Promise<IngestionResult> {
+    // 采集主流程：解码 → 协议校验 → 解析项目/来源/限流 → 逐条校验事件 → 幂等去重落库 → 统计
     const stopTimer = this.metrics.ingestionDuration.startTimer();
     try {
       // sendBeacon commonly transmits a string as text/plain. Accept the same
@@ -71,6 +77,7 @@ export class IngestionService {
           decodedBody = null;
         }
       }
+      // 协议版本检查：必须是当前受支持的 PROTOCOL_VERSION，否则 422（SDK 版本不兼容）
       if (
         typeof decodedBody !== "object" ||
         decodedBody === null ||
@@ -84,6 +91,7 @@ export class IngestionService {
         });
       }
 
+      // 批头（batch header）结构校验，不通过则 422 并返回字段级错误
       const header = telemetryBatchHeaderV3Schema.safeParse(decodedBody);
       if (!header.success) {
         throw new UnprocessableEntityException({
@@ -95,8 +103,10 @@ export class IngestionService {
         });
       }
 
+      // 解析 publicKey 对应的项目，并校验请求来源是否在项目允许清单内
       const project = await this.resolveProject(publicKey);
       await this.assertOrigin(project.project_id, origin);
+      // 按项目 + 客户端 IP 做限流（事件条数维度），超出则 429
       if (
         !(await this.limiter.consume(
           project.project_id,
@@ -110,6 +120,8 @@ export class IngestionService {
         );
       }
 
+      // 逐条校验事件：结构非法 → invalid_event；app_name 与项目不符 → app_name_mismatch；
+      // 发生时间超出 [-30天, +5分钟] 窗口 → event_time_out_of_range。其余进入 valid 待落库
       const valid: TelemetryEventV3[] = [];
       const rejections: Array<{ index: number; code: string }> = [];
       const now = Date.now();
@@ -168,6 +180,7 @@ export class IngestionService {
             (event) => !existingIds.has(event.eventId),
           );
 
+          // 把协议事件拍平成 telemetry_events 的列式结构（context 拆成 session/view/route/user_hash 等独立列）
           const rows = pending.map((event) => ({
             event_id: event.eventId,
             occurred_at: new Date(event.occurredAt).toISOString(),
@@ -260,6 +273,7 @@ export class IngestionService {
     }
   }
 
+  // 通过写入密钥(publicKey)解析项目：要求密钥 active、未过期，且所属项目 enabled；否则 404
   private async resolveProject(publicKey: string): Promise<IngestionProject> {
     const result = await this.database.pool.query<IngestionProject>(
       `SELECT p.id AS project_id, p.app_name, p.user_hash_salt
@@ -274,6 +288,8 @@ export class IngestionService {
     return project;
   }
 
+  // 来源校验：浏览器自动带 Origin 头，需命中项目允许的 allowed_origins，防止凭密钥向任意站点投递；
+  // 无 Origin 时是否放行由 ALLOW_ORIGINLESS_INGEST 决定（服务端/SSR 上报场景）
   private async assertOrigin(
     projectId: string,
     origin: string | undefined,
@@ -296,6 +312,8 @@ export class IngestionService {
       throw new ForbiddenException({ code: "origin_not_allowed" });
   }
 
+  // 落库前脱敏：URL 剥离查询串；用户 id 用盐+密钥做 HMAC 匿名化（不可逆）；
+  // 用户属性与 event/trace/span 的 attributes 递归脱敏敏感字段（如 email/phone 等）
   private sanitizeEvent(
     event: TelemetryEventV3,
     project: IngestionProject,

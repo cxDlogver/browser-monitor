@@ -1,3 +1,5 @@
+// 项目域服务：项目的增删查、成员与邀请、写入密钥(ingestion key)轮换、
+// 允许来源(Origin)管理、阈值版本管理，以及贯穿全局的资源级鉴权 requireAccess/requireOwner。
 import {
   ConflictException,
   ForbiddenException,
@@ -19,8 +21,10 @@ import {
 import { API_CONFIG, DATABASE } from '../infrastructure/tokens.js';
 import { MailerService } from '../auth/mailer.service.js';
 
+// 项目内角色：owner 可管理成员/密钥/来源/阈值，member 仅可查看
 export type ProjectRole = 'owner' | 'member';
 
+// 项目基本访问信息，由 requireAccess 统一查询并作为鉴权/详情的数据载体
 interface ProjectAccess {
   id: string;
   display_name: string;
@@ -37,6 +41,7 @@ export class ProjectsService {
     private readonly mailer: MailerService,
   ) {}
 
+  // 列出当前用户所属的全部项目（按创建时间倒序），用于控制台首页
   async list(userId: string) {
     const result = await this.database.pool.query<ProjectAccess>(
       `SELECT p.id, p.display_name, p.app_name, p.enabled, pm.role
@@ -55,9 +60,11 @@ export class ProjectsService {
     }));
   }
 
+  // 创建项目：一次性事务内建项目、把创建者设为 owner、生成首个写入密钥(ingestion key)、
+  // 把 PUBLIC_BASE_URL 的来源作为默认允许来源、并写一条审计日志；返回含 DSN 的项目信息
   async create(userId: string, displayName: string, appName: string) {
     const publicKey = createOpaqueToken('bm_pk_');
-    const userHashSalt = createOpaqueToken();
+    const userHashSalt = createOpaqueToken(); // 用户匿名化盐，下发后不可逆还原
     const defaultOrigin = new URL(this.config.PUBLIC_BASE_URL).origin;
     const client = await this.database.pool.connect();
     try {
@@ -101,6 +108,7 @@ export class ProjectsService {
     }
   }
 
+  // 项目详情：鉴权后并行汇总 写入密钥、允许来源、成员、当前生效阈值 四部分
   async detail(userId: string, projectId: string) {
     const access = await this.requireAccess(userId, projectId);
     const [keys, origins, members, thresholds] = await Promise.all([
@@ -138,6 +146,7 @@ export class ProjectsService {
     };
   }
 
+  // 整体替换允许来源：仅 owner 可操作；先去重归一化为 origin，至少保留一个；事务内先清后插并记审计
   async replaceOrigins(userId: string, projectId: string, origins: string[]): Promise<string[]> {
     await this.requireOwner(userId, projectId);
     const normalized = [...new Set(origins.map((value) => new URL(value).origin))];
@@ -164,6 +173,8 @@ export class ProjectsService {
     }
   }
 
+  // 轮换写入密钥：仅 owner 可操作；先把当前生效密钥设为 24 小时后过期（平滑过渡），
+  // 再插入新密钥并记审计；返回新密钥的 DSN
   async rotateKey(userId: string, projectId: string, label: string) {
     await this.requireOwner(userId, projectId);
     const publicKey = createOpaqueToken('bm_pk_');
@@ -201,6 +212,7 @@ export class ProjectsService {
     overrides: Partial<Record<RatedMetricName, Partial<MetricThreshold>>>,
   ) {
     await this.requireOwner(userId, projectId);
+    // 以 DEFAULT_THRESHOLDS 为基线，叠加本次覆盖项，得到完整阈值集合
     const config = mergeThresholds(overrides);
     const client = await this.database.pool.connect();
     try {
@@ -223,6 +235,8 @@ export class ProjectsService {
     }
   }
 
+  // 发起邀请：仅 owner 可操作；写入 7 天有效邀请记录（同邮箱未接受则更新而非重复发），
+  // 随后发送邀请邮件；令牌明文只在邮件中给出，库里只存哈希
   async invite(userId: string, projectId: string, emailInput: string, role: ProjectRole): Promise<void> {
     const project = await this.requireOwner(userId, projectId);
     const email = emailInput.trim().toLowerCase();
@@ -244,6 +258,8 @@ export class ProjectsService {
     await this.mailer.sendInvitation(email, token, project.display_name);
   }
 
+  // 接受邀请：校验令牌有效且未被接受/过期，并确认登录邮箱与邀请邮箱一致，
+  // 随后加入成员（已存在则更新角色）、标记邀请已接受，返回项目 id（FOR UPDATE 防止并发重复加入）
   async acceptInvitation(userId: string, userEmail: string, token: string): Promise<string> {
     const client = await this.database.pool.connect();
     try {
@@ -273,6 +289,8 @@ export class ProjectsService {
     }
   }
 
+  // 重试死信任务：仅 owner 可操作；从 dead_letter_tasks 取出并删除该任务，
+  // 把对应 outbox_tasks 复位为 pending（清空锁与错误计数），交由后台 worker 重新投影
   async retryDeadLetter(userId: string, projectId: string, taskId: string): Promise<void> {
     await this.requireOwner(userId, projectId);
     const client = await this.database.pool.connect();
@@ -299,6 +317,8 @@ export class ProjectsService {
     }
   }
 
+  // 资源级鉴权核心：确认 userId 是 projectId 的成员；不是则 404（对外不暴露"项目存在但无权限"）。
+  // 几乎所有受保护接口都会先调用它，返回的成员信息也直接用于详情组装
   async requireAccess(userId: string, projectId: string): Promise<ProjectAccess> {
     const result = await this.database.pool.query<ProjectAccess>(
       `SELECT p.id, p.display_name, p.app_name, p.enabled, pm.role
@@ -311,12 +331,14 @@ export class ProjectsService {
     return row;
   }
 
+  // 在 requireAccess 之上进一步要求 owner 角色，否则 403
   async requireOwner(userId: string, projectId: string): Promise<ProjectAccess> {
     const access = await this.requireAccess(userId, projectId);
     if (access.role !== 'owner') throw new ForbiddenException({ code: 'owner_role_required' });
     return access;
   }
 
+  // 取项目当前生效阈值：优先项目自建且 active 的版本；若不存在则回退到全局默认阈值（project_id IS NULL）
   private async activeThreshold(projectId: string) {
     const result = await this.database.pool.query<{ id: string; version: number; config: Record<string, unknown>; project_id: string | null }>(
       `SELECT id, version, config, project_id
@@ -331,6 +353,7 @@ export class ProjectsService {
     return result.rows[0] ?? { id: null, version: 1, config: DEFAULT_THRESHOLDS, project_id: null };
   }
 
+  // 由写入密钥拼出 SDK 上报入口的完整 DSN（前端/SDK 用它作为采集上报地址）
   private toDsn(publicKey: string): string {
     return new URL(`/api/v3/ingest/${publicKey}/envelopes`, this.config.PUBLIC_BASE_URL).toString();
   }

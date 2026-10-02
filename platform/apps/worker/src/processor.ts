@@ -1,3 +1,6 @@
+// Worker 的事件投影器：把 outbox 里的原始 telemetry_events 按类型展开写入各类聚合/采样表，
+// 并在成功后回填 telemetry_events.processed_at。性能样本与页面视图用事务级咨询锁串行化，
+// 避免多 Worker 并发对同一 sample/view 产生重复或乱序写入。
 import type { DatabaseHandle } from '@browser-monitor/database';
 import type {
   CustomSignalPayload,
@@ -18,6 +21,7 @@ import type { PoolClient } from 'pg';
 
 import { shouldApplySequence } from './sequence.js';
 
+// 阈值上下文：threshold_versions 的 id（可能为空表示用全局默认）与合并后的完整阈值集
 interface ThresholdContext {
   id: string | null;
   thresholds: ThresholdSet;
@@ -26,6 +30,7 @@ interface ThresholdContext {
 export class EventProcessor {
   constructor(private readonly database: DatabaseHandle) {}
 
+  // 入口：按 event.payload.type 分派到性能/页面/自定义信号三类投影，统一开事务并回填 processed_at
   async process(projectId: string, event: TelemetryEventV3): Promise<void> {
     const client = await this.database.pool.connect();
     try {
@@ -51,6 +56,8 @@ export class EventProcessor {
     }
   }
 
+  // 自定义信号投影：写入 custom_signal_samples（trace/span 额外记录起止时间、时长、链路 id），
+  // 再把 payload.metrics 及 trace/span 的 duration 逐条展开写入 custom_metric_samples
   private async processCustomSignal(
     client: PoolClient,
     projectId: string,
@@ -117,6 +124,8 @@ export class EventProcessor {
       );
     }
   }
+  // 性能样本投影：用咨询锁串行化同一 sample 的并发修订，按 sequence 决定是否覆盖，
+  // 计算服务端评级并结合客户端评级/视图是否结束判定终态，最后按"是否存在"决定插入或更新
   private async processPerformance(
     client: PoolClient,
     projectId: string,
@@ -212,6 +221,8 @@ export class EventProcessor {
     );
   }
 
+  // 页面视图投影：咨询锁串行化同一 view 的 start/end；首条写 view_records，
+  // view.end 则补 ended_at/route/url，并把该 view 下仍为 provisional 的性能样本置为 final
   private async processView(
     client: PoolClient,
     projectId: string,
@@ -274,6 +285,8 @@ export class EventProcessor {
     }
   }
 
+  // 取生效阈值：优先项目自建 active 版本；若无则回退全局默认（project_id IS NULL）；
+  // 项目覆盖项经 mergeThresholds 与 DEFAULT_THRESHOLDS 合并成完整集合
   private async thresholds(client: PoolClient, projectId: string): Promise<ThresholdContext> {
     const result = await client.query<{ id: string; config: Partial<Record<RatedMetricName, Partial<MetricThreshold>>> }>(
       `SELECT id, config FROM threshold_versions
@@ -290,6 +303,7 @@ export class EventProcessor {
       : { id: null, thresholds: DEFAULT_THRESHOLDS };
   }
 
+  // 性能样本 detail 列：FPS/LoAF 保留完整 detail；其余核心指标只保留 delta 与导航上下文，缩减体积
   private performanceDetail(payload: PerformancePayload): Record<string, unknown> {
     if (payload.name === 'FPS' || payload.name === 'LoAF') return payload.detail;
     return {
