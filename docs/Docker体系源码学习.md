@@ -3441,6 +3441,379 @@ restart
 Process 退出以后怎么办
 ~~~
 
+### 【.env 先作为 Compose 变量来源，再由 environment 或 build.args 决定是否进入 Container / Build】
+
+`.env` 最容易产生的误解是：只要文件叫 `.env`，里面的变量就会自动进入所有 Container。
+
+更准确的模型是：
+
+~~~text
+.env
+↓
+Compose Variable Source
+↓
+解析 ${VARIABLE}
+↓
+Compose Configuration
+│
+├── environment
+│      ↓
+│   Container Environment
+│      ↓
+│   Application Process
+│
+└── build.args
+       ↓
+    Dockerfile ARG
+       ↓
+    Image Build
+~~~
+
+所以需要区分两件事：
+
+~~~text
+Compose 能不能读取一个变量
+≠
+这个变量会不会进入 Container
+~~~
+
+Docker Compose 官方将 `.env` / `--env-file` 作为变量插值来源，而 Service 的 `environment`、`env_file` 才负责设置 Container Environment。[[28]](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/) [[29]](https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/)
+
+#### <u>1. --env-file 显式告诉 Compose 从哪个文件读取变量</u>
+
+例如项目目录：
+
+~~~text
+project/
+├── platform/
+│   ├── .env
+│   └── infra/
+│       └── docker-compose.yml
+~~~
+
+启动时：
+
+~~~bash
+docker compose \
+  --env-file platform/.env \
+  -f platform/infra/docker-compose.yml \
+  up
+~~~
+
+这里：
+
+~~~text
+--env-file platform/.env
+↓
+Compose CLI 读取 platform/.env
+↓
+作为 ${VARIABLE} 的取值来源
+~~~
+
+所以当前项目的 `platform/.env` 不是因为名字叫 `.env` 就自动进入所有 Container，而是启动命令显式使用了 `--env-file platform/.env`。
+
+#### <u>2. ${VAR:-default} 是 Compose 解析阶段的变量插值</u>
+
+假设 `platform/.env`：
+
+~~~env
+POSTGRES_PASSWORD=secret
+INGEST_PROJECT_RATE_PER_SECOND=200
+~~~
+
+Compose：
+
+~~~yaml
+services:
+  timescaledb:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-monitor}
+
+  api:
+    environment:
+      INGEST_PROJECT_RATE_PER_SECOND: ${INGEST_PROJECT_RATE_PER_SECOND:-100}
+~~~
+
+解析过程：
+
+~~~text
+${POSTGRES_PASSWORD:-monitor}
+↓
+先查 Compose Variable Source
+↓
+找到 POSTGRES_PASSWORD=secret
+↓
+最终值 secret
+~~~
+
+如果没有提供变量：
+
+~~~text
+${INGEST_PROJECT_RATE_PER_SECOND:-100}
+↓
+变量不存在
+↓
+使用默认值 100
+~~~
+
+这里的 `${...}` 发生在 Compose 配置解析阶段，还没有进入 Application Process。
+
+#### <u>3. environment 决定哪些值真正进入 Container</u>
+
+假设 `.env` 中有：
+
+~~~env
+A=1
+B=2
+C=3
+~~~
+
+Compose 只写：
+
+~~~yaml
+services:
+  api:
+    environment:
+      A: ${A}
+~~~
+
+那么 API Container 最终只有：
+
+~~~text
+A=1
+~~~
+
+`B`、`C` 虽然存在于变量文件中，但没有通过 `environment` 注入该 Service，因此不会自动成为 API Container 的 Environment。
+
+完整链：
+
+~~~text
+.env
+↓
+Compose 能读取 A / B / C
+↓
+environment 只选择 A
+↓
+API Container
+A=1
+~~~
+
+对于 Node.js 程序，最终才可以通过：
+
+~~~js
+process.env.A
+~~~
+
+读取 Container Environment。
+
+#### <u>4. env_file 与 --env-file 的作用层级不同</u>
+
+命令行：
+
+~~~bash
+docker compose --env-file platform/.env up
+~~~
+
+主要作用在 Compose CLI：
+
+~~~text
+.env
+↓
+Compose Variable Interpolation
+↓
+${VAR}
+~~~
+
+而 Service 中：
+
+~~~yaml
+services:
+  api:
+    env_file:
+      - ../.env
+~~~
+
+主要表示：
+
+~~~text
+.env
+↓
+直接作为 api Service 的 Container Environment 来源
+~~~
+
+所以两者不能因为名字都包含 `env-file` 就认为完全等价。
+
+当前 Browser Monitor 主要使用的是：
+
+~~~text
+--env-file
++
+Compose environment
+~~~
+
+这种写法能够显式控制每个 Service 获得哪些变量，而不是把同一份 `.env` 全量注入所有 Container。
+
+#### <u>5. build.args 则把变量送入 Image Build，而不是 Runtime Process</u>
+
+例如：
+
+~~~yaml
+services:
+  audit-worker:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.audit-worker
+      args:
+        DEBIAN_MIRROR_BASE: ${DEBIAN_MIRROR_BASE:-https://deb.debian.org}
+~~~
+
+对应 Dockerfile：
+
+~~~dockerfile
+ARG DEBIAN_MIRROR_BASE=https://deb.debian.org
+~~~
+
+链路：
+
+~~~text
+platform/.env
+↓
+--env-file
+↓
+Compose 解析 ${DEBIAN_MIRROR_BASE}
+↓
+build.args
+↓
+Dockerfile ARG
+↓
+影响 apt Build 阶段
+~~~
+
+这和：
+
+~~~yaml
+environment:
+  AUDIT_CHROME_PATH: ${AUDIT_CHROME_PATH:-/usr/bin/chromium}
+~~~
+
+不同：后者是 Runtime Environment，会进入 Container，并提供给 Audit Worker Process。
+
+#### <u>6. Browser Monitor 的 Host Runtime 与 Container Runtime 使用不同地址</u>
+
+当前 `platform/.env.example` 中：
+
+~~~env
+DATABASE_URL=postgres://monitor:monitor@localhost:5432/monitor
+REDIS_URL=redis://localhost:6379
+~~~
+
+这两个地址适合 Host 上直接运行 Node Process 时访问 Host 暴露的数据库和 Redis。
+
+但是当前 Compose Backend Environment 写的是：
+
+~~~yaml
+environment:
+  DATABASE_URL: postgres://monitor:${POSTGRES_PASSWORD:-monitor}@timescaledb:5432/monitor
+  REDIS_URL: redis://redis:6379
+~~~
+
+这里并没有直接使用：
+
+~~~text
+${DATABASE_URL}
+${REDIS_URL}
+~~~
+
+原因是 Docker Runtime 的网络位置已经变化：
+
+~~~text
+Host Local Runtime
+Node Process
+↓
+localhost:5432 / localhost:6379
+
+Docker Compose Runtime
+API / Worker Container
+↓
+timescaledb:5432 / redis:6379
+~~~
+
+`timescaledb` 和 `redis` 是 Compose Service Name，可以通过 Docker Network 的 Service Discovery 解析。
+
+因此：
+
+> `.env` 中存在某个变量，不意味着 Compose 必须原样把它交给 Container。Compose 可以根据 Container Runtime 的网络、路径和运行环境重新构造最终值。
+
+#### <u>7. .env.example 是配置模板，不参与实际运行</u>
+
+当前仓库保存的是：
+
+~~~text
+platform/.env.example
+~~~
+
+本地运行时先复制：
+
+~~~bash
+cp platform/.env.example platform/.env
+~~~
+
+然后修改真实配置，再执行：
+
+~~~bash
+docker compose \
+  --env-file platform/.env \
+  --profile dev \
+  -f platform/infra/docker-compose.yml \
+  up --build
+~~~
+
+因此：
+
+~~~text
+.env.example
+→ 配置字段模板 / 示例默认值
+
+.env
+→ 本地实际配置
+
+--env-file
+→ 告诉 Compose 读取哪个变量文件
+
+environment
+→ 选择并构造 Container Runtime Environment
+
+build.args
+→ 选择并构造 Image Build Argument
+~~~
+
+最终可以把环境变量链路收束为：
+
+~~~text
+Host Environment / .env
+        ↓
+Compose Variable Source
+        ↓
+${VAR:-default}
+        ↓
+Compose 最终配置
+        │
+        ├── environment
+        │      ↓
+        │   Container Environment
+        │      ↓
+        │   Application Process
+        │
+        └── build.args
+               ↓
+            Dockerfile ARG
+               ↓
+            Image Build
+~~~
+
+这条链能够解释“变量从哪里来、什么时候解析、最终进入 Build 还是 Runtime”，比单纯记住 `.env` 会被加载更准确。
+
+
 ---
 
 ## 6. Browser Monitor 项目把前面的 Docker 模型落到真实文件中
@@ -4800,3 +5173,5 @@ Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 25. Browser Monitor：browser-monitor/platform/apps/web/package.json
 26. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
 27. Browser Monitor：browser-monitor/sdk/package.json
+28. Docker Docs, **Compose variable interpolation**：https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/
+29. Docker Docs, **Set environment variables within your container's environment**：https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/
