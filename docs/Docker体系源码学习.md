@@ -979,11 +979,92 @@ Deployment Environment
 
 因此：ARG 主要影响 Build；ENV 可以成为 Image/Container 的默认 Runtime Environment；Secret 仍应与 Image 分离。
 
-### 【Port Mapping 必须放回 Compose Service 的完整上下文理解】
+### 【Port Publishing 将 Host 端口映射到 Container 内的监听端口】
 
-`ports` 不是单独存在的一段 YAML，它写在 Compose 文件某个 Service 下面。
+理解 ports 前，先明确 Container Port 到底是什么。
 
-例如完整的 `compose.yaml`：
+Container 拥有自己的 Network Namespace（网络命名空间）。可以先把它理解为：Container 有自己独立的一套网络视图，包括网络接口、IP 地址、路由表、localhost 和端口空间。
+
+假设 Container 中运行：
+
+~~~text
+Node Process
+↓
+listen 0.0.0.0:3000
+~~~
+
+这里的 3000，就是这个程序在 Container 网络空间内部监听的端口。
+
+所以：
+
+~~~text
+Container Port
+不是 Docker 额外创建的一个“端口对象”
+
+而是
+Container 内某个 Process 正在监听的 TCP / UDP Port
+~~~
+
+#### <u>1. Container Port 本身可以被访问，但要看谁在访问</u>
+
+不能简单说“Container Port 不能直接访问”。
+
+| 访问者 | 常见访问方式 | 是否需要 ports 发布 |
+| --- | --- | --- |
+| Container 自己 | localhost:3000 | 不需要 |
+| 同一 Docker Network 的其他 Container | api:3000 | 不需要 |
+| Docker Host | 跨平台稳定方式是 localhost:8080 → Published Port | 通常需要 |
+| Host 外部的其他机器 | HOST_IP:8080 | 需要 Published Port 并允许外部网络访问 |
+
+Docker 官方说明，同一个 Bridge Network 上的 Container 可以直接通过 Container Port 通信；Published Port 主要用于把 Container 内端口提供给 Host 之外的网络入口。[[9]](https://docs.docker.com/compose/how-tos/networking/)
+
+还要注意平台差异：Linux Docker Engine 某些网络模式下 Host 可以路由到 Container IP；Docker Desktop 的 Container 实际运行在内部 Linux VM 中，Host 到 Container IP 的行为不同。因此工程上不要依赖临时 Container IP，Host 访问通常使用 Published Port。
+
+#### <u>2. 应用监听地址决定其他 Container 能不能连接这个端口</u>
+
+如果程序只监听：
+
+~~~text
+127.0.0.1:3000
+~~~
+
+127.0.0.1 属于 Container 自己的 Loopback Interface。
+
+结果：
+
+~~~text
+同一个 Container 内
+localhost:3000
+可以访问
+
+另一个 Container
+api:3000
+通常不能访问
+~~~
+
+如果希望其他 Container 通过 Docker Network 访问，服务通常要监听：
+
+~~~text
+0.0.0.0:3000
+~~~
+
+因此网络是否可达，要同时检查：
+
+~~~text
+Process 是否启动
++
+监听哪个 Port
++
+绑定哪个 Address
++
+两个 Container 是否共享 Network
++
+是否需要向 Host / 外部发布 Port
+~~~
+
+#### <u>3. ports 写在某个 Compose Service 下</u>
+
+完整配置：
 
 ~~~yaml
 services:
@@ -994,7 +1075,7 @@ services:
       - "8080:3000"
 ~~~
 
-结构层级：
+结构：
 
 ~~~text
 services
@@ -1003,53 +1084,34 @@ services
     └── ports
 ~~~
 
-也就是说，这个 `ports` 配置属于 `api` Service。
-
-#### <u>1. "8080:3000" 左边是 Host Port，右边是 Container Port</u>
+这里：
 
 ~~~text
-"8080:3000"
-
-左边 8080
+8080
 = Host Port
 
-右边 3000
-= Container Port
+3000
+= Container 内应用监听的 Port
 ~~~
 
-假设 Container 内 Node 程序监听 3000：
+Docker 建立：
 
 ~~~text
-node dist/main.js
-↓
-监听 Container 内 3000
-~~~
-
-Compose：
-
-~~~yaml
-ports:
-  - "8080:3000"
-~~~
-
-建立：
-
-~~~text
-Host
+Host Network
 localhost:8080
-       │
-       │ Port Mapping
-       ▼
-Container
+      │
+      │ Port Publishing
+      ▼
+Container Network
 :3000
-       │
-       ▼
+      │
+      ▼
 Node API Process
 ~~~
 
-所以 Host 浏览器访问 `http://localhost:8080`，请求最终进入 Container 中监听 3000 的程序。
+Docker 官方把这个机制称为 Port Publishing / Mapping。[[12]](https://docs.docker.com/engine/network/port-publishing/)
 
-#### <u>2. ports 改变的是 Host 与 Container 之间的访问入口</u>
+#### <u>4. 删除 ports 不会让 Container 内的 3000 消失</u>
 
 如果删除：
 
@@ -1058,48 +1120,32 @@ ports:
   - "8080:3000"
 ~~~
 
-API 仍然可以在 Container 内监听 3000。变化只是 Host 不再通过 `localhost:8080` 获得这个 Published Port 入口。
-
-所以：
+仍然有：
 
 ~~~text
-Application Listen Port
+Node Process
+仍监听 Container :3000
+
+同 Network Container
+仍可通过 api:3000 访问
+~~~
+
+只是：
+
+~~~text
+Host localhost:8080
+不再映射到 Container :3000
+~~~
+
+因此：
+
+~~~text
+Process Listen Port
 ≠
 Host Published Port
 ~~~
 
-#### <u>3. Container 之间通信通常不需要 ports</u>
-
-~~~yaml
-services:
-  web:
-    image: web
-
-  api:
-    image: api
-    ports:
-      - "8080:3000"
-~~~
-
-如果 Web 与 API 在同一个 Compose Network 中，Web Container 一般直接访问：
-
-~~~text
-api:3000
-~~~
-
-而不是 `localhost:8080`。
-
-原因：
-
-~~~text
-Container → Container
-走 Docker Network
-
-Host → Container
-使用 Published Port
-~~~
-
-#### <u>4. Browser Monitor 当前 ports 写在哪里</u>
+#### <u>5. Browser Monitor 当前 Web 的 Published Port</u>
 
 文件：
 
@@ -1107,7 +1153,7 @@ Host → Container
 browser-monitor/platform/infra/docker-compose.yml
 ~~~
 
-Web Service：
+配置：
 
 ~~~yaml
 services:
@@ -1120,14 +1166,14 @@ services:
       - "8080:8080"
 ~~~
 
-含义：
+关系：
 
 ~~~text
 Host Browser
 http://localhost:8080
         ↓
 Host Port 8080
-        ↓
+        ↓ Docker Published Port
 Web Container Port 8080
         ↓
 Caddy Process
@@ -1143,19 +1189,35 @@ services:
       - "5432:5432"
 ~~~
 
-表示 Host 上的数据库工具可以通过 `localhost:5432` 访问 Container 内 TimescaleDB/PostgreSQL 的 5432。
+Host 数据库客户端可以通过 localhost:5432 访问。
 
-Redis：
+但 API Container 访问 TimescaleDB 时不需要 Host Port：
 
-~~~yaml
-services:
-  redis:
-    image: redis:7.4-alpine
-    ports:
-      - "6379:6379"
+~~~text
+API Container
+↓ Compose Network
+timescaledb:5432
 ~~~
 
-所以 `ports` 必须放回 `services.<service>` 下理解：它属于某个 Service，用于把 Host Port 发布到该 Service 创建的 Container Port。
+这里直接使用的是 TimescaleDB Container 内的 5432。
+
+这一节最终建立：
+
+~~~text
+Process Listen
+0.0.0.0:3000
+      ↓
+Container Port 3000
+      │
+      ├── 同 Network Container
+      │      → api:3000
+      │
+      └── ports: "8080:3000"
+             ↓
+          Host :8080
+             ↓
+          Host / 外部客户端
+~~~
 
 ---
 
@@ -1769,91 +1831,593 @@ Container
 
 所以 Bind Mount 的核心不是“把文件复制进 Container”，而是让 Container 某个路径直接映射到 Host 的真实路径，双方默认共享并可修改同一份挂载内容。
 
-### 【tmpfs 适合不需要持久化的临时写入】
+### 【tmpfs 为 Container 提供独立于 Writable Layer 的临时文件系统】
 
-有些程序运行时需要：
-
-~~~text
-temporary files
-cache
-browser profile
-socket
-~~~
-
-但不需要 Container 重建后保留。
-
-tmpfs 可以理解为：
+理解 tmpfs 前，先把 Container 的几种写入位置放在一起：
 
 ~~~text
-Memory-backed Temporary Storage
-↓
-允许临时写入
-↓
-Container 结束后不做长期持久化
+Container 运行时写文件
+        │
+        ├── Container Writable Layer
+        │      随 Container 删除
+        │
+        ├── Named Volume
+        │      Docker 管理，独立持久化
+        │
+        ├── Bind Mount
+        │      直接映射 Host 指定目录
+        │
+        └── tmpfs
+               临时文件系统
+               主要使用 Host Memory
+               Container 停止后不保留
 ~~~
 
-### 【Compose Default Network 提供 Service Name Discovery】
+tmpfs 解决的是：
+
+> 程序需要写文件，但这些文件既不应该进入 Container Writable Layer，也不需要长期持久化。
+
+Docker 官方说明，tmpfs Mount 是临时存储，主要位于 Host Memory 中；Container 停止后 Mount 被移除，数据不会继续保留。Linux 可能把内存页换出到 Swap，所以不能绝对理解成“永远只在物理 RAM 中”。[[13]](https://docs.docker.com/engine/storage/tmpfs/)
+
+#### <u>1. tmpfs 也需要指定 Container Path</u>
+
+完整 Compose：
+
+~~~yaml
+services:
+  app:
+    image: my-app
+
+    tmpfs:
+      - /tmp
+~~~
+
+含义：
+
+~~~text
+services.app.tmpfs
+↓
+给 app Container 创建一个 tmpfs
+↓
+挂到 Container 内 /tmp
+~~~
+
+应用还是正常读写：
+
+~~~text
+/tmp/file.txt
+~~~
+
+只是这个路径背后的存储不再是 Container Writable Layer，而是 tmpfs。
+
+#### <u>2. tmpfs 改变的是某个 Container Path 背后的 Storage Backend</u>
+
+没有 tmpfs：
+
+~~~text
+Process
+↓ write
+/tmp/a.txt
+↓
+Container Writable Layer
+~~~
+
+挂载 tmpfs：
+
+~~~text
+Process
+↓ write
+/tmp/a.txt
+↓
+/tmp 被 tmpfs Mount 接管
+↓
+tmpfs Temporary Storage
+~~~
+
+所以：
+
+~~~text
+Container Path
+没有变化
+
+Path 背后的 Storage Backend
+发生变化
+~~~
+
+这和 Volume 的 Mount 机制很像，但目的不同：
+
+~~~text
+Named Volume
+为了长期持久化
+
+tmpfs
+为了临时写入
+~~~
+
+#### <u>3. tmpfs 适合哪些数据</u>
+
+适合：
+
+~~~text
+Temporary Files
+Runtime Cache
+Browser Temporary Profile
+短生命周期中间结果
+不希望长期持久化的临时敏感数据
+~~~
+
+不适合：
+
+~~~text
+Database Data
+User Upload
+长期日志归档
+Container 重建后仍需恢复的数据
+~~~
+
+#### <u>4. Browser Monitor 的 Audit Worker 为什么使用 tmpfs</u>
+
+当前 Compose：
+
+~~~yaml
+services:
+  audit-worker:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.audit-worker
+
+    read_only: true
+
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+~~~
+
+Dockerfile.audit-worker 同时设置：
+
+~~~dockerfile
+ENV HOME=/tmp
+ENV XDG_CONFIG_HOME=/tmp/.config
+ENV XDG_CACHE_HOME=/tmp/.cache
+~~~
+
+需要一起看：
+
+~~~text
+read_only: true
+↓
+Container Root Filesystem 默认只读
+~~~
+
+但 Chromium / Lighthouse 运行时仍需要：
+
+~~~text
+Temporary File
+Browser Profile
+Cache
+Config
+~~~
+
+于是：
+
+~~~text
+HOME=/tmp
+XDG_CONFIG_HOME=/tmp/.config
+XDG_CACHE_HOME=/tmp/.cache
+        ↓
+把临时写入集中到 /tmp
+~~~
+
+再通过：
+
+~~~yaml
+tmpfs:
+  - /tmp:size=1g,mode=1777
+~~~
+
+给 /tmp 一个明确可写的临时文件系统。
+
+完整链：
+
+~~~text
+Audit Worker Container
+Root FS = Read-only
+        │
+        └── /tmp
+             ↓ tmpfs mount
+          Temporary Writable Area
+             ↓
+          Chromium / Lighthouse
+          写临时文件和 Cache
+             ↓
+          Container Stop
+             ↓
+          Temporary Data Discarded
+~~~
+
+所以当前 tmpfs 的主要价值不是简单“加速”，而是在 Root Filesystem 只读的安全约束下，只开放一个明确、临时、可丢弃的写入区域。
+
+### 【Compose Default Network 让 Service 获得可互通的 Container 网络】
+
+理解 redis:6379 前，先理解每个 Container 都有自己的网络空间。
 
 假设：
 
 ~~~yaml
 services:
   api:
-    ...
+    image: my-api
+
   redis:
-    image: redis
+    image: redis:7.4-alpine
 ~~~
 
-没有显式声明 Network 时，Compose 默认创建项目级 Network，并让 Service 加入该 Network。Service 可以通过 Service Name 发现对方。[[9]](https://docs.docker.com/compose/how-tos/networking/)
+虽然没有显式写 networks，但执行 docker compose up 时，Compose 默认创建一个项目级 Default Network，并把这两个 Service 创建的 Container 都接入这个 Network。[[9]](https://docs.docker.com/compose/how-tos/networking/)
 
-因此 API 可以连接：
+可以抽象成：
+
+~~~text
+Docker Host
+│
+└── Compose Network: myapp_default
+      │
+      ├── API Container
+      │    └── Container IP，例如 172.20.0.2
+      │
+      └── Redis Container
+           └── Container IP，例如 172.20.0.3
+~~~
+
+Container 重建后 IP 可能变化，所以业务配置不应该写死临时 IP。
+
+#### <u>1. 共享 Network 先解决“两个 Container 是否有网络路径”</u>
+
+如果两个 Container 都在 myapp_default：
+
+~~~text
+API Container
+        ↓
+Docker Network
+        ↓
+Redis Container
+~~~
+
+Docker 为它们提供可达路径。
+
+如果两个 Container 完全不共享 Network：
+
+~~~text
+API → Network A
+
+Redis → Network B
+~~~
+
+默认不能直接跨这两个隔离 Network 通信。
+
+因此第一层问题是：
+
+> 两个 Container 是否处于能够互通的 Docker Network 中？
+
+#### <u>2. Service Name Discovery 再解决“用什么地址找到另一个 Container”</u>
+
+Redis Container 可能当前 IP 是：
+
+~~~text
+172.20.0.3
+~~~
+
+但重建后可能变成：
+
+~~~text
+172.20.0.8
+~~~
+
+Compose 为 Service Name 提供 DNS Resolution：
+
+~~~text
+redis
+↓ Docker Internal DNS
+解析
+↓
+当前 Redis Container IP
+~~~
+
+所以 API 写：
 
 ~~~text
 redis:6379
 ~~~
 
-而不是写 Redis Container 的临时 IP。
-
-### 【Container 中 localhost 永远先指向自己】
-
-假设：
+而不是：
 
 ~~~text
-API Container
-Redis Container
+172.20.0.3:6379
 ~~~
 
-API Container 内：
+Docker 官方建议 Compose Service 之间使用 Service Name，而不是依赖动态 Container IP。[[9]](https://docs.docker.com/compose/how-tos/networking/)
+
+#### <u>3. redis:6379 两部分分别解决什么</u>
+
+~~~text
+redis : 6379
+
+redis
+=
+Compose Service Name
+=
+Docker DNS 可解析的 Hostname
+
+6379
+=
+Redis Process 在 Redis Container 内监听的 Container Port
+~~~
+
+完整访问：
+
+~~~text
+API Process
+↓ connect redis:6379
+
+Docker DNS
+↓ redis → Redis Container IP
+
+Docker Network
+↓ 路由到 Redis Container
+
+Redis Container :6379
+↓
+Redis Process
+~~~
+
+所以：
+
+> Service Name 解决“找到哪个 Container”，Container Port 解决“连接该 Container 中哪个监听程序”。
+
+#### <u>4. Browser Monitor 当前就是通过 Service Name 通信</u>
+
+当前 Backend Environment：
+
+~~~text
+REDIS_URL=redis://redis:6379
+
+DATABASE_URL=
+postgres://monitor:...@timescaledb:5432/monitor
+~~~
+
+其中：
+
+~~~text
+redis
+timescaledb
+~~~
+
+都是 Compose Service Name。
+
+真实链路：
+
+~~~text
+API / Worker Process
+↓
+redis:6379
+↓ Compose DNS + Network
+Redis Container
+↓
+Redis Process
+
+
+API / Worker Process
+↓
+timescaledb:5432
+↓ Compose DNS + Network
+TimescaleDB Container
+↓
+PostgreSQL Process
+~~~
+
+即使 Redis 和 TimescaleDB 同时配置了 Host Published Port，Container 之间仍然直接通过 Docker Network 使用 Container Port。
+
+### 【localhost 始终指向当前 Process 所在 Network Namespace 的本机回环地址】
+
+localhost 不是“这台物理电脑里所有程序共同的地址”。
+
+更准确地说：
+
+> localhost 表示当前 Process 所处 Network Namespace 中的 Loopback Interface。
+
+所以程序运行在哪里，localhost 就指向哪里的“自己”。
+
+#### <u>1. Host Process 的 localhost 指 Host</u>
+
+如果 Node 和 Redis 都直接运行在 Host：
+
+~~~text
+Host
+├── Node API Process
+└── Redis Process
+~~~
+
+Node 访问：
 
 ~~~text
 localhost:6379
 ~~~
 
-表示：
+路径：
 
 ~~~text
-API Container 自己的 6379
+Node Process
+↓
+Host Loopback 127.0.0.1
+↓
+Host 上监听 6379 的 Redis
 ~~~
 
-不是 Redis。
+#### <u>2. API Container 内的 localhost 只指 API Container 自己</u>
 
-访问 Redis 应该：
+Docker：
+
+~~~text
+Docker Host
+│
+├── API Container
+│    └── Node API Process
+│
+└── Redis Container
+     └── Redis Process
+~~~
+
+API Container 有自己的网络空间：
+
+~~~text
+API Container Network Namespace
+├── localhost / 127.0.0.1
+└── eth0 / Container IP
+~~~
+
+Redis Container 也有自己的：
+
+~~~text
+Redis Container Network Namespace
+├── localhost / 127.0.0.1
+└── eth0 / Container IP
+~~~
+
+因此 API Process 请求：
+
+~~~text
+localhost:6379
+~~~
+
+实际是：
+
+~~~text
+API Process
+↓
+API Container 的 127.0.0.1
+↓
+寻找 API Container 自己是否有 Process 监听 6379
+~~~
+
+不会自动进入 Redis Container。
+
+#### <u>3. 访问另一个 Container 要通过 Docker Network</u>
+
+正确地址：
 
 ~~~text
 redis:6379
 ~~~
 
-所以要区分：
+路径：
 
 ~~~text
-Host 上运行的 Node Process
-→ localhost:6379 可以指 Host Redis
-
-Container 内运行的 Node Process
-→ redis:6379 指另一个 Compose Service
+API Process
+↓
+hostname redis
+↓
+Docker Internal DNS
+↓
+Redis Container IP
+↓
+API Container eth0
+↓
+Compose Network
+↓
+Redis Container eth0
+↓
+Redis Container :6379
+↓
+Redis Process
 ~~~
 
-这是 Docker 网络面试中最常见的错误之一。
+所以：
+
+~~~text
+localhost:6379
+~~~
+
+和：
+
+~~~text
+redis:6379
+~~~
+
+走的是完全不同的网络路径。
+
+#### <u>4. Container 自己访问自己的 Service 时 localhost 完全可以使用</u>
+
+例如 API Container 内 Node Process 监听：
+
+~~~text
+127.0.0.1:3000
+~~~
+
+同一个 Container 内：
+
+~~~bash
+curl http://localhost:3000
+~~~
+
+可以访问。
+
+所以正确结论不是“Docker 中不能使用 localhost”，而是：
+
+> localhost 永远找当前 Network Namespace 自己；目标在另一个 Container 时，localhost 就找错对象。
+
+#### <u>5. 把 Network、Container Port 与 Published Port 放在一起</u>
+
+假设：
+
+~~~text
+API Container
+Node API → 0.0.0.0:3000
+
+Redis Container
+Redis → 0.0.0.0:6379
+~~~
+
+访问关系：
+
+~~~text
+API Container 自己访问 API
+localhost:3000
+可以
+
+
+Redis Container 自己访问 Redis
+localhost:6379
+可以
+
+
+API Container 访问 Redis
+redis:6379
+可以
+
+
+Host 访问 API
+如果配置 ports: "8080:3000"
+使用 localhost:8080
+
+
+外部机器访问 API
+如果 Host Port 对外发布并被网络允许
+使用 HOST_IP:8080
+~~~
+
+Docker Network 最终可以收束成四个概念：
+
+~~~text
+Network Namespace
+决定每个 Container 有自己的网络空间
+
+Container Port
+是 Container 内 Process 的监听端口
+
+Docker Network + Service Name
+解决 Container → Container
+
+Published Port
+解决 Host / 外部 → Container
+~~~
 
 ---
 
@@ -3400,6 +3964,8 @@ Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 9. Docker Docs, **Networking in Compose**：https://docs.docker.com/compose/how-tos/networking/
 10. Docker Docs, **Control startup and shutdown order in Compose**：https://docs.docker.com/compose/how-tos/startup-order/
 11. Docker Docs, **Bind mounts**：https://docs.docker.com/engine/storage/bind-mounts/
+12. Docker Docs, **Port publishing and mapping**：https://docs.docker.com/engine/network/port-publishing/
+13. Docker Docs, **tmpfs mounts**：https://docs.docker.com/engine/storage/tmpfs/
 12. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
 13. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
 14. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
