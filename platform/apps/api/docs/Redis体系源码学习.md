@@ -12338,42 +12338,664 @@ ingestion:{projectId}:rate
 
 这样的 Hash Tag 设计保证 Same Slot。
 
-## 8. 下一节进入 Redis 安全、连接与生产治理
+## 8. Redis 的生产治理需要同时控制访问边界、权限边界、连接资源与变更风险
 
-前七节已经基本完成从：
+前七节已经把 Redis 从基础数据结构一路推进到了可靠性和规模化：
 
 ~~~text
 Redis Primitive
+    ↓
+State Model
+    ↓
+PostgreSQL + Redis Consistency
+    ↓
+Reliability
+    ↓
+Scale & Observability
 ~~~
 
-到：
+但是 Redis 即使：
 
 ~~~text
-Production Redis System
+性能足够
++
+AOF 正常
++
+Cluster 可以扩容
 ~~~
 
-的主框架。
+也还不能直接等价于：
 
-下一层可以进入：
+~~~text
+可以安全地作为生产基础设施运行
+~~~
+
+因为生产环境还必须回答：
+
+~~~text
+谁能连接 Redis？
+
+Redis Port 能不能被外部访问？
+
+连接进来以后能执行哪些 Command？
+
+能访问哪些 Key？
+
+连接是否加密？
+
+Client 数量失控怎么办？
+
+某个 Application 能不能执行 CONFIG / FLUSHALL？
+
+Redis 配置如何修改和审计？
+
+扩容和升级怎么避免直接影响业务？
+~~~
+
+所以这一节不再讨论 Redis 的数据模型，而是建立：
 
 ~~~text
 Redis Production Governance
 │
-├── Authentication / ACL
-├── Network Exposure
-├── TLS
-├── Connection Limits
-├── Timeout
-├── Dangerous Commands
-├── Configuration Management
-├── Upgrade
-└── Capacity Planning
+├── 第一层：Network Boundary
+│     ↓
+│   谁能够连接 Redis？
+│
+├── 第二层：Identity & Authorization
+│     ↓
+│   连接以后能做什么？
+│
+├── 第三层：Connection Governance
+│     ↓
+│   连接资源怎样控制？
+│
+└── 第四层：Operational Governance
+      ↓
+    配置、危险命令、Secret、
+    Upgrade 与 Capacity 怎样治理？
 ~~~
 
-也就是继续回答：
+核心关系是：
 
-> **Redis 已经能够扩展以后，怎样把它真正作为生产基础设施安全、稳定、可治理地运行。**
+~~~text
+能访问 Redis
+        ≠
+已经被授权操作所有数据
 
+Redis 有密码
+        ≠
+网络传输已经加密
+
+Redis 能建立连接
+        ≠
+允许无限 Client
+
+Redis 配置能动态修改
+        ≠
+生产环境应该随意修改
+~~~
+
+### 【第一层：Network Boundary 决定谁能够真正到达 Redis Server】
+
+Redis 安全治理首先不是密码，而是：
+
+~~~text
+Redis Port
+到底对谁可达？
+~~~
+
+典型生产链路应该是：
+
+~~~text
+Browser / User
+      ↓
+   HTTP API
+      ↓
+Application Server
+      ↓
+ Private Network
+      ↓
+    Redis
+~~~
+
+而不是：
+
+~~~text
+Browser
+   ↓
+Internet
+   ↓
+Redis :6379
+~~~
+
+#### <u>1. Network Isolation 是 Redis 第一层安全边界</u>
+
+可以先建立：
+
+~~~text
+Internet
+   │
+   ✕
+   │
+Redis
+~~~
+
+只有：
+
+~~~text
+API
+Worker
+Internal Service
+~~~
+
+这些可信服务可以访问 Redis。
+
+常见实现手段包括：
+
+~~~text
+Private Subnet
+Firewall
+Security Group
+Container Network
+Kubernetes Network Policy
+Redis bind configuration
+~~~
+
+目标都一样：
+
+> **即使攻击者知道 Redis 地址和端口，也不应该在网络层直接到达 Redis。**
+
+#### <u>2. Protected Mode 是安全兜底，不应该替代正式网络隔离</u>
+
+Redis 在默认配置、没有密码并绑定所有接口等特定条件下，会启用 Protected Mode，对非 Loopback Client 做额外限制。
+
+这个机制的作用更接近：
+
+~~~text
+避免一个默认配置 Redis
+被意外暴露以后
+立刻接受远程请求
+~~~
+
+但生产架构不能依赖：
+
+~~~text
+Protected Mode
+~~~
+
+来代替：
+
+~~~text
+Private Network
+Firewall
+ACL
+Authentication
+~~~
+
+它应该被理解成：
+
+~~~text
+Safety Guardrail
+~~~
+
+而不是完整 Network Security Architecture。
+
+### 【当前 Browser Monitor 的 Redis 网络配置更接近开发环境配置】
+
+当前 Docker Compose：
+
+~~~yaml
+redis:
+  image: redis:7.4-alpine
+
+  ports:
+    - "6379:6379"
+~~~
+
+同时后端：
+
+~~~yaml
+REDIS_URL: redis://redis:6379
+~~~
+
+需要区分两个访问路径。
+
+Container 内：
+
+~~~text
+API / Worker
+      ↓
+redis:6379
+      ↓
+Docker Internal Network
+~~~
+
+而：
+
+~~~yaml
+ports:
+  - "6379:6379"
+~~~
+
+还把 Redis Port 映射到了 Host。
+
+因此从仓库配置本身可以确认：
+
+~~~text
+Host
+    ↓
+6379
+    ↓
+Redis Container
+~~~
+
+存在端口映射。
+
+但是仅凭仓库源码不能进一步断言：
+
+~~~text
+Internet 一定可以访问 Redis
+~~~
+
+因为实际是否可以从外部到达，还受到：
+
+~~~text
+Host Firewall
+Cloud Security Group
+Redis protected-mode / bind
+部署网络
+~~~
+
+等运行环境影响。
+
+所以准确结论应该是：
+
+> **当前 Compose 显式暴露了 Host 6379，这对于本地开发很方便；如果进入生产环境，需要重新确认该端口是否真的有必要暴露到 Host，以及网络层是否只允许可信服务访问。**
+
+### 【Network Security 与 Authentication 是两层独立防线】
+
+正确关系：
+
+~~~text
+第一层
+Network Boundary
+    ↓
+攻击者最好根本连不到 Redis
+
+第二层
+Authentication / ACL
+    ↓
+即使能建立连接
+也必须验证身份与权限
+~~~
+
+即：
+
+~~~text
+Network Isolation
++
+Authentication
++
+Authorization
+~~~
+
+共同构成防御层。
+
+### 【TLS 解决的是连接过程中数据能不能被窃听或篡改】
+
+如果通信链路是普通 TCP：
+
+~~~text
+Application
+    ↓
+Plaintext Redis Protocol
+    ↓
+Redis
+~~~
+
+那么网络中间的参与者理论上可能看到通信内容。
+
+因此另一个安全维度是：
+
+~~~text
+Encryption in Transit
+~~~
+
+Redis Open Source 支持 TLS，可用于 Client Connection、Replication Link 和 Cluster Bus 等通信。
+
+关系：
+
+~~~text
+Authentication
+    ↓
+你是谁？
+
+Authorization
+    ↓
+你能干什么？
+
+TLS
+    ↓
+你与 Redis 的通信
+是否被加密？
+~~~
+
+三者解决不同问题。
+
+### 【当前 Browser Monitor 没有在仓库中显式配置 Redis TLS】
+
+当前：
+
+~~~text
+REDIS_URL=redis://redis:6379
+~~~
+
+以及：
+
+~~~text
+REDIS_URL=redis://localhost:6379
+~~~
+
+仓库中没有看到：
+
+~~~text
+TLS Certificate
+CA
+tls-port
+Redis TLS Client Options
+~~~
+
+所以可以确认：
+
+~~~text
+当前仓库没有显式建立
+Redis TLS 配置
+~~~
+
+但同样不能扩大成：
+
+~~~text
+生产一定没有 TLS
+~~~
+
+因为生产部署可能使用 Managed Redis、Private Network 或外部 Proxy 等仓库之外能力。
+
+### 【第二层：Identity & Authorization 决定连接以后能够执行什么】
+
+假设网络已经允许：
+
+~~~text
+API
+    ↓
+Redis
+~~~
+
+仍然不能默认：
+
+~~~text
+API 可以执行 Redis 中任何 Command
+访问任何 Key
+~~~
+
+这就进入：
+
+~~~text
+Authentication
++
+Authorization
+~~~
+
+### 【Redis ACL 把登录 Redis 从共享密码提升为 User + Permission】
+
+Redis ACL 可以把某个 Connection 绑定到一个 User，并限制：
+
+~~~text
+能够执行哪些 Commands
+能够访问哪些 Keys
+能够访问哪些 Pub/Sub Channels
+~~~
+
+所以权限模型可以理解成：
+
+~~~text
+Redis User
+│
+├── Password
+│
+├── Command Permission
+│
+├── Key Pattern
+└── Channel Pattern
+~~~
+
+#### <u>1. Authentication 只回答你是谁</u>
+
+例如：
+
+~~~text
+AUTH app-user password
+~~~
+
+Redis 确认：
+
+~~~text
+Connection
+    ↓
+app-user
+~~~
+
+但生产环境真正需要继续问：
+
+~~~text
+app-user
+究竟允许做什么？
+~~~
+
+这就是 Authorization。
+
+#### <u>2. ACL 可以限制 Command</u>
+
+例如某个应用只需要：
+
+~~~text
+GET
+SET
+DEL
+HGET
+HSET
+INCR
+~~~
+
+它通常没有理由拥有：
+
+~~~text
+CONFIG
+SHUTDOWN
+DEBUG
+FLUSHALL
+REPLICAOF
+ACL SETUSER
+~~~
+
+Redis ACL 可以：
+
+~~~text
+Allow
+    ↓
+业务真正需要的 Command
+
+Deny
+    ↓
+Admin / Dangerous Command
+~~~
+
+所以权限原则应该是：
+
+~~~text
+Least Privilege
+~~~
+
+而不是：
+
+~~~text
+Application User
+    ↓
++@all
+~~~
+
+#### <u>3. ACL 还能限制 Key Pattern</u>
+
+例如 Analytics Service 可能只需要：
+
+~~~text
+analytics:*
+~~~
+
+那么理论上可以允许：
+
+~~~text
+~analytics:*
+~~~
+
+而不允许：
+
+~~~text
+session:*
+~~~
+
+这样即使 Analytics Service 被攻击，它也不能直接访问 Authentication Session。
+
+所以 Redis 权限治理可以进一步从：
+
+~~~text
+Service Permission
+~~~
+
+细化到：
+
+~~~text
+Command
++
+Key Namespace
+~~~
+
+### 【当前 Browser Monitor 没有显式使用 Redis ACL 或认证信息】
+
+当前配置：
+
+~~~text
+REDIS_URL=redis://redis:6379
+~~~
+
+以及：
+
+~~~text
+REDIS_URL=redis://localhost:6379
+~~~
+
+都没有看到：
+
+~~~text
+username
+password
+~~~
+
+同时 Docker Redis Command：
+
+~~~text
+redis-server --appendonly yes
+~~~
+
+没有显式配置：
+
+~~~text
+ACL File
+requirepass
+ACL SETUSER
+~~~
+
+所以从当前仓库可以确认：
+
+~~~text
+Repository Configuration
+    ↓
+没有显式 Redis Authentication / ACL
+~~~
+
+因此如果从当前开发配置进入生产，一个合理方向是：
+
+~~~text
+API
+    ↓
+Redis ACL User
+
+Worker
+    ↓
+Redis ACL User
+~~~
+
+甚至进一步：
+
+~~~text
+API User
+    ↓
+只允许 API 所需 Keys / Commands
+
+Worker User
+    ↓
+只允许 Worker 所需 Keys / Commands
+~~~
+
+这是：
+
+~~~text
+Proposed Production Hardening
+~~~
+
+不是当前已经实现。
+
+### 【危险 Command 的治理应该通过 ACL，而不是依赖应用不要调用】
+
+有些 Redis Command 不应该交给普通业务程序，例如：
+
+~~~text
+CONFIG
+ACL
+SHUTDOWN
+DEBUG
+REPLICAOF
+~~~
+
+以及可能造成大范围数据变化的命令。
+
+如果只是约定：
+
+~~~text
+开发人员不要调用
+~~~
+
+并不是安全边界。
+
+真正的边界应该是：
+
+~~~text
+ACL
+    ↓
+即使代码调用
+Redis Server 也拒绝
+~~~
+
+Redis 官方目前也明确把旧的 rename-command 限制方式标记为 Deprecated，并推荐 ACL 来限制具体 Command。
+
+所以：
+
+~~~text
+Application Discipline
+    ≠
+Authorization Boundary
+~~~
+
+<!-- REDIS_SECTION_8_CONTINUE -->
 
 ## 参考资料
 
