@@ -773,72 +773,389 @@ node dist/main.js
 
 当前 Browser Monitor 自建 Dockerfile 没有显式 ENTRYPOINT，因此不需要为了学习而强行加入项目实现，但面试需要理解通用语义。Docker 官方给出了 CMD 与 ENTRYPOINT 的组合规则。[[6]](https://docs.docker.com/reference/dockerfile/)
 
-### 【ARG 与 ENV 分别服务 Build-time 和 Runtime Configuration】
+### 【ARG 与 ENV 要先区分“写在哪里”和“什么时候生效”】
 
-通用理解：
+ARG 与 ENV 都可能出现在 Dockerfile 中，但它们服务的阶段不同。理解它们时不能只记“ARG 是构建时、ENV 是运行时”，还要先看它们**写在哪个文件、由谁读取、值从哪里来**。
+
+先看一个完整的通用 Dockerfile：
+
+~~~dockerfile
+FROM node:22-bookworm-slim
+
+ARG PACKAGE_MIRROR=https://example.com
+
+ENV NODE_ENV=production
+ENV APP_PORT=3000
+
+RUN echo "build with ${PACKAGE_MIRROR}"
+
+CMD ["node", "dist/main.js"]
+~~~
+
+这里：
 
 ~~~text
-ARG
-主要给 docker build 使用
-
-ENV
-写入 Image Environment
-并影响 Container Runtime
+Dockerfile
+├── ARG PACKAGE_MIRROR
+│   └── 给 docker build 阶段使用
+│
+└── ENV NODE_ENV / APP_PORT
+    └── 写进 Image 的环境变量配置
+        Container 启动后程序也能读取
 ~~~
+
+#### <u>1. ARG 写在 Dockerfile 中，值主要在 Build 阶段使用</u>
+
+Dockerfile：
+
+~~~dockerfile
+ARG PACKAGE_MIRROR=https://example.com
+RUN echo "build with ${PACKAGE_MIRROR}"
+~~~
+
+执行：
+
+~~~bash
+docker build --build-arg PACKAGE_MIRROR=https://mirror.example.com -t my-app .
+~~~
+
+实际过程：
+
+~~~text
+docker build
+    ↓
+传入 PACKAGE_MIRROR
+    ↓
+Dockerfile ARG 接收这个值
+    ↓
+后续 RUN 可以读取
+    ↓
+影响 Image 如何构建
+~~~
+
+ARG 常用于 Package Mirror、Build Target、Compile Flag、Proxy、Build Version，也就是主要影响“Image 怎么被做出来”。Docker 官方把 ARG 定义为 Build-time Variable。[[2]](https://docs.docker.com/reference/dockerfile/)
+
+#### <u>2. ENV 也写在 Dockerfile 中，但会保存到 Image Environment</u>
+
+~~~dockerfile
+ENV NODE_ENV=production
+ENV APP_PORT=3000
+~~~
+
+Build 完之后，Image 会记录这些默认环境变量。
+
+~~~text
+Image
+NODE_ENV=production
+APP_PORT=3000
+    ↓
+docker run
+    ↓
+Container Environment
+    ↓
+Node Process
+process.env.NODE_ENV
+process.env.APP_PORT
+~~~
+
+因此 ENV 不只是 Docker Build 自己使用，它还会影响从这个 Image 创建出的 Container。Docker 官方说明 ENV 会持久化到构建得到的 Image 中。[[2]](https://docs.docker.com/reference/dockerfile/)
+
+#### <u>3. Compose 也可以分别给 Build ARG 和 Runtime ENV 传值</u>
+
+这时配置写在 `compose.yaml` 或 `docker-compose.yml` 中。
+
+~~~yaml
+services:
+  audit-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PACKAGE_MIRROR: https://mirror.example.com
+
+    environment:
+      NODE_ENV: production
+      APP_PORT: 3000
+~~~
+
+两条链：
+
+~~~text
+build.args
+    ↓
+传给 Dockerfile ARG
+    ↓
+影响 Image Build
+
+
+environment
+    ↓
+传给 Container
+    ↓
+影响 Runtime Process
+~~~
+
+所以 `build.args` 和 `environment` 不是同一种配置。
+
+#### <u>4. Browser Monitor 当前正好同时使用 ARG 和 ENV</u>
+
+当前相关文件：
+
+~~~text
+browser-monitor/
+└── platform/
+    └── infra/
+        ├── Dockerfile.audit-worker
+        └── docker-compose.yml
+~~~
+
+`Dockerfile.audit-worker`：
+
+~~~dockerfile
+ARG DEBIAN_MIRROR_BASE=https://deb.debian.org
+
+ENV AUDIT_CHROME_PATH=/usr/bin/chromium
+~~~
+
+`docker-compose.yml` 中对应：
+
+~~~yaml
+services:
+  audit-worker:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.audit-worker
+      args:
+        DEBIAN_MIRROR_BASE: ${DEBIAN_MIRROR_BASE:-https://deb.debian.org}
+
+    environment:
+      AUDIT_CHROME_PATH: ${AUDIT_CHROME_PATH:-/usr/bin/chromium}
+~~~
+
+两条链分别是：
+
+~~~text
+DEBIAN_MIRROR_BASE
+Compose build.args
+    ↓
+Dockerfile ARG
+    ↓
+apt 使用哪个 Debian Mirror
+    ↓
+影响 Image Build
+
+
+AUDIT_CHROME_PATH
+Compose environment
+    ↓
+Container Environment
+    ↓
+Audit Worker Process
+    ↓
+运行时知道 Chromium 在哪里
+~~~
+
+这就是 ARG 与 ENV 最实际的区别。
+
+#### <u>5. Secret 不应该因为 ENV 方便就写进 Dockerfile</u>
 
 例如：
 
 ~~~dockerfile
-ARG PACKAGE_MIRROR
-ENV NODE_ENV=production
+ENV DATABASE_PASSWORD=123456
 ~~~
 
-可以理解为：
+会把 Secret 固定进 Image 配置。
+
+更合理的方向是：
 
 ~~~text
-PACKAGE_MIRROR
-影响 Image 怎么构建
+Image
+只保存通用程序和默认配置
 
-NODE_ENV
-影响 Container 里的程序怎么运行
+Deployment Environment
+在 Container 启动时注入 Secret
 ~~~
 
-Secret 不应该因为方便就长期写死进 Dockerfile ENV。
+因此：ARG 主要影响 Build；ENV 可以成为 Image/Container 的默认 Runtime Environment；Secret 仍应与 Image 分离。
 
-### 【Port Mapping 是 Host 与 Container 的网络边界】
+### 【Port Mapping 必须放回 Compose Service 的完整上下文理解】
 
-例如：
+`ports` 不是单独存在的一段 YAML，它写在 Compose 文件某个 Service 下面。
+
+例如完整的 `compose.yaml`：
+
+~~~yaml
+services:
+  api:
+    image: my-api:1.0
+
+    ports:
+      - "8080:3000"
+~~~
+
+结构层级：
+
+~~~text
+services
+└── api
+    ├── image
+    └── ports
+~~~
+
+也就是说，这个 `ports` 配置属于 `api` Service。
+
+#### <u>1. "8080:3000" 左边是 Host Port，右边是 Container Port</u>
+
+~~~text
+"8080:3000"
+
+左边 8080
+= Host Port
+
+右边 3000
+= Container Port
+~~~
+
+假设 Container 内 Node 程序监听 3000：
+
+~~~text
+node dist/main.js
+↓
+监听 Container 内 3000
+~~~
+
+Compose：
 
 ~~~yaml
 ports:
   - "8080:3000"
 ~~~
 
-含义：
+建立：
 
 ~~~text
-Host :8080
-    ↓
-Container :3000
+Host
+localhost:8080
+       │
+       │ Port Mapping
+       ▼
+Container
+:3000
+       │
+       ▼
+Node API Process
 ~~~
 
-Host 浏览器访问 localhost:8080，会被转发到 Container 内应用监听的 3000。
+所以 Host 浏览器访问 `http://localhost:8080`，请求最终进入 Container 中监听 3000 的程序。
 
-需要区分：
+#### <u>2. ports 改变的是 Host 与 Container 之间的访问入口</u>
+
+如果删除：
+
+~~~yaml
+ports:
+  - "8080:3000"
+~~~
+
+API 仍然可以在 Container 内监听 3000。变化只是 Host 不再通过 `localhost:8080` 获得这个 Published Port 入口。
+
+所以：
 
 ~~~text
-Container 内部监听端口
+Application Listen Port
 ≠
 Host Published Port
 ~~~
 
-Container 与 Container 在同一 Docker Network 通信时，通常直接使用：
+#### <u>3. Container 之间通信通常不需要 ports</u>
 
-~~~text
-service-name:container-port
+~~~yaml
+services:
+  web:
+    image: web
+
+  api:
+    image: api
+    ports:
+      - "8080:3000"
 ~~~
 
-不需要绕 Host Published Port。
+如果 Web 与 API 在同一个 Compose Network 中，Web Container 一般直接访问：
+
+~~~text
+api:3000
+~~~
+
+而不是 `localhost:8080`。
+
+原因：
+
+~~~text
+Container → Container
+走 Docker Network
+
+Host → Container
+使用 Published Port
+~~~
+
+#### <u>4. Browser Monitor 当前 ports 写在哪里</u>
+
+文件：
+
+~~~text
+browser-monitor/platform/infra/docker-compose.yml
+~~~
+
+Web Service：
+
+~~~yaml
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: platform/infra/Dockerfile.web
+
+    ports:
+      - "8080:8080"
+~~~
+
+含义：
+
+~~~text
+Host Browser
+http://localhost:8080
+        ↓
+Host Port 8080
+        ↓
+Web Container Port 8080
+        ↓
+Caddy Process
+~~~
+
+TimescaleDB：
+
+~~~yaml
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg17
+    ports:
+      - "5432:5432"
+~~~
+
+表示 Host 上的数据库工具可以通过 `localhost:5432` 访问 Container 内 TimescaleDB/PostgreSQL 的 5432。
+
+Redis：
+
+~~~yaml
+services:
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+~~~
+
+所以 `ports` 必须放回 `services.<service>` 下理解：它属于某个 Service，用于把 Host Port 发布到该 Service 创建的 Container Port。
 
 ---
 
