@@ -10826,16 +10826,16 @@ RTO
 
 > **Redis 的可靠性不是“开 AOF”一个配置能够解决的。RDB/AOF 解决数据能否恢复，maxmemory/eviction 解决内存是否可控，Replication/Sentinel 解决节点故障时服务能否继续，而 Backup、RPO、RTO 决定系统最终接受什么样的数据损失和恢复时间。**
 
-## 7. 下一节进入 Redis 的规模化运行与性能治理
+## 7. Redis 的规模化运行需要同时治理 Key 分布、命令成本、节点容量与可观测性
 
-到这里 Redis 学习链路已经从：
+前六节已经把 Redis 从应用使用一路推进到了可靠运行：
 
 ~~~text
 Redis 是什么
     ↓
 Redis 怎样组织状态
     ↓
-Redis 怎样安全执行命令
+Redis 怎样保证并发修改
     ↓
 Redis 怎样形成工程状态模型
     ↓
@@ -10844,26 +10844,715 @@ Redis 怎样与 PostgreSQL 协作
 Redis 自己怎样可靠运行
 ~~~
 
-下一节继续进入：
+第七节继续向上走：
+
+~~~text
+Redis 已经能正常运行
+        ↓
+数据量越来越大
+请求越来越多
+业务实例越来越多
+        ↓
+Redis 会在哪里出现瓶颈？
+~~~
+
+这时问题已经不只是：
+
+~~~text
+GET 快不快？
+~~~
+
+而是：
+
+~~~text
+是不是某个 Key 承担了全部流量？
+
+是不是某个 Value 已经巨大？
+
+是不是某条命令一次扫描太多数据？
+
+是不是大量 RTT 浪费在网络上？
+
+单台 Redis 的 CPU / RAM / Network
+是不是已经成为上限？
+
+如果扩成 Cluster，
+当前 Key 设计还能不能继续工作？
+
+Redis 慢了以后，
+怎样知道到底慢在哪里？
+~~~
+
+所以这一节建立四层框架：
 
 ~~~text
 Redis Scale & Operations
 │
-├── Key Design Governance
-├── Hot Key
-├── Big Key
-├── Pipeline
-├── Slow Command
-├── Connection
-├── Memory Observation
-├── Redis Cluster
-└── Observability
+├── 第一层：Keyspace Governance
+│     ↓
+│   Key Cardinality
+│   Big Key
+│   Hot Key
+│
+├── 第二层：Execution Efficiency
+│     ↓
+│   Command Cost
+│   Pipeline
+│   Connection
+│   Latency
+│
+├── 第三层：Horizontal Scaling
+│     ↓
+│   Single Node Limit
+│   Sharding
+│   Hash Slot
+│   Redis Cluster
+│
+└── 第四层：Observability
+      ↓
+    INFO
+    SLOWLOG
+    LATENCY
+    Memory
+    Hot / Big Key Diagnosis
 ~~~
 
-也就是回答：
+### 【第一层：Keyspace Governance 先控制状态怎样分布，再谈 Redis 整体性能】
 
-> **Redis 已经能够稳定运行以后，当数据量、请求量和节点规模继续增长时，怎样避免单个 Key、单条命令和单个节点成为系统瓶颈。**
+Redis 的性能问题经常不是：
 
+~~~text
+Redis 整体太慢
+~~~
+
+而是：
+
+~~~text
+某一部分 Key
+设计出了问题
+~~~
+
+因此首先要区分三个不同维度：
+
+~~~text
+Keyspace
+│
+├── Cardinality
+│     ↓
+│   一共有多少 Key？
+│
+├── Value Size
+│     ↓
+│   单个 Key 有多大？
+│
+└── Access Frequency
+      ↓
+    某个 Key 有多热？
+~~~
+
+这三个问题对应三种完全不同的风险。
+
+#### <u>1. Key 很多不等于 Big Key</u>
+
+假设：
+
+~~~text
+session:user1
+session:user2
+session:user3
+...
+~~~
+
+有：
+
+~~~text
+100 万个 Key
+~~~
+
+但每一个只有：
+
+~~~text
+几百 Bytes
+~~~
+
+这里的问题主要是：
+
+~~~text
+Key Cardinality
++
+总内存占用
+~~~
+
+而不是：
+
+~~~text
+Big Key
+~~~
+
+#### <u>2. Big Key 指的是单个 Key 内部承载的数据量过大</u>
+
+例如：
+
+~~~text
+one-hash
+    ↓
+500 万 Fields
+
+one-zset
+    ↓
+1000 万 Members
+
+one-string
+    ↓
+几十 MB
+~~~
+
+这才属于 Big Key。
+
+Big Key 的问题不仅是：
+
+~~~text
+占内存大
+~~~
+
+还可能让某些操作变得很重：
+
+~~~text
+HGETALL huge-hash
+
+LRANGE huge-list 0 -1
+
+ZRANGE huge-zset 0 -1
+~~~
+
+因为一次 Command 可能处理或返回大量数据。
+
+#### <u>3. Hot Key 指的是单个 Key 被访问得过于频繁</u>
+
+Hot Key 和 Big Key 完全不是一个概念。
+
+一个 Key 可以：
+
+~~~text
+Value = "1"
+~~~
+
+只有几个字节。
+
+但如果：
+
+~~~text
+每秒访问 100000 次
+~~~
+
+它仍然是：
+
+~~~text
+Hot Key
+~~~
+
+所以必须固定：
+
+~~~text
+Big Key
+    ↓
+单个 Key 数据量太大
+
+Hot Key
+    ↓
+单个 Key 请求量太大
+~~~
+
+它们可以分别存在，也可以同时存在。
+
+### 【当前 Browser Monitor 已经可以找到几个潜在 Hot Key 候选】
+
+当前 Redis：
+
+~~~text
+session:<tokenHash>
+
+ingest:project:<projectId>
+
+ingest:ip:<projectId>:<ip>
+
+ingestion:stats:<projectId>
+
+ingestion:rate:<projectId>
+
+analytics:version:<projectId>
+
+analytics:<projectId>:<version>:...
+~~~
+
+可以逐个分析。
+
+#### <u>1. Session 更接近 High Cardinality，而不是天然 Hot Key</u>
+
+每个 Session：
+
+~~~text
+session:<tokenHash>
+~~~
+
+拥有自己的 Key。
+
+所以：
+
+~~~text
+User A
+    ↓
+session:A
+
+User B
+    ↓
+session:B
+
+User C
+    ↓
+session:C
+~~~
+
+请求天然分散。
+
+因此正常情况下风险更接近：
+
+~~~text
+大量 Session
+    ↓
+Key Count
++
+Memory
+~~~
+
+而不是所有请求打到同一个 Key。
+
+#### <u>2. Project Token Bucket 是非常典型的潜在 Hot Key</u>
+
+当前：
+
+~~~text
+ingest:project:<projectId>
+~~~
+
+一个 Project 的所有 Ingestion Request 都访问同一个 Project Bucket。
+
+例如：
+
+~~~text
+Project P001
+
+Request 1 ─┐
+Request 2 ─┤
+Request 3 ─┤
+...        ├──► ingest:project:P001
+Request N ─┘
+~~~
+
+如果某个 Project 流量特别大：
+
+~~~text
+这个 Key 很小
+~~~
+
+但：
+
+~~~text
+Lua EVAL 次数非常高
+~~~
+
+它就可能成为 Hot Key。
+
+#### <u>3. IP Bucket 天然比 Project Bucket 更分散</u>
+
+当前：
+
+~~~text
+ingest:ip:<projectId>:<ip>
+~~~
+
+例如：
+
+~~~text
+P001 + IP A
+P001 + IP B
+P001 + IP C
+~~~
+
+对应三个不同 Key。
+
+所以访问压力可以自然分散。
+
+这说明：
+
+~~~text
+Key Scope
+~~~
+
+本身就决定了流量集中程度。
+
+#### <u>4. ingestion:stats 也是 Project 级集中写入点</u>
+
+当前：
+
+~~~text
+ingestion:stats:<projectId>
+~~~
+
+同一个 Project 下所有请求都：
+
+~~~text
+HINCRBY accepted
+
+HINCRBY duplicate
+
+HINCRBY rejected
+~~~
+
+所以它同样属于：
+
+~~~text
+Small Value
++
+Potential High Frequency
+~~~
+
+即潜在 Hot Key。
+
+#### <u>5. analytics:version 也是一个非常集中的协调 Key</u>
+
+每个 Analytics Request：
+
+~~~text
+GET analytics:version:<projectId>
+~~~
+
+Worker 数据变化：
+
+~~~text
+INCR analytics:version:<projectId>
+~~~
+
+所以它同时承载：
+
+~~~text
+Read Traffic
++
+Write Traffic
+~~~
+
+如果某一个 Project Analytics 请求特别多，它也可能成为 Hot Key。
+
+#### <u>6. ingestion:rate 更接近受控 Big Key 风险</u>
+
+当前：
+
+~~~text
+ingestion:rate:<projectId>
+~~~
+
+是 Sorted Set。
+
+每次 Request：
+
+~~~text
+ZADD
+~~~
+
+同时：
+
+~~~text
+ZREMRANGEBYSCORE
+删除 60 秒以前 Member
+~~~
+
+因此它不是永远增长的 Sorted Set，而是只保留最近约 60 秒。
+
+这已经是一种很重要的容量治理。
+
+但是其 Member 数量大致仍然与：
+
+~~~text
+最近一分钟 Request Count
+~~~
+
+相关。
+
+如果：
+
+~~~text
+每秒 10000 个 Request
+~~~
+
+那么一分钟理论上就可能积累大量 Member。
+
+所以：
+
+~~~text
+Window Bounded
+≠
+一定很小
+~~~
+
+还必须结合真实流量观察。
+
+### 【Big Key、Hot Key 与 Key Explosion 是三个不同问题】
+
+可以整理：
+
+| 问题 | 本质 | 当前项目典型候选 |
+|---|---|---|
+| Key Explosion | Key 数量很多 | Session、Analytics Filter Cache |
+| Big Key | 单个 Value / Collection 很大 | ingestion:rate:<projectId> 需要关注 |
+| Hot Key | 单个 Key 请求频率极高 | Project Bucket、Statistics、Analytics Version |
+
+以后不要简单说：
+
+~~~text
+这个 Redis Key 有问题
+~~~
+
+而应该明确：
+
+~~~text
+是数量多？
+
+还是单个大？
+
+还是单个太热？
+~~~
+
+### 【第二层：Execution Efficiency 关注单条 Command 与整个请求链路的实际成本】
+
+解决完 Key 分布以后，下一层才看 Command。
+
+Redis 快并不代表：
+
+~~~text
+任何 Command
+任何参数
+任何返回规模
+都很快
+~~~
+
+#### <u>1. Command Complexity 必须和数据规模一起看</u>
+
+例如：
+
+~~~text
+GET key
+~~~
+
+通常非常简单。
+
+但：
+
+~~~text
+HGETALL huge-hash
+~~~
+
+即使只有一条 Command，也可能返回大量 Field。
+
+同样：
+
+~~~text
+ZRANGEBYSCORE
+~~~
+
+不能只看到 Sorted Set 查范围，还必须问：
+
+~~~text
+这个 Range 最终返回多少 Member？
+~~~
+
+因此实际成本可以理解为：
+
+~~~text
+Command Algorithm Cost
+        +
+Processed Data Size
+        +
+Returned Data Size
+~~~
+
+#### <u>2. 当前 Recent Window 需要关注的不是命令名称，而是结果规模</u>
+
+当前：
+
+~~~text
+ZRANGEBYSCORE
+ingestion:rate:<projectId>
+
+recentSince
++inf
+~~~
+
+如果一分钟只有：
+
+~~~text
+100 Requests
+~~~
+
+结果很小。
+
+如果一分钟：
+
+~~~text
+100000 Requests
+~~~
+
+同一个 Command 的实际工作量完全不同。
+
+因此规模治理要从：
+
+~~~text
+Command
+~~~
+
+继续追到：
+
+~~~text
+Command × Data Size
+~~~
+
+### 【Pipeline 优化的是大量 Command 的网络往返成本】
+
+第三节已经建立：
+
+~~~text
+Pipeline
+≠
+Transaction
+~~~
+
+到了规模化阶段，需要再理解它的性能价值。
+
+普通：
+
+~~~text
+Client
+  ↓ Command 1
+Redis
+  ↓ Reply 1
+Client
+  ↓ Command 2
+Redis
+  ↓ Reply 2
+...
+~~~
+
+每条命令都支付 RTT。
+
+Pipeline：
+
+~~~text
+Command 1
+Command 2
+Command 3
+Command 4
+    ↓
+批量发送
+    ↓
+Redis
+    ↓
+Replies
+~~~
+
+可以减少：
+
+~~~text
+Network Round Trip
++
+Socket I/O
+~~~
+
+开销。
+
+但 Pipeline 不是越大越好。
+
+Redis Server 仍然需要暂存：
+
+~~~text
+Pipeline Replies
+~~~
+
+所以大量 Command 应该：
+
+~~~text
+分批 Batch
+~~~
+
+而不是无限堆积。
+
+可以形成：
+
+~~~text
+Pipeline
+    ↓
+减少 RTT
+
+Batch Size
+    ↓
+控制内存和响应规模
+~~~
+
+### 【Connection Reuse 避免把连接建立成本放进每个请求】
+
+Redis 是 TCP Client / Server。
+
+如果每个 HTTP Request：
+
+~~~text
+New Redis Connection
+        ↓
+Command
+        ↓
+Close
+~~~
+
+会反复支付：
+
+~~~text
+TCP Connection
+Authentication
+Socket Setup
+~~~
+
+成本。
+
+当前 Browser Monitor 的 InfrastructureModule 使用一个 Redis Client 作为全局依赖注入实例。
+
+因此：
+
+~~~text
+API Request A ─┐
+API Request B ─┤
+API Request C ─┤
+               └──► Shared Redis Client
+~~~
+
+而不是：
+
+~~~text
+每一个 Request
+new Redis()
+~~~
+
+API 与 Worker 则：
+
+~~~text
+API Process
+    ↓
+Redis Client A
+
+Worker Process
+    ↓
+Redis Client B
+~~~
+
+各自拥有客户端连接，但共同访问同一个 Redis Server。
+
+<!-- REDIS_SECTION_7_CONTINUE -->
 
 ## 参考资料
 
