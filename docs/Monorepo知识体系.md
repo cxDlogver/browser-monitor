@@ -15,7 +15,159 @@ Monorepo（Monolithic Repository，单体代码仓库）首先是一种代码仓
 
 ---
 
-## 1. Monorepo 的核心是让多个工程在同一个仓库中共同演进
+**全文知识框架**
+
+这篇文档不再按照 pnpm、Nx、Docker 等工具名拆章节，而是按照一个 Monorepo 从“代码进入仓库”到“系统真正运行”的因果链组织。先建立六个核心问题，再把具体工具挂到对应层级：
+
+~~~text
+Monorepo 多项目工程
+│
+├── 1. Repository / Project Model
+│      为什么多个工程放在一个仓库？
+│      仓库里有哪些 Project？
+│
+├── 2. Workspace / Dependency Model
+│      包管理器怎样发现 Project？
+│      Project 之间谁依赖谁？
+│
+├── 3. Task Model
+│      dev / build / test 如何执行？
+│      多 Project Task 如何排序、并行和自动编排？
+│
+├── 4. Artifact / Delivery Model
+│      每个 Project 构建后得到什么？
+│      Package、Web、Node Application 如何发布与交付？
+│
+├── 5. Runtime / Deployment Model
+│      Artifact 最终在哪里运行？
+│      Package、Process、Container、Service 如何区分？
+│
+├── 6. Engineering Governance
+│      Project 变多后如何控制 CI、Affected、Cache 和发布成本？
+│
+└── 7. browser-monitor End-to-End Review
+       用 Workspace Graph、Project Graph、Task Graph、Runtime Graph
+       把前六层重新串成一条真实工程链路
+~~~
+
+这套顺序不是按照工具分类，而是按照上游对下游的依赖关系展开：
+
+~~~text
+Repository
+    ↓
+Workspace Discovery
+    ↓
+Project / Package Identity
+    ↓
+Dependency Declaration & Resolution
+    ↓
+Project Dependency Graph
+    ↓
+Project Task
+    ↓
+Task Graph
+    ↓
+Build Artifact
+    ↓
+Release / Deploy
+    ↓
+Runtime System
+    ↓
+CI / Affected / Cache / Governance
+~~~
+
+因此后文每一章只回答一个层级的问题。pnpm 主要出现在 Workspace 与 Dependency 层；Nx/Turborepo 主要出现在 Task 与 Governance 层；tsup、tsc、Vite 主要出现在 Task 与 Artifact 层；Node.js、Caddy、Docker Compose 主要出现在 Runtime 与 Deployment 层。这样学习时不需要记一组互相孤立的工具名，而是先确定它们在整条工程链中的位置。
+
+
+---
+
+## 1. Monorepo 通过统一仓库管理多个独立工程
+
+
+本章先建立 Monorepo 的管理对象。只有先分清 Repository、Workspace、Project、Application、Library、Package 这些边界，后面讨论依赖图、任务图和运行图才不会混在一起。
+
+### 【Repository、Workspace 与 Project 构成三个不同的管理层级】
+
+**结论**
+
+Repository（代码仓库）、Workspace（工作区）与 Project（工程项目）不是同义词。它们分别回答三个不同问题：
+
+| 层级 | 主要回答的问题 | browser-monitor 中的对应 |
+| --- | --- | --- |
+| Repository | 哪些文件共享 Git 历史、Branch、Commit、PR？ | Git 仓库 `cx-learn-notes` |
+| Workspace | 包管理器统一管理哪些 Project？ | `cx-learn-notes/browser-monitor` 下由 `pnpm-workspace.yaml` 定义的 pnpm Workspace |
+| Project / Package | 一个独立工程叫什么、依赖谁、有哪些任务？ | `sdk`、`protocol`、`api`、`worker`、`web` 等 |
+
+完整关系可以先记成：
+
+~~~text
+Git Repository
+    ↓ 版本控制边界
+browser-monitor Workspace
+    ↓ 包管理边界
+多个 Project
+    ↓ 各自 package.json
+Package / Application / Library
+~~~
+
+这里还需要特别区分 Git Repository Root 与 Workspace Root。当前 Git 仓库根是 `cx-learn-notes`，而本文讨论的 pnpm Workspace 根是其中的 `browser-monitor/` 目录；不能因为 `browser-monitor` 拥有自己的 `package.json` 和 `pnpm-workspace.yaml`，就把它描述成另一个独立 Git Repository。
+
+**Project、Package、Application 与 Library 的关系**
+
+Project 是工程管理视角下的一个独立单元。对当前 pnpm Workspace 来说，一个被 Workspace 发现并具有 package.json 的目录可以作为一个 Package Project 被 pnpm 管理。
+
+Package 更强调：
+
+~~~text
+name
+version
+dependencies
+exports
+scripts
+~~~
+
+等包管理属性。
+
+Application 更强调：
+
+~~~text
+是否拥有启动入口
+是否形成长期运行进程
+是否能够独立部署
+~~~
+
+Library 更强调：
+
+~~~text
+是否主要通过 import 被其他 Project 使用
+是否提供稳定的公共能力
+~~~
+
+所以一个 Project 可以同时是一个 Package，又根据职责表现为 Application 或 Library。browser-monitor 中：
+
+~~~text
+Application
+├── @browser-monitor/api
+├── @browser-monitor/worker
+├── @browser-monitor/audit-worker
+└── @browser-monitor/web
+
+Library / Shared Package
+├── @browser-monitor/protocol
+├── @browser-monitor/database
+└── @browser-monitor/shared
+
+Public SDK Package
+└── cx-browser-monitor-sdk
+~~~
+
+其中 SDK 是一个特殊的 Library/Package：它会作为 Package 被构建和发布，但真正的业务代码最终运行在接入它的 Browser 页面中。
+
+**面试与答辩收束**
+
+> Repository 决定版本控制边界，Workspace 决定包管理器管理哪些 Project，Project 自己的 package.json 再定义身份、依赖和任务。Application、Library、SDK 则是这些 Project 在职责和生命周期上的不同类型。
+
+
 
 本章先确定 Monorepo 本身解决的问题，再把“共享代码”“统一规范”等容易混淆的概念放回正确位置。
 
@@ -180,7 +332,29 @@ Monorepo
 
 ---
 
-## 2. pnpm Workspace 先完成项目发现，再谈项目之间的依赖
+---
+
+## 2. Workspace 与 Dependency Graph 建立多项目之间的代码关系
+
+本章沿一条连续机制解释“多个目录怎样真正变成相互依赖的 Workspace Project”。原来的 Workspace Discovery、Dependency Declaration、pnpm install 与 Project Graph 不再拆成平级章节，因为它们实际上是同一个 Dependency Management（依赖管理）过程的连续阶段：
+
+~~~text
+pnpm-workspace.yaml
+    ↓
+Workspace Discovery
+    ↓
+Package Identity
+    ↓
+Dependency Declaration
+    ↓
+workspace:* Resolution
+    ↓
+pnpm install / Link
+    ↓
+Project Dependency Graph
+~~~
+
+### 【Workspace Discovery 先确定 Workspace 中有哪些 Project】
 
 本章是理解当前仓库的第一条核心机制链：
 
@@ -196,7 +370,7 @@ pnpm-workspace.yaml
 
 到这一阶段，只完成“有哪些项目”的发现，还没有产生“A 依赖 B”的关系。
 
-### 【pnpm-workspace.yaml 的 packages 字段定义项目搜索范围】
+#### <u>1. pnpm-workspace.yaml 的 packages 字段定义项目搜索范围</u>
 
 **结论**
 
@@ -364,7 +538,7 @@ name = @browser-monitor/api
 
 ---
 
-### 【Package 的 name 是内部依赖解析时的重要身份标识】
+#### <u>2. Package 的 name 是内部依赖解析时的重要身份标识</u>
 
 **结论**
 
@@ -453,7 +627,9 @@ browser-monitor/platform/apps/api/package.json：
 
 ---
 
-## 3. 内部依赖关系来自消费者 package.json，而不是目录结构
+---
+
+### 【Dependency Declaration 与 workspace:* 建立内部依赖关系】
 
 本章继续上一章的机制链：
 
@@ -469,7 +645,7 @@ workspace:* 要求本地 Workspace 解析
 形成 Project Dependency
 ~~~
 
-### 【被 Workspace 发现不等于可以自动被其他项目引用】
+#### <u>1. 被 Workspace 发现不等于可以自动被其他项目引用</u>
 
 **结论**
 
@@ -605,7 +781,7 @@ audit-worker → protocol
 
 ---
 
-### 【workspace:* 控制的是依赖解析来源，不负责创建依赖本身】
+#### <u>2. workspace:* 控制的是依赖解析来源，不负责创建依赖本身</u>
 
 **结论**
 
@@ -719,7 +895,9 @@ Registry / Lockfile
 
 ---
 
-## 4. pnpm install 完成依赖解析和链接，但不会自动完成项目构建
+---
+
+### 【pnpm install 将依赖声明转换为可解析关系】
 
 本章继续机制链：
 
@@ -737,7 +915,7 @@ node_modules 中建立可解析关系
 
 这一步仍然不是 Build。
 
-### 【pnpm install 会面向整个 Workspace 处理 Package Manifest】
+#### <u>1. pnpm install 会面向整个 Workspace 处理 Package Manifest</u>
 
 **结论**
 
@@ -842,7 +1020,7 @@ Lockfile
 
 ---
 
-### 【Workspace Package 已经可解析，不等于它的 dist 已经存在】
+#### <u>2. Workspace Package 已经可解析，不等于它的 dist 已经存在</u>
 
 **结论**
 
@@ -948,7 +1126,9 @@ worker build
 
 ---
 
-## 5. Project Dependency Graph 是根据依赖声明得到的关系模型
+---
+
+### 【Project Dependency Graph 汇总 Workspace 的代码依赖结构】
 
 本章把前面已经建立的依赖声明汇总成结构：
 
@@ -960,7 +1140,7 @@ package.json dependencies
 Project Dependency Graph
 ~~~
 
-### 【依赖图首先要明确箭头语义】
+#### <u>1. 依赖图首先要明确箭头语义</u>
 
 **结论**
 
@@ -1034,7 +1214,7 @@ Transitive Dependency
 
 ---
 
-### 【Project Graph 通常是工具计算的数据结构，不天然是一份仓库文件】
+#### <u>2. Project Graph 通常是工具计算的数据结构，不天然是一份仓库文件</u>
 
 **结论**
 
@@ -1093,7 +1273,25 @@ nx graph --file=output.json
 
 ---
 
-## 6. Project Graph 只描述“谁依赖谁”，Task Graph 才决定任务怎么执行
+---
+
+## 3. Task System 组织开发、测试与构建执行关系
+
+Workspace 与 Dependency Graph 解决“有哪些 Project、谁依赖谁”；Task System（任务系统）继续回答“这些 Project 的 build、test、typecheck、dev 到底怎样执行”。本章的核心关系是：
+
+~~~text
+Project Graph
+    +
+Project 自己定义的 Task
+    +
+Task Dependency Rule
+    ↓
+Task Graph
+    ↓
+执行顺序 / 并行 / Cache
+~~~
+
+### 【Project Script 与 Task Graph 定义具体执行关系】
 
 本章进入第二条核心机制链：
 
@@ -1109,7 +1307,7 @@ Task Graph
 实际执行顺序与并行关系
 ~~~
 
-### 【每个 Project 先独立定义自己的 build、test、dev】
+#### <u>1. 每个 Project 先独立定义自己的 build、test、dev</u>
 
 **结论**
 
@@ -1168,7 +1366,7 @@ package.json scripts
 
 ---
 
-### 【开发阶段的长期任务需要区分 Watch Build、Process Restart 与 Dev Server】
+#### <u>2. 开发阶段的长期任务需要区分 Watch Build、Process Restart 与 Dev Server</u>
 
 **结论**
 
@@ -1333,7 +1531,7 @@ HMR / 页面更新
 
 ---
 
-### 【当前 browser-monitor 用 Script 显式写出任务执行顺序】
+#### <u>3. 当前 browser-monitor 用 Script 显式写出任务执行顺序</u>
 
 **结论**
 
@@ -1426,7 +1624,7 @@ web
 
 ---
 
-### 【自动编排的本质是声明规则，而不是继续手写完整顺序】
+#### <u>4. 自动编排的本质是声明规则，而不是继续手写完整顺序</u>
 
 **结论**
 
@@ -1487,11 +1685,13 @@ Task Graph
 
 ---
 
-## 7. Nx 与 Turborepo 如何真正接管任务编排
+---
+
+### 【Nx 与 Turborepo 将手工任务顺序提升为规则驱动编排】
 
 本章不把 Nx/Turborepo 当名词介绍，而是说明如果把 browser-monitor 接入这类 Task Runner，需要增加什么配置、命令如何变化、工具又是怎样生成 Task Graph 的。
 
-### 【Turborepo 用 Workspace Package 关系和 turbo.json 生成 Task Graph】
+#### <u>1. Turborepo 用 Workspace Package 关系和 turbo.json 生成 Task Graph</u>
 
 **结论**
 
@@ -1633,7 +1833,7 @@ turbo run build
 
 ---
 
-### 【Nx 把 Project Graph 与 Task Graph 做成可直接检查的一等模型】
+#### <u>2. Nx 把 Project Graph 与 Task Graph 做成可直接检查的一等模型</u>
 
 **结论**
 
@@ -1763,7 +1963,7 @@ nx build api
 
 ---
 
-### 【当前项目为什么仍然可以选择 Script 编排】
+#### <u>3. 当前项目为什么仍然可以选择 Script 编排</u>
 
 **结论**
 
@@ -1795,7 +1995,27 @@ CI 时间明显增长
 
 ---
 
-## 8. Build Artifact 决定一个 Workspace Package 最终如何被使用
+---
+
+## 4. Build Artifact、Release 与 Deploy 形成项目交付生命周期
+
+Task 执行完成以后，下一步不是直接进入 Runtime，而是先得到 Build Artifact（构建产物）。不同 Project 的职责不同，因此产物、发布方式和最终运行方式也不同。本章沿下面的链路理解：
+
+~~~text
+Project Source
+    ↓
+Build Task
+    ↓
+Artifact
+    ↓
+Release / Distribution
+    ↓
+Deploy
+    ↓
+进入 Runtime
+~~~
+
+### 【Build Artifact 决定 Workspace Package 如何被其他项目消费】
 
 本章从 Task Graph 继续向下：
 
@@ -1811,7 +2031,7 @@ Package / Server / Static Assets
 
 同一个 Monorepo 中不同 Project 的 Build Artifact 可以完全不同。
 
-### 【Library Package 构建后提供可被 import 的代码产物】
+#### <u>1. Library Package 构建后提供可被 import 的代码产物</u>
 
 **结论**
 
@@ -1854,11 +2074,13 @@ dist/index.global.js
 
 ---
 
-## 9. Web Application 与 Node Application 的构建生命周期来自运行模型差异
+---
+
+### 【不同 Application 的构建产物与运行模型并不相同】
 
 这一部分不能只说“Web 是静态资源、API 是 Node 进程”，而要从 package.json 和 Dockerfile 顺着执行过程推导。
 
-### 【Node API 构建后仍然需要 Node.js Runtime 长期运行】
+#### <u>1. Node API 构建后仍然需要 Node.js Runtime 长期运行</u>
 
 **结论**
 
@@ -1941,7 +2163,7 @@ HTTP Service
 
 ---
 
-### 【React Web 的生产 Build 把源码转换成浏览器资源】
+#### <u>2. React Web 的生产 Build 把源码转换成浏览器资源</u>
 
 **结论**
 
@@ -2056,7 +2278,7 @@ Caddy 只是生产静态文件服务器
 
 ---
 
-### 【Audit Worker 的独立 Dockerfile 来自运行环境依赖不同】
+#### <u>3. Audit Worker 的独立 Dockerfile 来自运行环境依赖不同</u>
 
 **结论**
 
@@ -2102,11 +2324,127 @@ Chromium
 
 ---
 
-## 10. Runtime Graph 与 Project Graph 是两张完全不同的图
+---
+
+### 【Build、Release 与 Deploy 是连续但不同的交付阶段】
+
+本章继续从 Artifact 向最终交付延伸。
+
+#### <u>1. Build 只回答“源码变成什么产物”</u>
+
+**结论**
+
+Build 的输入是 Source，输出是 Artifact。不同 Project 可以使用完全不同的构建工具。
+
+browser-monitor 当前：
+
+| Project | Build | 主要 Artifact |
+| --- | --- | --- |
+| protocol | tsup | dist JS + d.ts |
+| sdk | tsup | SDK dist |
+| api | tsc | Server JS |
+| worker | tsc | Worker JS |
+| audit-worker | tsc | Worker JS |
+| web | tsc + Vite | HTML/JS/CSS |
+| database/shared | tsc | Library JS + d.ts |
+
+所以 Monorepo 的统一 Build 并不是“所有项目都用同一个 Builder”，而是：
+
+~~~text
+统一触发多 Project Task
++
+每个 Project 使用自己的 Build Implementation
+~~~
+
+---
+
+#### <u>2. Release 管理版本与分发，Deploy 管理运行环境</u>
+
+**结论**
+
+Release（发布）主要回答 Package/Image 哪个版本可以被其他系统使用；Deploy（部署）主要回答 Application 的哪个 Artifact 在哪个环境中运行。
+
+SDK 可以是：
+
+~~~text
+Source
+↓
+Build
+↓
+npm Package
+↓
+其他业务项目安装
+~~~
+
+API 可以是：
+
+~~~text
+Source
+↓
+Build
+↓
+Docker Image
+↓
+Container
+↓
+Server
+~~~
+
+当前仓库中 SDK 的 publishConfig.access 为 public，而 API、Worker、Web 等 Package 标记 private: true，说明它们的交付边界本来就不同。
+
+**版本策略事实边界**
+
+当前 Manifest 可以确认：
+
+~~~text
+SDK = 0.3.0
+Protocol = 3.0.0
+Platform/Apps = 0.1.0
+~~~
+
+这只能证明：
+
+> 当前 Package Manifest 并没有统一使用同一个版本号。
+
+它不能单独证明仓库已经建设完整的“Independent Version Release Workflow”。
+
+完整版本发布策略是否存在自动 Bump、Changelog、Changesets、Tag 等流程，需要读取实际 Release 配置后才能确认。
+
+pnpm 官方也明确指出 Workspace 中的 Package Versioning 是复杂问题，并推荐 Changesets、Rush 等工具处理发布工作流。[[2]](https://pnpm.io/workspaces)
+
+**面试与答辩收束**
+
+> Monorepo 不意味着所有 Package 同版本，也不意味着所有 Application 一起部署。Build、Release、Deploy 必须分别讨论。
+
+---
+
+---
+
+## 5. Runtime 与 Deployment 将构建产物组成真正运行的系统
+
+前四章主要讨论 Source、Package、Dependency、Task 与 Artifact；进入 Runtime 后，关注对象发生变化：不再只是“哪个 Package 依赖谁”，而是“哪些 Process、Container 和 Service 在运行，以及它们如何通过 HTTP、TCP、数据库和队列发生关系”。
+
+完整转换可以理解为：
+
+~~~text
+Package / Application Source
+    ↓
+Build Artifact
+    ↓
+Process
+    ↓
+Container（如果采用容器）
+    ↓
+Service
+    ↓
+Runtime Graph
+~~~
+
+### 【Runtime Graph 与 Project Graph 描述不同层面的依赖】
 
 本章把源码阶段和运行阶段彻底分离。
 
-### 【Web → API 的 HTTP 关系不是 Workspace Package Dependency】
+#### <u>1. Web → API 的 HTTP 关系不是 Workspace Package Dependency</u>
 
 **结论**
 
@@ -2182,7 +2520,7 @@ TimescaleDB
 
 ---
 
-### 【Docker Compose 根据运行依赖启动多个 Service】
+#### <u>2. Docker Compose 根据运行依赖启动多个 Service</u>
 
 **结论**
 
@@ -2241,103 +2579,33 @@ Runtime Graph
 
 ---
 
-## 11. Build、Release 与 Deploy 是三段独立生命周期
-
-本章继续从 Artifact 向最终交付延伸。
-
-### 【Build 只回答“源码变成什么产物”】
-
-**结论**
-
-Build 的输入是 Source，输出是 Artifact。不同 Project 可以使用完全不同的构建工具。
-
-browser-monitor 当前：
-
-| Project | Build | 主要 Artifact |
-| --- | --- | --- |
-| protocol | tsup | dist JS + d.ts |
-| sdk | tsup | SDK dist |
-| api | tsc | Server JS |
-| worker | tsc | Worker JS |
-| audit-worker | tsc | Worker JS |
-| web | tsc + Vite | HTML/JS/CSS |
-| database/shared | tsc | Library JS + d.ts |
-
-所以 Monorepo 的统一 Build 并不是“所有项目都用同一个 Builder”，而是：
-
-~~~text
-统一触发多 Project Task
-+
-每个 Project 使用自己的 Build Implementation
-~~~
-
 ---
 
-### 【Release 管理版本与分发，Deploy 管理运行环境】
+## 6. Monorepo 规模化治理围绕变更影响和交付成本展开
 
-**结论**
+当 Project 数量较少时，全仓 Build/Test 和显式 Script 往往已经足够；当项目数量、依赖关系和 CI 时间持续增长后，才会自然出现 Affected、Task Cache、Remote Cache、版本发布治理等问题。
 
-Release（发布）主要回答 Package/Image 哪个版本可以被其他系统使用；Deploy（部署）主要回答 Application 的哪个 Artifact 在哪个环境中运行。
-
-SDK 可以是：
+因此规模化治理不是 Monorepo 的第一层知识，而是建立在前面几层之上：
 
 ~~~text
-Source
-↓
-Build
-↓
-npm Package
-↓
-其他业务项目安装
+Project Boundary
+    ↓
+Project Graph
+    ↓
+Task Graph
+    ↓
+Build Artifact
+    ↓
+Git Change
+    ↓
+Affected / Cache / CI / Release Governance
 ~~~
 
-API 可以是：
-
-~~~text
-Source
-↓
-Build
-↓
-Docker Image
-↓
-Container
-↓
-Server
-~~~
-
-当前仓库中 SDK 的 publishConfig.access 为 public，而 API、Worker、Web 等 Package 标记 private: true，说明它们的交付边界本来就不同。
-
-**版本策略事实边界**
-
-当前 Manifest 可以确认：
-
-~~~text
-SDK = 0.3.0
-Protocol = 3.0.0
-Platform/Apps = 0.1.0
-~~~
-
-这只能证明：
-
-> 当前 Package Manifest 并没有统一使用同一个版本号。
-
-它不能单独证明仓库已经建设完整的“Independent Version Release Workflow”。
-
-完整版本发布策略是否存在自动 Bump、Changelog、Changesets、Tag 等流程，需要读取实际 Release 配置后才能确认。
-
-pnpm 官方也明确指出 Workspace 中的 Package Versioning 是复杂问题，并推荐 Changesets、Rush 等工具处理发布工作流。[[2]](https://pnpm.io/workspaces)
-
-**面试与答辩收束**
-
-> Monorepo 不意味着所有 Package 同版本，也不意味着所有 Application 一起部署。Build、Release、Deploy 必须分别讨论。
-
----
-
-## 12. CI 的优化建立在正确的 Project Graph 与 Task Graph 之上
+### 【CI 通过 Affected 与 Cache 减少无效任务】
 
 本章解释为什么 Affected、Cache 不是独立工具名词，而是前面机制的自然结果。
 
-### 【Affected 先判断哪些 Project 被变化影响】
+#### <u>1. Affected 先判断哪些 Project 被变化影响</u>
 
 **结论**
 
@@ -2401,7 +2669,7 @@ protocol
 
 ---
 
-### 【Cache 再判断相同 Task 是否需要重新计算】
+#### <u>2. Cache 再判断相同 Task 是否需要重新计算</u>
 
 **结论**
 
@@ -2439,11 +2707,83 @@ Nx 的 Task Graph 与 Cache 都基于它对 Project/Task Input 的理解；官�
 
 ---
 
-## 13. browser-monitor 应同时用四张图理解，而不是只看目录
+---
+
+### 【后续深入沿依赖安装、任务执行与发布治理三条机制线展开】
+
+#### <u>1. pnpm 依赖安装机制</u>
+
+下一层继续回答：
+
+~~~text
+Content-addressable Store 是什么
+Hard Link 与 Symbolic Link 分别出现在哪里
+pnpm node_modules 为什么不是 npm 的简单扁平结构
+Hoisting 如何工作
+Phantom Dependency 为什么会出现
+pnpm-lock.yaml 记录了什么
+Peer Dependency 如何影响依赖图
+~~~
+
+目标不是记住 pnpm “更快”，而是能解释：
+
+> 一个 Workspace Package 从 dependency declaration 到 Node.js 真正能够 import，中间经历了什么。
+
+---
+
+#### <u>2. Task Runner 与增量构建机制</u>
+
+继续回答：
+
+~~~text
+Project Graph 如何从代码和 Manifest 推导
+Task Graph 何时生成
+Topological Order 如何保证依赖任务先执行
+哪些任务能够并行
+Task Input/Output 如何定义
+Local Cache / Remote Cache 如何命中
+Affected 如何结合 Git Diff
+~~~
+
+目标是能解释：
+
+> 为什么改一个 Protocol Package 后，有些 Task 必须重跑、有些可以跳过。
+
+---
+
+#### <u>3. Release 与 Deployment 机制</u>
+
+继续回答：
+
+~~~text
+SemVer
+workspace:* Publish 转换
+Changesets
+Package Release
+Docker Image
+CI/CD
+Environment
+Deployment
+Rollback
+~~~
+
+目标是能解释：
+
+> 一个 Monorepo 中的不同 Package 和 Application 为什么可以一起开发，却独立发布和部署。
+
+---
+
+---
+
+## 7. browser-monitor 用多张图把 Monorepo 的完整链路重新串起来
+
+前六章分别建立了管理对象、代码依赖、任务执行、构建交付、运行部署和规模化治理。最后不再增加新概念，而是用 browser-monitor 把这些层级重新映射为一条真实工程链。
+
+### 【Workspace、Project、Task 与 Runtime Graph 分别回答不同问题】
 
 到这里可以把整个工程压缩为四张互不替代的图。
 
-### 【第一张：Workspace Discovery 图】
+#### <u>1. 第一张：Workspace Discovery 图</u>
 
 ~~~text
 pnpm-workspace.yaml
@@ -2465,7 +2805,7 @@ Workspace Project Set
 
 ---
 
-### 【第二张：Project Dependency Graph】
+#### <u>2. 第二张：Project Dependency Graph</u>
 
 统一约定 A → B 表示 A depends on B：
 
@@ -2496,7 +2836,7 @@ web
 
 ---
 
-### 【第三张：Task Graph】
+#### <u>3. 第三张：Task Graph</u>
 
 当前实现不是动态生成 Graph 文件，而是通过 Script 明确串联：
 
@@ -2546,7 +2886,7 @@ build depends on dependency build
 
 ---
 
-### 【第四张：Runtime Graph】
+#### <u>4. 第四张：Runtime Graph</u>
 
 ~~~text
 Browser
@@ -2588,7 +2928,9 @@ Runtime Architecture
 
 ---
 
-## 14. Monorepo 的完整机制可以沿一条因果链复述
+---
+
+### 【从 Workspace Discovery 到 Runtime 可以沿一条因果链复述】
 
 如果需要在面试或答辩中完整介绍 browser-monitor 的 Monorepo，可以沿下面的顺序回答，而不是按工具名平铺。
 
@@ -2610,71 +2952,9 @@ Runtime Architecture
 
 ---
 
-## 15. 后续深入应沿三条机制线继续，而不是增加名词
-
-### 【pnpm 依赖安装机制】
-
-下一层继续回答：
-
-~~~text
-Content-addressable Store 是什么
-Hard Link 与 Symbolic Link 分别出现在哪里
-pnpm node_modules 为什么不是 npm 的简单扁平结构
-Hoisting 如何工作
-Phantom Dependency 为什么会出现
-pnpm-lock.yaml 记录了什么
-Peer Dependency 如何影响依赖图
-~~~
-
-目标不是记住 pnpm “更快”，而是能解释：
-
-> 一个 Workspace Package 从 dependency declaration 到 Node.js 真正能够 import，中间经历了什么。
-
 ---
 
-### 【Task Runner 与增量构建机制】
-
-继续回答：
-
-~~~text
-Project Graph 如何从代码和 Manifest 推导
-Task Graph 何时生成
-Topological Order 如何保证依赖任务先执行
-哪些任务能够并行
-Task Input/Output 如何定义
-Local Cache / Remote Cache 如何命中
-Affected 如何结合 Git Diff
-~~~
-
-目标是能解释：
-
-> 为什么改一个 Protocol Package 后，有些 Task 必须重跑、有些可以跳过。
-
----
-
-### 【Release 与 Deployment 机制】
-
-继续回答：
-
-~~~text
-SemVer
-workspace:* Publish 转换
-Changesets
-Package Release
-Docker Image
-CI/CD
-Environment
-Deployment
-Rollback
-~~~
-
-目标是能解释：
-
-> 一个 Monorepo 中的不同 Package 和 Application 为什么可以一起开发，却独立发布和部署。
-
----
-
-## 16. 参考资料
+## 8. 参考资料
 
 1. pnpm，Release Notes：https://pnpm.io/blog?type=releases
 2. pnpm，Workspace：https://pnpm.io/workspaces
