@@ -10419,7 +10419,451 @@ Redis
 仍然不可用
 ~~~
 
-<!-- REDIS_SECTION_6_CONTINUE -->
+## 【第四层：Recovery 要从具体 Failure Mode 判断，而不是只看是否开启持久化】
+
+可以把 Redis 常见故障整理成：
+
+| Failure | 主要问题 | 对应机制 |
+|---|---|---|
+| Process Crash | 内存状态消失 | AOF / RDB |
+| Container Restart | Dataset 如何恢复 | Volume + AOF / RDB |
+| Power Loss | 最近写入是否已经落盘 | fsync Policy |
+| AOF 持续增长 | 文件和恢复成本 | AOF Rewrite |
+| Memory Full | 删除谁或是否拒绝新写入 | maxmemory + Eviction |
+| Redis Node Down | 服务是否继续 | Replica + Failover |
+| Host 故障 | 单机全部不可用 | Multi-node Replication |
+| 误删 / 错写 | 错误可能同步到副本 | Backup / Historical Recovery |
+
+这张表说明：
+
+~~~text
+一个 Redis 配置
+不可能解决所有 Failure
+~~~
+
+可靠性必须按故障类型逐层设计。
+
+### 【Replication 与 Backup 解决的不是同一个问题】
+
+Replication：
+
+~~~text
+Primary
+    ↓
+Replica
+~~~
+
+主要解决：
+
+~~~text
+Node Failure
+Service Availability
+Redundancy
+~~~
+
+但是假设：
+
+~~~text
+Primary
+
+FLUSHALL
+~~~
+
+或者应用误执行：
+
+~~~text
+DEL important:key
+~~~
+
+这类错误也可能同步到 Replica。
+
+于是：
+
+~~~text
+Primary 错
+Replica 也跟着错
+~~~
+
+所以：
+
+~~~text
+Replication
+≠
+Backup
+~~~
+
+Backup 更关注：
+
+~~~text
+能不能恢复到
+过去某个正确时间点
+~~~
+
+而 Replication 更关注：
+
+~~~text
+当前 Node 挂掉以后
+有没有另一个 Node
+可以继续提供服务
+~~~
+
+### 【RPO 与 RTO 把“Redis 要可靠”拆成两个可回答的目标】
+
+如果只说：
+
+~~~text
+Redis 要高可靠
+~~~
+
+很难指导配置。
+
+可以先定义两个目标。
+
+#### <u>1. RPO 表示最多可以接受丢失多少数据</u>
+
+RPO：
+
+~~~text
+Recovery Point Objective
+~~~
+
+问的是：
+
+~~~text
+故障以后
+最多允许恢复到多久以前？
+~~~
+
+例如：
+
+~~~text
+RPO ≈ 1 second
+~~~
+
+意味着系统能够接受：
+
+~~~text
+灾难情况下
+最近约 1 秒写入
+可能无法恢复
+~~~
+
+这类目标会直接影响：
+
+~~~text
+AOF fsync Policy
+RDB Snapshot Frequency
+Replication Strategy
+~~~
+
+的选择。
+
+#### <u>2. RTO 表示最多允许服务中断多久</u>
+
+RTO：
+
+~~~text
+Recovery Time Objective
+~~~
+
+问：
+
+~~~text
+Redis 出现故障以后
+多久必须重新提供服务？
+~~~
+
+如果业务接受：
+
+~~~text
+数分钟恢复
+~~~
+
+那么：
+
+~~~text
+Single Redis
++
+Container Restart
++
+AOF Replay
+~~~
+
+可能已经足够。
+
+如果要求：
+
+~~~text
+非常短的中断时间
+~~~
+
+则通常需要：
+
+~~~text
+Replica
++
+Automatic Failover
+~~~
+
+等更完整的 HA 机制。
+
+因此可以近似建立：
+
+~~~text
+Persistence / fsync
+    ↓
+主要影响 Data Loss / RPO
+
+Replication / Failover
+    ↓
+主要影响 Service Recovery / RTO
+~~~
+
+实际系统中二者会互相影响，但这个区分非常适合建立第一层框架。
+
+### 【当前 Browser Monitor 的可靠性能力可以按四层重新检查】
+
+当前仓库明确实现：
+
+~~~text
+Redis 7.4
+│
+├── appendonly yes
+├── Docker Volume /data
+├── redis-cli ping Healthcheck
+└── restart: unless-stopped
+~~~
+
+可以映射到：
+
+~~~text
+Durability
+    ↓
+AOF + Volume
+    ✓
+
+Process Recovery
+    ↓
+Docker Restart
+    ✓
+
+Health Detection
+    ↓
+PING
+    ✓
+~~~
+
+当前没有在仓库 Compose 中显式看到：
+
+~~~text
+maxmemory
+maxmemory-policy
+
+Replica
+Sentinel
+Cluster
+
+独立 Redis Backup Process
+~~~
+
+所以还没有显式建立：
+
+~~~text
+Memory Governance
+Node Redundancy
+Automatic Failover
+Historical Backup
+~~~
+
+这些能力。
+
+这不是简单判断：
+
+~~~text
+当前设计错误
+~~~
+
+而是说明当前项目的 Redis Reliability 目标更接近：
+
+~~~text
+Single Redis Instance
+        +
+Local Persistence
+        +
+Automatic Container Restart
+~~~
+
+如果以后从开发 / 基础部署进入更高可靠性的生产环境，再继续增加：
+
+~~~text
+Memory Budget
+Eviction Strategy
+Replication
+Failover
+Backup
+Observability
+~~~
+
+### 【当前不同 Redis State 对故障的敏感程度并不相同】
+
+第四节已经建立 State Model，第六节可以进一步加入 Failure Impact：
+
+| State | Redis State 丢失后的结果 | Redis 暂时不可用的结果 | 可靠性敏感度 |
+|---|---|---|---|
+| Analytics Cache | 可以重新生成 | 当前 cached() 请求会受影响 | 数据低、可用性中 |
+| Token Bucket | Bucket 会重新初始化 | Ingestion 限流链路受影响 | 中 |
+| Recent Window | 最近速率窗口丢失 | Dashboard / Status 受影响 | 低 |
+| Statistics | 部分历史统计可能无法完整重建 | 当前统计更新失败被 Best-effort 吞掉 | 视业务要求 |
+| Session | 已登录状态可能消失 | Guard 无法正常认证 | 高 |
+| Analytics Version | Cache Generation 状态变化 | Analytics Cache 路径受影响 | 中 |
+
+这进一步说明：
+
+~~~text
+当前 Redis Instance
+并不是 Pure Cache
+~~~
+
+它同时承载：
+
+~~~text
+可以直接丢的 Cache
++
+可以重建的 Control State
++
+直接影响 Authentication 的 Session
+~~~
+
+所以未来设计：
+
+~~~text
+Eviction
+Persistence
+High Availability
+Instance Splitting
+~~~
+
+时，都不能只以 Cache 场景作为唯一依据。
+
+### 【第六节最终形成 Redis Reliability 的四层判断框架】
+
+以后看到一个 Redis 部署，可以按下面顺序分析。
+
+第一层：
+
+~~~text
+Durability
+    ↓
+Redis Restart 后
+数据能不能恢复？
+
+RDB？
+AOF？
+fsync？
+Volume？
+~~~
+
+第二层：
+
+~~~text
+Memory Safety
+    ↓
+Dataset 不断增长怎么办？
+
+TTL？
+Cleanup？
+maxmemory？
+Eviction Policy？
+~~~
+
+第三层：
+
+~~~text
+Availability
+    ↓
+Redis Node 挂了
+请求还能不能继续？
+
+Replica？
+Sentinel？
+Failover？
+~~~
+
+第四层：
+
+~~~text
+Recovery Objective
+    ↓
+业务到底能接受什么？
+
+RPO
+最多丢多少数据？
+
+RTO
+最多停多久？
+~~~
+
+完整关系：
+
+~~~text
+                    Redis Reliability
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+    Durability        Memory Safety      Availability
+        │                  │                  │
+    RDB / AOF          maxmemory          Replication
+      fsync             Eviction           Failover
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           ▼
+                     Recovery Goal
+                     RPO / RTO
+~~~
+
+这里最重要的结论是：
+
+> **Redis 的可靠性不是“开 AOF”一个配置能够解决的。RDB/AOF 解决数据能否恢复，maxmemory/eviction 解决内存是否可控，Replication/Sentinel 解决节点故障时服务能否继续，而 Backup、RPO、RTO 决定系统最终接受什么样的数据损失和恢复时间。**
+
+## 7. 下一节进入 Redis 的规模化运行与性能治理
+
+到这里 Redis 学习链路已经从：
+
+~~~text
+Redis 是什么
+    ↓
+Redis 怎样组织状态
+    ↓
+Redis 怎样安全执行命令
+    ↓
+Redis 怎样形成工程状态模型
+    ↓
+Redis 怎样与 PostgreSQL 协作
+    ↓
+Redis 自己怎样可靠运行
+~~~
+
+下一节继续进入：
+
+~~~text
+Redis Scale & Operations
+│
+├── Key Design Governance
+├── Hot Key
+├── Big Key
+├── Pipeline
+├── Slow Command
+├── Connection
+├── Memory Observation
+├── Redis Cluster
+└── Observability
+~~~
+
+也就是回答：
+
+> **Redis 已经能够稳定运行以后，当数据量、请求量和节点规模继续增长时，怎样避免单个 Key、单条命令和单个节点成为系统瓶颈。**
+
 
 ## 参考资料
 
@@ -10489,3 +10933,12 @@ Redis
 
 
 [32] AWS. Transactional Outbox Pattern. https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
+
+
+[33] Redis. Persistence. https://redis.io/docs/latest/management/persistence/
+
+[34] Redis. Key Eviction. https://redis.io/docs/latest/reference/eviction/
+
+[35] Redis. Replication. https://redis.io/docs/latest/operate/oss_and_stack/management/replication/
+
+[36] Redis. High Availability with Sentinel. https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/
