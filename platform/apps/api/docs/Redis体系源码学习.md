@@ -10121,6 +10121,304 @@ Memory Observability
 
 就会进入可靠运行的必要设计范围。
 
+## 【第三层：Availability 解决 Redis 节点故障以后服务还能不能继续】
+
+Durability 解决的是：
+
+~~~text
+数据还在不在
+~~~
+
+Availability 解决的是：
+
+~~~text
+服务还能不能继续响应
+~~~
+
+假设：
+
+~~~text
+Redis Server
+AOF 完整
+~~~
+
+但是 Redis Process Crash：
+
+~~~text
+Process Crash
+    ↓
+Redis 不可用
+    ↓
+Container Restart
+    ↓
+AOF Replay
+    ↓
+Redis Ready
+~~~
+
+AOF 可以帮助恢复 Dataset，但：
+
+~~~text
+Crash
+到
+Ready
+~~~
+
+这一段时间 Redis 仍然不可访问。
+
+所以：
+
+~~~text
+Persistence
+≠
+High Availability
+~~~
+
+### 【Replication 通过另一台 Redis 保持数据副本】
+
+Redis Replication 的基本结构：
+
+~~~text
+Primary Redis
+      │
+      │ Replication Stream
+      ▼
+Replica Redis
+~~~
+
+Client 通常向 Primary 写：
+
+~~~text
+SET
+HSET
+INCR
+...
+~~~
+
+Primary 再把数据变化传播给 Replica。
+
+因此：
+
+~~~text
+Persistence
+    ↓
+解决同一 Node
+重启以后怎样恢复
+
+Replication
+    ↓
+解决另一 Node
+是否保留近实时副本
+~~~
+
+两者不是同一机制。
+
+### 【Replication 提高冗余，但本身不等于自动 Failover】
+
+假设：
+
+~~~text
+Primary
+   ↓
+Replica
+~~~
+
+Primary 挂掉：
+
+~~~text
+Primary ✗
+Replica ✓
+~~~
+
+此时仍然需要回答：
+
+~~~text
+谁决定 Replica
+变成新的 Primary？
+
+其他 Replica
+应该跟随谁？
+
+Client 怎么知道
+新的 Primary 地址？
+~~~
+
+这就是：
+
+~~~text
+Failover
+~~~
+
+问题。
+
+因此：
+
+~~~text
+Replication
+    ↓
+Data Redundancy
+
+Failover
+    ↓
+Service Continuity
+~~~
+
+需要分别理解。
+
+### 【Sentinel 在非 Cluster Redis 中负责监控与自动故障切换】
+
+Redis Sentinel 的核心职责可以放在：
+
+~~~text
+Redis High Availability
+│
+├── Monitoring
+├── Notification
+├── Automatic Failover
+└── Configuration Provider
+~~~
+
+当 Primary 被判断不可用：
+
+~~~text
+Sentinel
+    ↓
+选择合适 Replica
+    ↓
+Promote to Primary
+    ↓
+其他 Replica
+改为跟随新 Primary
+    ↓
+Client 获取新的 Primary
+~~~
+
+所以：
+
+~~~text
+AOF / RDB
+    ↓
+Durability
+
+Replication
+    ↓
+Redundancy
+
+Sentinel
+    ↓
+Failure Detection
++
+Automatic Failover
+~~~
+
+不是三种同义的“备份”。
+
+### 【当前 Browser Monitor Redis 是单实例恢复模型，不具备 Redis 层自动 Failover】
+
+当前 Docker Compose 中只看到：
+
+~~~text
+1 个 redis Service
+~~~
+
+没有看到：
+
+~~~text
+Redis Replica
+
+Sentinel
+
+Redis Cluster
+~~~
+
+因此当前结构更接近：
+
+~~~text
+API / Worker
+      ↓
+Single Redis
+      │
+      ├── AOF
+      └── Docker Volume
+~~~
+
+它已经具备：
+
+~~~text
+Restart Recovery
+~~~
+
+但没有实现：
+
+~~~text
+Redis Node 故障
+        ↓
+自动切换到另一个 Redis Node
+~~~
+
+这类 High Availability 能力。
+
+### 【healthcheck 与 restart 改善单节点恢复，但不能替代 High Availability】
+
+当前 Compose：
+
+~~~yaml
+healthcheck:
+  test:
+    - CMD
+    - redis-cli
+    - ping
+
+restart: unless-stopped
+~~~
+
+可以拆成：
+
+~~~text
+healthcheck
+    ↓
+检测当前 Redis
+能否正常响应 PING
+
+restart
+    ↓
+Container 退出以后
+尝试重新启动
+~~~
+
+可能的恢复流程：
+
+~~~text
+Redis Process Crash
+      ↓
+Container Restart
+      ↓
+读取 /data 中 AOF
+      ↓
+重建 Dataset
+      ↓
+Redis Ready
+~~~
+
+这属于：
+
+~~~text
+Single-node Recovery
+~~~
+
+而不是：
+
+~~~text
+Zero-downtime Failover
+~~~
+
+因为 Restart 和 AOF Replay 期间：
+
+~~~text
+Redis
+仍然不可用
+~~~
+
 <!-- REDIS_SECTION_6_CONTINUE -->
 
 ## 参考资料
