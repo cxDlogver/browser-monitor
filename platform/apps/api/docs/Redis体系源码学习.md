@@ -9814,7 +9814,7 @@ Restart Replay
 
 而不是单纯的“无限追加一个文件”。
 
-## 【第二层：Memory Safety 解决 Dataset 持续增长以后 Redis 怎样继续运行】
+### 【第二层：Memory Safety 解决 Dataset 持续增长以后 Redis 怎样继续运行】
 
 Persistence 解决：
 
@@ -10121,7 +10121,7 @@ Memory Observability
 
 就会进入可靠运行的必要设计范围。
 
-## 【第三层：Availability 解决 Redis 节点故障以后服务还能不能继续】
+### 【第三层：Availability 解决 Redis 节点故障以后服务还能不能继续】
 
 Durability 解决的是：
 
@@ -10419,7 +10419,7 @@ Redis
 仍然不可用
 ~~~
 
-## 【第四层：Recovery 要从具体 Failure Mode 判断，而不是只看是否开启持久化】
+### 【第四层：Recovery 要从具体 Failure Mode 判断，而不是只看是否开启持久化】
 
 可以把 Redis 常见故障整理成：
 
