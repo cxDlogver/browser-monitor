@@ -94,7 +94,7 @@ Repository（代码仓库）、Workspace（工作区）与 Project（工程项�
 
 | 层级 | 主要回答的问题 | browser-monitor 中的对应 |
 | --- | --- | --- |
-| Repository | 哪些文件共享 Git 历史、Branch、Commit、PR？ | Git 仓库 `cx-learn-notes` |
+| Repository | 哪些文件共享 Git 历史、Branch、Commit、PR？ | 独立 Git 仓库 `browser-monitor`，由 `cx-learn-notes` 通过子模块引用 |
 | Workspace | 包管理器统一管理哪些 Project？ | `cx-learn-notes/browser-monitor` 下由 `pnpm-workspace.yaml` 定义的 pnpm Workspace |
 | Project / Package | 一个独立工程叫什么、依赖谁、有哪些任务？ | `sdk`、`protocol`、`api`、`worker`、`web` 等 |
 
@@ -110,7 +110,7 @@ browser-monitor Workspace
 Package / Application / Library
 ~~~
 
-这里还需要特别区分 Git Repository Root 与 Workspace Root。当前 Git 仓库根是 `cx-learn-notes`，而本文讨论的 pnpm Workspace 根是其中的 `browser-monitor/` 目录；不能因为 `browser-monitor` 拥有自己的 `package.json` 和 `pnpm-workspace.yaml`，就把它描述成另一个独立 Git Repository。
+这里还需要特别区分 Git Repository Root 与 Workspace Root。当前 `browser-monitor` 已迁移为独立 Git Repository，其 Git 仓库根与本文讨论的 pnpm Workspace 根都位于本项目目录。`cx-learn-notes` 通过 Git 子模块在 `browser-monitor/` 路径引用具体提交；主仓库的版本历史与监控项目的版本历史分别管理，主仓库的 pnpm Workspace 仍可发现子模块中的 SDK 和 Protocol。
 
 **Project、Package、Application 与 Library 的关系**
 

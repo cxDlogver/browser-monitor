@@ -17,6 +17,28 @@ Browser Monitor 是一个完整的浏览器监控系统。仓库把浏览器 SDK
 
 监控系统现在完整位于 `browser-monitor/`，不再把 workspace 配置、锁文件或三个子项目散落在 `cx-learn-notes` 根目录。这样可以从一个明确的工程根目录安装依赖、执行检查和构建镜像，也不会让学习笔记仓库中的其他项目被 Monitor 的依赖关系影响。
 
+### 【独立仓库与主仓库引用】
+
+本项目独立维护在 [cxDlogver/browser-monitor](https://github.com/cxDlogver/browser-monitor)，相关历史已从 `cx-learn-notes` 提取。可以独立克隆并开发：
+
+```bash
+git clone https://github.com/cxDlogver/browser-monitor.git
+cd browser-monitor
+pnpm install
+pnpm check
+```
+
+`cx-learn-notes` 通过 Git 子模块将本仓库保留在 `browser-monitor/` 路径，并锁定具体提交。克隆主仓库时使用 `git clone --recurse-submodules`；已有主仓库时执行 `git submodule update --init --recursive`。
+
+主仓库的 pnpm workspace 继续包含 `browser-monitor/protocol` 和 `browser-monitor/sdk`，官网与走航车前端继续通过 `cx-browser-monitor-sdk: workspace:*` 使用 SDK。先在主仓库根目录执行 `pnpm install`，再构建协议和 SDK：
+
+```bash
+pnpm --filter @browser-monitor/protocol build
+pnpm --filter cx-browser-monitor-sdk build
+```
+
+监控系统自身的 API、Worker、Web 检查与部署命令仍从本目录执行。修改监控代码时，先向本仓库提交并推送，再在 `cx-learn-notes` 中提交 `browser-monitor` 的子模块版本指针。
+
 ### 【三个项目分别负责什么】
 
 | 目录 | 包名 | 职责 |
