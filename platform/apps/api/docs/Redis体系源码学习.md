@@ -11552,7 +11552,828 @@ Redis Client B
 
 各自拥有客户端连接，但共同访问同一个 Redis Server。
 
-<!-- REDIS_SECTION_7_CONTINUE -->
+### 【第三层：Horizontal Scaling 解决单个 Redis Node 的 CPU、内存与网络上限】
+
+无论代码多优化：
+
+~~~text
+单 Redis Instance
+~~~
+
+最终仍然只有有限：
+
+~~~text
+RAM
+CPU
+Network Bandwidth
+~~~
+
+所以规模继续增长以后：
+
+~~~text
+Single Node
+    ↓
+Capacity Limit
+~~~
+
+这时有几种不同扩展手段。
+
+#### <u>1. Vertical Scaling 先给单节点更多资源</u>
+
+例如：
+
+~~~text
+8 GB RAM
+   ↓
+32 GB RAM
+
+2 Core
+   ↓
+8 Core
+~~~
+
+优点：
+
+~~~text
+架构基本不变
+应用不需要重新分片
+~~~
+
+但最终仍然存在：
+
+~~~text
+Single Machine Limit
+~~~
+
+#### <u>2. Replica 可以扩展部分读取能力，但不能分散所有写入</u>
+
+结构：
+
+~~~text
+Primary
+│
+├── Replica A
+└── Replica B
+~~~
+
+如果业务允许从 Replica 读取可能稍有延迟的数据：
+
+~~~text
+Read Traffic
+~~~
+
+可以部分分散。
+
+但写操作通常仍然落到：
+
+~~~text
+Primary
+~~~
+
+所以 Replica 更偏向：
+
+~~~text
+High Availability
++
+Read Scaling
+~~~
+
+而不是完整的：
+
+~~~text
+Write Sharding
+~~~
+
+### 【Redis Cluster 通过 Hash Slot 把 Keyspace 拆到多个 Shard】
+
+当单节点内存或单节点吞吐成为瓶颈，就需要：
+
+~~~text
+Sharding
+~~~
+
+Redis Cluster 把 Keyspace 划分为：
+
+~~~text
+16384 Hash Slots
+~~~
+
+不同 Slot 再分配给多个 Primary Shard。
+
+可以理解成：
+
+~~~text
+Key
+ ↓
+Hash
+ ↓
+Slot
+ ↓
+Shard
+~~~
+
+例如：
+
+~~~text
+Key A
+   ↓
+Slot 100
+   ↓
+Node 1
+
+Key B
+   ↓
+Slot 7000
+   ↓
+Node 2
+
+Key C
+   ↓
+Slot 15000
+   ↓
+Node 3
+~~~
+
+于是：
+
+~~~text
+Memory
+CPU
+Network
+~~~
+
+可以分布到多台机器。
+
+### 【Cluster 解决的是 Keyspace 分片，但不能自动解决 Hot Key】
+
+假设：
+
+~~~text
+Cluster
+100 个 Shards
+~~~
+
+但：
+
+~~~text
+analytics:version:p001
+~~~
+
+每秒：
+
+~~~text
+100 万 Request
+~~~
+
+这个 Key 最终仍然属于：
+
+~~~text
+一个 Hash Slot
+~~~
+
+也就落到：
+
+~~~text
+一个 Shard
+~~~
+
+所以：
+
+~~~text
+增加 Shard 数量
+~~~
+
+并不会自动把：
+
+~~~text
+同一个 Key
+~~~
+
+拆成多份。
+
+因此：
+
+~~~text
+Cluster
+解决
+Keyspace Scale
+
+Hot Key
+解决
+Access Pattern
+~~~
+
+是两个不同问题。
+
+### 【Cluster 会反过来约束 Key Design、Transaction 与 Lua Script】
+
+这是当前项目未来如果进入 Cluster 最重要的一点。
+
+Redis Cluster 中：
+
+~~~text
+Multi-key Command
+Transaction
+Lua Script
+~~~
+
+如果一次需要访问多个 Key，就必须重新检查这些 Key 是否位于能够共同执行操作的同一个 Hash Slot。
+
+#### <u>1. 当前 Statistics MULTI 在单实例没有问题，但迁移 Cluster 后需要重新检查 Slot</u>
+
+当前：
+
+~~~text
+MULTI
+
+HINCRBY
+ingestion:stats:<projectId>
+
+HINCRBY
+ingestion:stats:<projectId>
+
+ZADD
+ingestion:rate:<projectId>
+
+ZREMRANGEBYSCORE
+ingestion:rate:<projectId>
+
+EXEC
+~~~
+
+它同时操作：
+
+~~~text
+ingestion:stats:P001
+
+ingestion:rate:P001
+~~~
+
+在当前：
+
+~~~text
+Single Redis
+~~~
+
+完全没有问题。
+
+但是进入 Redis Cluster 后，这两个 Key 不一定自然落到同一个 Slot。
+
+因此当前跨两个 Key 的 MULTI / EXEC 需要重新检查 Cluster Compatibility。
+
+#### <u>2. Hash Tag 可以让真正相关的 Key 强制落到同一个 Slot</u>
+
+Redis Cluster 支持：
+
+~~~text
+{...}
+~~~
+
+Hash Tag。
+
+例如可以把相关 Key 设计成：
+
+~~~text
+ingestion:{P001}:stats
+
+ingestion:{P001}:rate
+~~~
+
+Redis 计算 Slot 时会根据：
+
+~~~text
+P001
+~~~
+
+这一 Hash Tag，使两个相关 Key 落到同一个 Slot。
+
+所以 Hash Tag 的工程价值是：
+
+~~~text
+Business Scope
+    ↓
+Same Hash Tag
+    ↓
+Same Slot
+    ↓
+Multi-key Operation
+~~~
+
+#### <u>3. Hash Tag 不能滥用，否则会重新制造 Hot Slot</u>
+
+如果所有 Key 都写成：
+
+~~~text
+{monitor}:session:A
+{monitor}:session:B
+{monitor}:analytics:C
+...
+~~~
+
+那么它们都使用：
+
+~~~text
+monitor
+~~~
+
+计算 Slot。
+
+结果：
+
+~~~text
+大量 Key
+落到同一个 Slot
+~~~
+
+Cluster 又可能退化成：
+
+~~~text
+Hot Shard
+~~~
+
+所以 Hash Tag 应该表达：
+
+~~~text
+真正需要原子关联的业务 Scope
+~~~
+
+例如：
+
+~~~text
+ProjectId
+~~~
+
+而不是：
+
+~~~text
+整个应用名
+~~~
+
+#### <u>4. 当前单 Key Lua 相对更容易迁移到 Cluster</u>
+
+当前 Token Bucket：
+
+~~~text
+EVAL
+KEYS[1] = ingest:project:P001
+~~~
+
+每次 Script 只操作：
+
+~~~text
+一个 Key
+~~~
+
+所以天然没有 Cross-Slot 问题。
+
+但前面讨论过一种 Proposed Design：
+
+~~~text
+一个 Lua
+同时操作
+
+Project Bucket
++
+IP Bucket
+~~~
+
+如果以后真的这样做并迁移 Cluster，就必须保证这两个 Key 能够共同位于可执行 Script 的同一 Slot。
+
+这说明：
+
+> **Cluster 不是单纯的部署改造，它会反向影响 Key Naming、Transaction 与 Lua Script 的数据模型。**
+
+### 【第四层：Observability 让性能治理从猜测变成可定位问题】
+
+如果用户反馈：
+
+~~~text
+Redis 慢了
+~~~
+
+不能直接得出：
+
+~~~text
+需要 Cluster
+~~~
+
+因为真实原因可能完全不同：
+
+~~~text
+Hot Key
+Big Key
+O(N) Command
+Memory Pressure
+Connection Surge
+Network RTT
+AOF fsync Spike
+Eviction
+CPU Saturation
+~~~
+
+所以规模化运行必须同时建立：
+
+~~~text
+Observability
+~~~
+
+#### <u>1. INFO 是 Redis 最基础的运行状态入口</u>
+
+Redis INFO 可以提供多个维度的信息，例如：
+
+~~~text
+clients
+memory
+persistence
+stats
+replication
+cpu
+commandstats
+latencystats
+cluster
+keyspace
+~~~
+
+其中 commandstats 可以帮助观察：
+
+~~~text
+Command Calls
+CPU Time
+Average Execution Cost
+Failed / Rejected Calls
+~~~
+
+而 latencystats 可以观察命令延迟统计。
+
+因此：
+
+~~~text
+INFO
+~~~
+
+不是简单的版本查询，而是 Redis Runtime Observability 的基础入口之一。
+
+#### <u>2. MEMORY STATS 用于理解内存到底消耗在哪里</u>
+
+Redis 提供：
+
+~~~text
+MEMORY STATS
+~~~
+
+用于观察：
+
+~~~text
+Current Allocation
+Peak Memory
+Startup Memory
+Dataset / Overhead
+Fragmentation
+~~~
+
+从而帮助判断：
+
+~~~text
+内存增长
+究竟来自 Dataset
+还是额外 Overhead / Fragmentation
+~~~
+
+#### <u>3. SLOWLOG 用于定位 Redis Server 内部执行时间过长的 Command</u>
+
+SLOWLOG 记录超过配置阈值的命令。
+
+需要特别注意：
+
+~~~text
+SLOWLOG
+主要记录 Redis Server
+实际执行 Command 的时间
+~~~
+
+它不等价于：
+
+~~~text
+Client 端观察到的
+完整网络调用耗时
+~~~
+
+所以如果：
+
+~~~text
+Client Redis Call = 100ms
+~~~
+
+但 SLOWLOG 没有对应慢命令，问题可能在：
+
+~~~text
+Network
+Connection
+Client Scheduling
+Queueing
+~~~
+
+而不是 Command 本身。
+
+#### <u>4. LATENCY Monitoring 用于观察 Redis 内部延迟事件</u>
+
+Redis 提供：
+
+~~~text
+LATENCY LATEST
+LATENCY HISTORY
+LATENCY GRAPH
+LATENCY DOCTOR
+~~~
+
+用于分析不同类型的 Latency Event。
+
+例如：
+
+~~~text
+Command Spike
+AOF
+Fork
+Eviction
+~~~
+
+等运行时事件。
+
+Latency Monitor 默认需要配置阈值后才开始记录对应事件。
+
+### 【Hot Key 与 Big Key 也必须进入日常诊断体系】
+
+常见诊断工具：
+
+~~~text
+redis-cli --bigkeys
+
+redis-cli --memkeys
+
+redis-cli --hotkeys
+~~~
+
+分别帮助观察：
+
+~~~text
+大型数据结构
+
+高内存 Key
+
+高频访问 Key
+~~~
+
+这些工具应该和：
+
+~~~text
+INFO
+MEMORY
+SLOWLOG
+LATENCY
+~~~
+
+共同使用。
+
+MONITOR 虽然能看到实时 Command Stream，但本身会带来额外开销，因此不应该被当成长期生产监控机制。
+
+### 【当前 Browser Monitor 的 Redis 监控还停留在 Health Check，而不是完整 Observability】
+
+当前 Compose：
+
+~~~text
+redis-cli ping
+~~~
+
+只能回答：
+
+~~~text
+Redis
+还能不能响应？
+~~~
+
+也就是：
+
+~~~text
+Availability Check
+~~~
+
+但不能回答：
+
+~~~text
+Redis 为什么变慢？
+
+哪个 Key 最热？
+
+哪个 Key 最大？
+
+内存为什么上涨？
+
+哪个 Command 占 CPU？
+
+P99 Latency 是多少？
+
+有没有发生 Eviction？
+
+AOF Rewrite 是否异常？
+~~~
+
+因此未来完整 Redis Observability 至少应该覆盖：
+
+~~~text
+Redis Metrics
+│
+├── Availability
+│     └── PING / Up
+│
+├── Traffic
+│     ├── Ops/sec
+│     ├── Connected Clients
+│     └── Command Calls
+│
+├── Latency
+│     ├── Command Latency
+│     ├── SLOWLOG
+│     └── LATENCY Events
+│
+├── Memory
+│     ├── used_memory
+│     ├── peak
+│     ├── maxmemory
+│     └── evicted_keys
+│
+├── Persistence
+│     ├── AOF Status
+│     └── Rewrite Status
+│
+└── Keyspace
+      ├── Key Count
+      ├── Big Key
+      └── Hot Key
+~~~
+
+### 【第七节最终形成 Redis 规模化治理的四层判断框架】
+
+以后 Redis 出现性能或容量问题，不应该第一反应：
+
+~~~text
+加机器
+~~~
+
+而应该按照：
+
+~~~text
+第一层
+Keyspace Governance
+    ↓
+是不是 Key 太多？
+单个 Key 太大？
+某一个 Key 太热？
+~~~
+
+然后：
+
+~~~text
+第二层
+Execution Efficiency
+    ↓
+Command Complexity 怎样？
+
+Result Set 多大？
+
+是不是 RTT 太多？
+
+需不需要 Pipeline？
+
+连接是否复用？
+~~~
+
+然后：
+
+~~~text
+第三层
+Node Capacity
+    ↓
+单节点 CPU / RAM / Network
+是否真的达到瓶颈？
+
+Vertical Scale？
+Replica？
+Redis Cluster？
+~~~
+
+最后：
+
+~~~text
+第四层
+Observability
+    ↓
+有证据吗？
+
+INFO
+MEMORY
+SLOWLOG
+LATENCY
+Big Key
+Hot Key
+~~~
+
+可以收束成：
+
+~~~text
+                     Redis Scale
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+      Keyspace         Execution       Node Capacity
+         │               │               │
+ Big / Hot / Count   Command / RTT     Sharding
+         │            Pipeline          Cluster
+         └───────────────┼───────────────┘
+                         ▼
+                    Observability
+                         │
+              Measure → Diagnose
+                         │
+                         ▼
+                      Optimize
+~~~
+
+这一节最重要的结论是：
+
+> **Redis 的规模化不是简单增加节点。首先要保证 Key 分布合理、避免 Hot Key 与 Big Key，再控制命令复杂度和网络往返；只有当单节点 CPU、内存或网络确实达到上限时才进入 Sharding / Cluster。同时必须通过 INFO、SLOWLOG、LATENCY、Memory 与 Keyspace 监控证明瓶颈在哪里。**
+
+对于当前 Browser Monitor，最值得提前关注的三个地方：
+
+~~~text
+ingest:project:<projectId>
+    ↓
+潜在 Project Hot Key
+
+ingestion:stats:<projectId>
+analytics:version:<projectId>
+    ↓
+潜在集中读写 Key
+
+ingestion:rate:<projectId>
+    ↓
+虽然 60s Window 有界
+但需要观察高流量下 Member 数量
+~~~
+
+而如果未来真正进入 Redis Cluster，还需要优先重新检查：
+
+~~~text
+ingestion:stats:<projectId>
++
+ingestion:rate:<projectId>
+~~~
+
+当前这个跨两个 Key 的 MULTI / EXEC 是否需要通过：
+
+~~~text
+ingestion:{projectId}:stats
+ingestion:{projectId}:rate
+~~~
+
+这样的 Hash Tag 设计保证 Same Slot。
+
+## 8. 下一节进入 Redis 安全、连接与生产治理
+
+前七节已经基本完成从：
+
+~~~text
+Redis Primitive
+~~~
+
+到：
+
+~~~text
+Production Redis System
+~~~
+
+的主框架。
+
+下一层可以进入：
+
+~~~text
+Redis Production Governance
+│
+├── Authentication / ACL
+├── Network Exposure
+├── TLS
+├── Connection Limits
+├── Timeout
+├── Dangerous Commands
+├── Configuration Management
+├── Upgrade
+└── Capacity Planning
+~~~
+
+也就是继续回答：
+
+> **Redis 已经能够扩展以后，怎样把它真正作为生产基础设施安全、稳定、可治理地运行。**
+
 
 ## 参考资料
 
@@ -11631,3 +12452,18 @@ Redis Client B
 [35] Redis. Replication. https://redis.io/docs/latest/operate/oss_and_stack/management/replication/
 
 [36] Redis. High Availability with Sentinel. https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/
+
+
+[37] Redis. Pipelining. https://redis.io/docs/latest/develop/using-commands/pipelining/
+
+[38] Redis. Redis Cluster Specification. https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/
+
+[39] Redis. CLUSTER KEYSLOT. https://redis.io/docs/latest/commands/cluster-keyslot/
+
+[40] Redis. INFO. https://redis.io/docs/latest/commands/info/
+
+[41] Redis. MEMORY STATS. https://redis.io/docs/latest/commands/memory-stats/
+
+[42] Redis. SLOWLOG. https://redis.io/docs/latest/commands/slowlog/
+
+[43] Redis. Latency Monitoring. https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency-monitor/
