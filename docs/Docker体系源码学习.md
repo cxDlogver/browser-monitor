@@ -1,434 +1,1300 @@
 # Docker 体系源码学习
 
-> **学习目标**：以 Browser Monitor 当前 Docker 配置为真实入口，建立能够用于实际开发、项目答辩和面试追问的 Docker 知识体系。学习顺序不是先背 \`docker run\`、\`docker build\` 等命令，而是按照“为什么需要容器 → Image 如何构建 → Container 如何运行 → Network / Volume / Environment 如何补齐运行条件 → Compose 如何组织多服务 → 如何做健康检查、调试、安全与生产治理”逐层展开。
+> **学习目标**：先建立 Docker 的完整对象模型，再学习 Dockerfile、Image、Container、Network、Volume 和 Compose，最后回到 Browser Monitor 的真实配置做逐层映射。本文不默认读者已经了解当前项目；所有项目内容都先给出目录、文件和运行关系，再作为通用知识的工程案例。
 >
-> **分析范围**：项目事实以 \`browser-monitor/platform/infra\` 当前 Dockerfile、Compose、Caddy 配置和各 Package Script 为准；Docker 通用知识以 Docker 官方文档为主要依据。项目未实现的能力会标记为“主流方案 / 演进方向”，不把理想设计写成当前实现。
+> **事实边界**：Docker 通用机制以 Docker 官方文档为依据；项目事实以当前 browser-monitor/platform/infra、各应用 package.json 和 .env.example 为准。项目没有实现的能力会明确标记为“主流方案 / 演进方向”，不把理想设计写成当前实现。
 >
-> **与已有知识的关系**：[\`Monorepo知识体系.md\`](./Monorepo知识体系.md) 已经解释 Repository、Workspace、Project Graph、Task Graph、Build Artifact 和 Runtime Graph 的区别。本文从“Build Artifact 如何进入稳定、可复现的运行环境”继续向下展开。
+> **与前置知识的关系**：Monorepo 解决“源码如何组织、Project 如何依赖、Task 如何构建”；Docker 从 Build Artifact 之后继续解决“运行环境如何打包、进程如何隔离、多个运行单元如何组成系统”。
 
 ---
 
-## 1. Docker 位于“构建产物 → 运行系统”的交界处
+## 1. Docker 的完整框架围绕 Build 与 Runtime 两个阶段展开
 
-理解 Docker 前，先把它放回完整工程链路。
+Docker 最容易学乱，是因为 Dockerfile、Image、Container、Volume、Network、Compose 经常被平铺成一组名词。更稳定的理解方式是先分成两个阶段。
 
 ~~~text
-Source Code
-    ↓
-Project Build
-    ↓
-Build Artifact
-    ↓
-运行环境
-    ↓
-Docker Image
-    ↓
+第一阶段：Build
+
+Host Project Files
+        ↓
+Build Context
+        ↓
+Dockerfile
+        ↓ docker build
+Image
+
+
+第二阶段：Runtime
+
+Image
+        ↓ docker run / docker compose up
 Container
-    ↓
-Network / Volume / Environment
-    ↓
-Multi-container Runtime
-    ↓
-Docker Compose
+        ↓
+Application Process
+        ↓
+Network / Port / Environment / Storage
+        ↓
+多个 Container
+        ↓
+Compose Application
 ~~~
 
-Monorepo 主要解决：
+这两个阶段回答不同问题：
+
+| 阶段 | 核心问题 | 主要对象 |
+| --- | --- | --- |
+| Build | 怎样把应用和运行环境做成一个可复用模板？ | Dockerfile、Build Context、Layer、Cache、Image |
+| Runtime | 怎样从模板创建真实运行实例，并让多个实例组成系统？ | Container、Process、Network、Port、Volume、Compose |
+
+### 【Docker 的核心对象存在明确的上下游关系】
+
+完整对象链可以先记成：
 
 ~~~text
-源码如何组织
-Project 如何发现
-Project 如何依赖
-Task 如何执行
+Host Files
+   ↓
+Build Context
+   ↓
+Dockerfile
+   ↓
+Image
+   ↓
+Container
+   ↓
+Process
+   ↓
+Runtime Resources
+   ├── Network
+   ├── Port
+   ├── Environment
+   └── Storage
+   ↓
+Compose
 ~~~
 
-Docker 继续解决：
+每个对象分别解决：
 
-~~~text
-构建产物需要什么运行环境
-这个运行环境如何被声明和复制
-应用进程如何被隔离运行
-多个进程如何组成一个完整系统
-~~~
+| 对象 | 解决的问题 |
+| --- | --- |
+| Dockerfile | Image 应该怎么构建 |
+| Build Context | Docker Build 可以读取哪些 Host 文件 |
+| Image | 保存可重复创建 Container 的文件、Runtime 和默认配置 |
+| Container | Image 的一个运行实例 |
+| Process | Container 中真正执行的程序 |
+| Volume | 与 Container 生命周期分离的数据 |
+| Network | Container 之间如何通信 |
+| Compose | 多个 Container 怎样组成一个应用 |
 
-### 【Docker 的核心价值不是“能启动应用”，而是让运行环境可声明、可复制、可重建】
+先建立这张表，后面的 Docker 指令才有位置。
 
-不用 Docker，Node.js API 仍然可以直接运行：
+### 【Docker 解决的是运行环境一致性，不是“让代码能够运行”】
+
+没有 Docker，应用依然可以运行。例如 Node.js 应用可以直接：
 
 ~~~bash
 node dist/main.js
 ~~~
 
-数据库、Redis、Web Server 也都可以直接安装在机器上。
-
-Docker 解决的不是“没有 Docker 就不能运行”，而是传统运行方式中的环境一致性问题：
+问题在于开发、测试和生产机器可能分别安装：
 
 ~~~text
-开发机器
+机器 A
 Node 22
-pnpm 10
-Chromium A
-PostgreSQL A
-Redis A
+Redis 7.4
+Chromium X
 
-测试机器
+机器 B
 Node 20
-pnpm 9
-Chromium B
-PostgreSQL B
-Redis B
+Redis 7.2
+Chromium Y
 ~~~
 
-应用代码相同，运行环境不同，结果可能不同。
+代码相同，但运行环境不同。
 
-Docker 将运行条件转成可以声明和构建的 Image：
+Docker 将这些运行条件转换成可声明、可构建的 Image：
 
 ~~~text
-Dockerfile
-    ↓
-明确 Base Image
-安装依赖
-复制代码
-执行 Build
-声明启动命令
-    ↓
+Base Runtime
++
+System Dependency
++
+Application Dependency
++
+Application Files
++
+Default Runtime Config
+        ↓
 Image
-    ↓
-不同 Docker Host 创建 Container
 ~~~
 
-Docker 官方将 Docker 定义为用于开发、交付和运行应用的平台，并把 Image 描述为创建 Container 的模板，Container 则是 Image 的可运行实例。[[1]](https://docs.docker.com/get-started/docker-overview/)
+Docker 官方将 Image 定义为创建 Container 的只读模板，将 Container 定义为 Image 的可运行实例。[[1]](https://docs.docker.com/get-started/docker-overview/)
 
-**一句话总结**
+### 【Container 与 Virtual Machine 的差异来自隔离层不同】
 
-> Docker 的核心价值是把“应用运行所需的环境和文件”变成可构建的 Image，再从同一 Image 可重复创建隔离 Container。
-
----
-
-## 2. Docker 与 Virtual Machine 的区别来自隔离层不同
-
-Docker 入门和面试最常见的问题之一是：
-
-> Container 和 Virtual Machine（虚拟机）有什么区别？
-
-### 【Virtual Machine 为每个实例提供完整 Guest OS】
-
-可以简化为：
+Virtual Machine：
 
 ~~~text
 Physical Machine
-│
-├── Host OS
-│
-└── Hypervisor
-      │
-      ├── VM A
-      │    ├── Guest OS
-      │    └── Application
-      │
-      └── VM B
-           ├── Guest OS
-           └── Application
+    ↓
+Host OS
+    ↓
+Hypervisor
+    ├── Guest OS A → Application A
+    └── Guest OS B → Application B
 ~~~
 
-每个 VM 都拥有相对完整的 Guest OS。
-
-### 【Container 主要隔离进程视图而不是启动完整 Guest OS】
-
-Container 可以理解为：
+Container：
 
 ~~~text
 Physical Machine
-│
-└── Host OS / Kernel
-      │
-      └── Container Runtime
-            │
-            ├── Container A
-            │    └── Application Process
-            │
-            └── Container B
-                 └── Application Process
+    ↓
+Host OS / Kernel
+    ↓
+Container Runtime
+    ├── Isolated Process A
+    └── Isolated Process B
 ~~~
 
-Docker 官方说明，Docker 利用 Linux Kernel 的 Namespace 等能力提供 Container 隔离。[[1]](https://docs.docker.com/get-started/docker-overview/)
+Container 通常共享 Host Kernel，而不是每个 Container 再启动完整 Guest OS，因此更轻量。Docker 使用 Linux Namespace 等能力为 Container 提供隔离视图。[[1]](https://docs.docker.com/get-started/docker-overview/)
 
-因此：
+但需要避免一个过度简化：
 
-| 维度 | Virtual Machine | Container |
-| --- | --- | --- |
-| 隔离基础 | Hypervisor + Guest OS | Host Kernel 上的进程隔离 |
-| Guest OS | 每个 VM 通常独立存在 | 不为每个 Container 启动完整 Guest OS |
-| 启动成本 | 相对较重 | 相对较轻 |
-| Image 规模 | 通常更大 | 通常更小 |
-| 典型用途 | OS 级隔离 | Application Runtime 隔离 |
+> Container 不是“完全等于普通进程”，而是被 Namespace、Cgroup、Filesystem 等机制隔离和限制后的进程运行环境。
 
-但不能简单说：
-
-> Container 就是一个普通进程。
-
-更准确的理解是：
-
-> Container 最终确实对应 Host 上运行的进程，但这些进程通过 Namespace、Cgroup、Filesystem 等机制获得受限制的进程、网络、文件系统和资源视图。
-
-入门阶段先建立这一层即可；Namespace、Cgroup、OCI、containerd、runc 属于后续底层实现知识。
+Namespace、Cgroup、OCI、containerd、runc 属于后续深入层，不是入门第一步。
 
 ---
 
-## 3. Image 与 Container 构成 Docker 最核心的运行模型
+## 2. Build 阶段把 Host 文件逐步转换成 Image
 
-最核心的关系可以先记成：
-
-~~~text
-Dockerfile
-    ↓ docker build
-Image
-    ↓ docker run / compose up
-Container
-~~~
-
-### 【Image 是构建后的只读模板】
-
-一个 Image 可以包含：
+Build 阶段的主链只有四个核心对象：
 
 ~~~text
-Base Linux 用户空间
-Runtime
-Dependency
-Application Artifact
-默认环境配置
-默认启动命令
+Host Project
+    ↓
+Build Context
+    ↓
+Dockerfile Instructions
+    ↓
+Image Layers
+    ↓
+Final Image
 ~~~
+
+理解这一章以后，WORKDIR、COPY、Layer Cache、Multi-stage Build 才不会变成孤立知识点。
+
+### 【Host Filesystem、Build Context 与 Image Filesystem 是三套不同空间】
+
+先使用一个完全脱离具体项目的例子：
+
+~~~text
+Host 电脑
+
+my-app/
+├── package.json
+├── src/
+└── Dockerfile
+~~~
+
+执行：
+
+~~~bash
+docker build -t my-app .
+~~~
+
+最后的点表示 Build Context 是当前 my-app/ 目录。
+
+此时存在三套路径：
+
+~~~text
+1. Host Filesystem
+   /Users/me/projects/my-app
+
+2. Build Context
+   my-app/ 这一棵可供 Builder 读取的文件树
+
+3. Image Filesystem
+   Docker Image 内部自己的 /
+~~~
+
+Dockerfile：
+
+~~~dockerfile
+COPY package.json /app/package.json
+~~~
+
+含义不是“复制到 Host 的 /app”，而是：
+
+~~~text
+Build Context
+package.json
+     ↓ COPY
+Image Filesystem
+/app/package.json
+~~~
+
+Docker 官方说明，COPY 的源路径相对于 Build Context Root 解析。[[2]](https://docs.docker.com/reference/dockerfile/)
+
+### 【WORKDIR 创建的是 Image 内部工作目录】
 
 例如：
+
+~~~dockerfile
+FROM node:22-bookworm-slim
+WORKDIR /workspace
+~~~
+
+这里的 /workspace 不是要求 Host Project 中存在一个 workspace 目录。
+
+它表示：
+
+> 在正在构建的 Image Filesystem 中，把 /workspace 设置为后续指令的默认工作目录；如果目录不存在，Docker 会创建它。[[2]](https://docs.docker.com/reference/dockerfile/)
+
+所以：
+
+~~~dockerfile
+WORKDIR /workspace
+COPY package.json ./
+~~~
+
+最终得到：
+
+~~~text
+Image Filesystem
+
+/
+└── workspace/
+    └── package.json
+~~~
+
+这里的 ./ 指 Image 内部当前 WORKDIR，而不是 Host 当前目录。
+
+这也是为什么不能通过“我项目根目录没有 workspace 文件夹”来判断 Dockerfile 是否正确。
+
+### 【FROM、WORKDIR、COPY、RUN 组成最基础的 Image Build 流程】
+
+通用例子：
 
 ~~~dockerfile
 FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
 
-COPY . .
+RUN npm ci
 
-CMD ["node", "dist/main.js"]
+COPY src ./src
+
+RUN npm run build
 ~~~
 
-执行：
-
-~~~bash
-docker build -t demo-api .
-~~~
-
-得到：
+执行顺序：
 
 ~~~text
-demo-api Image
+FROM
+选择 Base Image
+    ↓
+WORKDIR
+确定 Image 内工作目录
+    ↓
+COPY Manifest
+把依赖声明复制进 Image
+    ↓
+RUN npm ci
+在 Build 阶段安装依赖
+    ↓
+COPY Source
+复制业务源码
+    ↓
+RUN npm run build
+生成 Build Artifact
+    ↓
+得到 Final Image
 ~~~
 
-此时应用还没有作为业务进程运行。
+每条指令都不是“配置说明”而已，它们共同定义 Image 的构建过程。
 
-### 【Container 是 Image 的运行实例】
+### 【Image Layer 保存每一步产生的文件系统变化】
 
-执行：
+Docker Image 由 Layer 组成。Docker 官方说明，Image 是不可变的，并由多个 Layer 构成，每个 Layer 表示一组文件系统变化。[[3]](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/)
 
-~~~bash
-docker run demo-api
+例如：
+
+~~~dockerfile
+FROM node:22
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+COPY src ./src
+RUN npm run build
 ~~~
 
-之后才形成：
+可以先用概念图理解：
+
+~~~text
+Layer 1
+Base Image
+
+Layer 2
+设置 /app
+
+Layer 3
+加入 package.json
+
+Layer 4
+npm install 产生依赖文件
+
+Layer 5
+加入 src
+
+Layer 6
+npm run build 产生 dist
+~~~
+
+重点不是死记“每一行一定严格对应一个物理 Layer 文件”，而是理解：
+
+> Image Build 是逐步叠加文件系统结果的过程，Docker 可以针对这些步骤复用以前的构建结果。
+
+### 【Build Cache 缓存的是某一步构建后的结果】
+
+Layer Cache 最容易被误解成“缓存 Dockerfile 文本”。
+
+实际上更接近：
+
+> Docker 记录某条 Build Instruction 在特定输入下已经得到过什么构建结果；下一次输入相同，就可以复用结果，不重新执行昂贵步骤。
+
+第一次构建：
+
+~~~text
+COPY package.json
+    ↓
+RUN npm install
+    ↓
+产生 node_modules
+    ↓
+COPY src
+    ↓
+RUN npm run build
+    ↓
+产生 dist
+~~~
+
+第二次如果只改：
+
+~~~text
+src/user.ts
+~~~
+
+而 package.json 没变化：
+
+~~~text
+COPY package.json
+Cache Hit
+    ↓
+RUN npm install
+Cache Hit，不重新安装
+    ↓
+COPY src
+Cache Miss
+    ↓
+RUN npm run build
+重新执行
+~~~
+
+如果 package.json 变化：
+
+~~~text
+COPY package.json
+Cache Miss
+    ↓
+RUN npm install
+重新执行
+    ↓
+后续步骤继续重新构建
+~~~
+
+Docker 官方说明，一旦某个步骤 Cache 失效，后续步骤通常也需要重新生成；并建议把变化较少的步骤放在变化频繁的步骤之前。[[4]](https://docs.docker.com/build/cache/invalidation/)
+
+所以更准确地记：
+
+~~~text
+Build Cache
+=
+以前已经计算过的 Build Step Result
+~~~
+
+它解决的不是 Runtime 性能，而是减少重复 Image Build 成本。
+
+### 【为什么依赖清单通常先于 Source COPY】
+
+错误但常见：
+
+~~~dockerfile
+COPY . .
+RUN npm install
+RUN npm run build
+~~~
+
+只修改一行业务代码：
+
+~~~text
+src/user.ts changed
+↓
+COPY . . 输入变化
+↓
+npm install 之前的 Cache 链被打断
+↓
+重新安装依赖
+~~~
+
+更合理：
+
+~~~dockerfile
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY src ./src
+RUN npm run build
+~~~
+
+这样：
+
+~~~text
+依赖声明没变
+↓
+npm install Cache 可复用
+
+业务源码变了
+↓
+只重新 COPY Source + Build
+~~~
+
+这不是固定语法要求，而是利用 Cache Dependency 的工程优化。
+
+### 【Multi-stage Build 把构建环境和运行环境分开】
+
+一个前端项目构建时需要：
+
+~~~text
+Node.js
+npm / pnpm
+TypeScript
+Vite
+Source Code
+~~~
+
+但运行构建后的静态网站只需要：
+
+~~~text
+Web Server
+HTML / JS / CSS
+~~~
+
+因此：
+
+~~~dockerfile
+FROM node:22 AS build
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+
+FROM caddy:alpine
+COPY --from=build /app/dist /srv
+~~~
+
+逻辑：
+
+~~~text
+Stage 1：Build
+
+Source
+↓
+Node + Build Tool
+↓
+dist/
+
+
+Stage 2：Runtime
+
+Caddy
++
+dist/
+↓
+Final Image
+~~~
+
+Docker 官方把这种设计称为 Multi-stage Build，并支持从前一个 Stage 只复制所需 Artifact。[[5]](https://docs.docker.com/build/building/multi-stage/)
+
+主要收益：
+
+~~~text
+不把 Build Tool 带入 Runtime
+↓
+Final Image 更小
+↓
+减少不必要文件和依赖
+↓
+降低 Attack Surface
+~~~
+
+### 【Build Context 与 .dockerignore 共同控制构建输入】
+
+Build Context 如果包含：
+
+~~~text
+node_modules
+.git
+logs
+local cache
+temporary files
+secret files
+~~~
+
+会增加构建输入规模，也增加误复制风险。
+
+.dockerignore 用于排除不需要进入 Docker Build Context 的文件。
+
+需要分清：
+
+~~~text
+.gitignore
+控制 Git
+
+.dockerignore
+控制 Docker Build Context
+~~~
+
+---
+
+## 3. Runtime 阶段从 Image 创建 Container 并启动真正的程序
+
+Build 阶段结束后只有 Image。
+
+Image 本身不会处理 HTTP，也不会消费任务。
+
+真正进入 Runtime：
 
 ~~~text
 Image
-    ↓
+↓
+Create Container
+↓
+Apply Runtime Config
+↓
+Start Container
+↓
+Execute Main Command
+↓
+Application Process Running
+~~~
+
+### 【Container 是运行环境，Process 才是真正执行程序的主体】
+
+例如一个 Node API：
+
+~~~text
+TypeScript Source
+    ↓ tsc
+dist/main.js
+    ↓ 被放入 Image
+Node Runtime + dist/main.js
+    ↓ docker run
 Container
     ↓
-Application Process
+node dist/main.js
+    ↓
+Node Process
+    ↓
+持续监听 HTTP Request
 ~~~
 
-同一个 Image 可以创建多个 Container：
+这里每一层职责不同：
+
+| 对象 | 含义 |
+| --- | --- |
+| dist/main.js | Build Artifact，编译后的应用文件 |
+| Image | 保存 Node Runtime、依赖和 Artifact |
+| Container | Image 的一个隔离运行实例 |
+| node dist/main.js | Container 启动时执行的命令 |
+| Node Process | 真正持续执行 JavaScript 和处理请求的 OS Process |
+
+所以“API Artifact → Node Process”过于压缩。
+
+完整表达应该是：
 
 ~~~text
-             demo-api:1.0
-                  │
-        ┌─────────┼─────────┐
-        ↓         ↓         ↓
- Container A  Container B  Container C
+API TypeScript
+↓ tsc
+dist/main.js
+↓ Build into Image
+API Image
+↓ create Container
+Container
+↓ execute node dist/main.js
+Node API Process
+↓
+监听端口并处理请求
 ~~~
 
-所以 Image 与 Container 的关系可以用一个帮助理解的类比：
+Worker 同理，但长期工作不同：
 
 ~~~text
-Image ≈ Template
-
-Container ≈ Runtime Instance
+Worker TypeScript
+↓ tsc
+dist/main.js
+↓
+Image
+↓
+Container
+↓
+node dist/main.js
+↓
+Node Worker Process
+↓
+轮询 / 消费后台任务
 ~~~
 
-类比只用于辅助理解，正式概念仍以“Image 是 Container 创建模板，Container 是 Image 的运行实例”为准。[[1]](https://docs.docker.com/get-started/docker-overview/)
+### 【CMD 是 Image 的默认启动命令】
+
+例如：
+
+~~~dockerfile
+CMD ["node", "dist/main.js"]
+~~~
+
+它不会在 docker build 时执行。
+
+它的含义是：
+
+> 当这个 Image 创建 Container，并且 Runtime 没有另外指定命令时，默认执行 node dist/main.js。
+
+Docker 官方把 CMD 定义为 Container 的默认命令。[[6]](https://docs.docker.com/reference/dockerfile/)
+
+因此：
+
+~~~text
+RUN
+Build 时真的执行
+
+CMD
+Build 时不执行
+只保存 Runtime Default
+~~~
+
+### 【Compose command 覆盖 CMD 后，原 CMD 本次不会生效】
+
+假设 Image：
+
+~~~dockerfile
+CMD ["node", "api.js"]
+~~~
+
+直接：
+
+~~~bash
+docker run my-image
+~~~
+
+执行：
+
+~~~text
+node api.js
+~~~
+
+如果 Compose：
+
+~~~yaml
+services:
+  worker:
+    image: my-image
+    command: ["node", "worker.js"]
+~~~
+
+这个 Worker Container 启动时执行：
+
+~~~text
+node worker.js
+~~~
+
+而不是：
+
+~~~text
+node api.js
+~~~
+
+所以：
+
+> Compose 的 command 覆盖 Image 中 Dockerfile 的默认 CMD；对于这个 Container，本次启动时原 CMD 不再执行。Docker 官方 Compose Reference 明确说明 command overrides the default command declared by the container image。[[7]](https://docs.docker.com/reference/compose-file/services/)
+
+但是 Image 本身没有被修改。
+
+另一个 Container 如果没有指定 Compose command：
+
+~~~text
+仍然使用原来的 CMD
+~~~
+
+所以：
+
+~~~text
+CMD
+Image-level Default
+
+Compose command
+Container-level Override
+~~~
+
+### 【ENTRYPOINT 与 CMD 共同决定最终执行命令】
+
+简单模型：
+
+~~~text
+ENTRYPOINT
+定义固定主程序
+
+CMD
+定义默认命令 / 默认参数
+~~~
+
+例如：
+
+~~~dockerfile
+ENTRYPOINT ["node"]
+CMD ["dist/main.js"]
+~~~
+
+最终：
+
+~~~text
+node dist/main.js
+~~~
+
+当前 Browser Monitor 自建 Dockerfile 没有显式 ENTRYPOINT，因此不需要为了学习而强行加入项目实现，但面试需要理解通用语义。Docker 官方给出了 CMD 与 ENTRYPOINT 的组合规则。[[6]](https://docs.docker.com/reference/dockerfile/)
+
+### 【ARG 与 ENV 分别服务 Build-time 和 Runtime Configuration】
+
+通用理解：
+
+~~~text
+ARG
+主要给 docker build 使用
+
+ENV
+写入 Image Environment
+并影响 Container Runtime
+~~~
+
+例如：
+
+~~~dockerfile
+ARG PACKAGE_MIRROR
+ENV NODE_ENV=production
+~~~
+
+可以理解为：
+
+~~~text
+PACKAGE_MIRROR
+影响 Image 怎么构建
+
+NODE_ENV
+影响 Container 里的程序怎么运行
+~~~
+
+Secret 不应该因为方便就长期写死进 Dockerfile ENV。
+
+### 【Port Mapping 是 Host 与 Container 的网络边界】
+
+例如：
+
+~~~yaml
+ports:
+  - "8080:3000"
+~~~
+
+含义：
+
+~~~text
+Host :8080
+    ↓
+Container :3000
+~~~
+
+Host 浏览器访问 localhost:8080，会被转发到 Container 内应用监听的 3000。
+
+需要区分：
+
+~~~text
+Container 内部监听端口
+≠
+Host Published Port
+~~~
+
+Container 与 Container 在同一 Docker Network 通信时，通常直接使用：
+
+~~~text
+service-name:container-port
+~~~
+
+不需要绕 Host Published Port。
 
 ---
 
-## 4. Browser Monitor 同时使用现成 Image 和自建 Image
+## 4. Storage 与 Network 补齐 Container 的运行条件
 
-当前 \`docker-compose.yml\` 中存在两类 Image 来源。
+Container 不是单纯“把进程放进去”。程序还需要：
 
-### 【基础设施直接使用 Registry 中已有 Image】
+~~~text
+数据存在哪里
+如何访问别的 Service
+Host 如何访问它
+配置从哪里来
+~~~
 
-当前：
+因此 Runtime 还要理解 Storage 和 Network。
+
+### 【Container Writable Layer 与 Container 生命周期绑定】
+
+运行中的 Container 可以修改自己的文件系统：
+
+~~~text
+Image Read-only Layers
+        +
+Container Writable Layer
+~~~
+
+如果只把数据库数据写进 Container Writable Layer：
+
+~~~text
+Database Container
+└── database files
+~~~
+
+这些数据和 Container 生命周期强绑定。
+
+Docker 官方说明，Container 删除时，没有保存到 Persistent Storage 的状态会消失。[[1]](https://docs.docker.com/get-started/docker-overview/)
+
+长期状态应该从 Container 生命周期中分离。
+
+### 【Volume 用于 Docker 管理的持久化数据】
+
+Named Volume：
 
 ~~~yaml
-timescaledb:
-  image: timescale/timescaledb-ha:pg17
+services:
+  db:
+    volumes:
+      - db-data:/var/lib/database
 
+volumes:
+  db-data:
+~~~
+
+关系：
+
+~~~text
+Container
+/var/lib/database
+        │
+        ↓ mount
+Docker Volume
+db-data
+~~~
+
+即使重新创建 Container：
+
+~~~text
+old Container deleted
+↓
+new Container created
+↓
+mount same Volume
+↓
+继续读取原数据
+~~~
+
+Docker 官方建议 Volume 用于持久化数据，并指出它由 Docker 管理。[[8]](https://docs.docker.com/engine/storage/volumes/)
+
+### 【Bind Mount 直接映射 Host 路径】
+
+例如：
+
+~~~yaml
+volumes:
+  - ./src:/app/src
+~~~
+
+关系：
+
+~~~text
+Host
+./src
+  ↕
+Container
+/app/src
+~~~
+
+Bind Mount 常用于：
+
+~~~text
+本地开发源码
+配置文件
+需要 Host 直接编辑 / 查看的数据
+~~~
+
+Volume 与 Bind Mount 更准确的区别：
+
+| 类型 | 存储位置由谁决定 | Host 是否直接按路径操作 |
+| --- | --- | --- |
+| Volume | Docker | 通常不依赖固定 Host Path |
+| Bind Mount | 用户指定 Host Path | 是 |
+| tmpfs | Memory | 不做长期持久化 |
+
+### 【tmpfs 适合不需要持久化的临时写入】
+
+有些程序运行时需要：
+
+~~~text
+temporary files
+cache
+browser profile
+socket
+~~~
+
+但不需要 Container 重建后保留。
+
+tmpfs 可以理解为：
+
+~~~text
+Memory-backed Temporary Storage
+↓
+允许临时写入
+↓
+Container 结束后不做长期持久化
+~~~
+
+### 【Compose Default Network 提供 Service Name Discovery】
+
+假设：
+
+~~~yaml
+services:
+  api:
+    ...
+  redis:
+    image: redis
+~~~
+
+没有显式声明 Network 时，Compose 默认创建项目级 Network，并让 Service 加入该 Network。Service 可以通过 Service Name 发现对方。[[9]](https://docs.docker.com/compose/how-tos/networking/)
+
+因此 API 可以连接：
+
+~~~text
+redis:6379
+~~~
+
+而不是写 Redis Container 的临时 IP。
+
+### 【Container 中 localhost 永远先指向自己】
+
+假设：
+
+~~~text
+API Container
+Redis Container
+~~~
+
+API Container 内：
+
+~~~text
+localhost:6379
+~~~
+
+表示：
+
+~~~text
+API Container 自己的 6379
+~~~
+
+不是 Redis。
+
+访问 Redis 应该：
+
+~~~text
+redis:6379
+~~~
+
+所以要区分：
+
+~~~text
+Host 上运行的 Node Process
+→ localhost:6379 可以指 Host Redis
+
+Container 内运行的 Node Process
+→ redis:6379 指另一个 Compose Service
+~~~
+
+这是 Docker 网络面试中最常见的错误之一。
+
+---
+
+## 5. Docker Compose 把多个 Container 组织成一个 Runtime System
+
+Dockerfile 解决：
+
+~~~text
+一个 Image 怎么构建
+~~~
+
+Docker Compose 继续解决：
+
+~~~text
+系统里有哪些 Service
+每个 Service 用什么 Image
+怎样配置 Environment
+怎样挂 Volume
+怎样连 Network
+谁先启动
+怎样判断 Ready
+异常退出后怎么办
+~~~
+
+所以 Compose 本质上描述 Multi-container Application 的 Runtime Topology。
+
+### 【Compose Service 是运行单元配置，不等于源码 Project】
+
+假设一个 Monorepo 有：
+
+~~~text
+packages/shared
+apps/api
+apps/worker
+apps/web
+~~~
+
+Compose 不一定出现四个 Service。
+
+可能是：
+
+~~~text
+api     → Container
+worker  → Container
+web     → Container
+
+shared  → 只是构建时 Library
+          不是 Runtime Service
+~~~
+
+因此：
+
+~~~text
+Project
+≠
+Package
+≠
+Image
+≠
+Container
+≠
+Compose Service
+~~~
+
+### 【image 与 build 表示两种 Image 来源】
+
+直接使用 Registry Image：
+
+~~~yaml
 redis:
   image: redis:7.4-alpine
-
-mailpit:
-  image: axllent/mailpit:v1.27
 ~~~
 
-这些 Service 不需要当前项目自己维护 Dockerfile。
-
-逻辑是：
+表示：
 
 ~~~text
-Registry 已有 Image
-    ↓
-Docker Pull
-    ↓
+Registry
+↓ pull
+Image
+↓
 Container
 ~~~
 
-### 【业务应用通过 Dockerfile 自己 Build Image】
-
-当前项目存在：
-
-~~~text
-Dockerfile.backend
-Dockerfile.web
-Dockerfile.audit-worker
-~~~
-
-Compose 中通过：
+自己构建：
 
 ~~~yaml
-build:
-  context: ../..
-  dockerfile: platform/infra/Dockerfile.backend
+api:
+  build:
+    context: .
+    dockerfile: Dockerfile
 ~~~
 
-构建项目自己的 Image。
-
-因此两种方式的职责分别是：
+表示：
 
 ~~~text
-image:
-直接指定已有 Image
-
-build:
-根据 Dockerfile 构建当前项目 Image
+Local Build Context
++
+Dockerfile
+↓
+Build Image
+↓
+Container
 ~~~
 
-这也是 Compose 中最基础的两个镜像来源。
+### 【depends_on 解决启动依赖，但 Ready 需要 Condition】
+
+仅仅“Container 已启动”不代表内部应用已经 Ready。
+
+例如：
+
+~~~text
+Database Process Started
+≠
+Database Ready for Query
+~~~
+
+因此需要 Healthcheck，并在依赖方使用 service_healthy。
+
+Docker 官方明确区分：
+
+~~~text
+service_started
+service_healthy
+service_completed_successfully
+~~~
+
+三类依赖条件。[[10]](https://docs.docker.com/compose/how-tos/startup-order/)
+
+| Condition | 适合场景 |
+| --- | --- |
+| service_started | 只要求依赖 Container 已启动 |
+| service_healthy | 要求依赖通过 Health Check |
+| service_completed_successfully | 要求一次性 Job 成功退出 |
+
+### 【One-shot Job 与 Long-running Service 生命周期不同】
+
+Database Migration 很适合 One-shot Job：
+
+~~~text
+Container Start
+↓
+Run Migration
+↓
+Exit 0
+~~~
+
+API：
+
+~~~text
+Container Start
+↓
+Node Process
+↓
+持续处理请求
+↓
+长期运行
+~~~
+
+所以 Restart Policy 不应该一刀切：
+
+~~~text
+Migration
+成功退出是正常结果
+
+API
+意外退出通常需要恢复
+~~~
+
+### 【Profile 用于可选 Service】
+
+例如：
+
+~~~yaml
+mail:
+  profiles: ["dev"]
+~~~
+
+适合：
+
+~~~text
+Local Mail Tool
+Debug Tool
+Mock Service
+Development-only Dependency
+~~~
 
 ---
 
-## 5. Dockerfile 描述 Image 的构建过程
+## 6. Browser Monitor 项目把前面的 Docker 模型落到真实文件中
 
-Dockerfile 本质上是一组 Image Build Instruction（镜像构建指令）。
+从这一章开始才进入项目案例。先把项目相关目录明确列出来，不默认读者知道当前仓库结构。
 
-Browser Monitor 当前三个 Dockerfile 正好覆盖：
+### 【Docker 相关目录与文件】
 
-~~~text
-普通 Node Backend Image
-Web Multi-stage Image
-Chromium 特殊 Runtime Image
-~~~
-
-理解 Dockerfile 时不要孤立背指令，应沿：
+当前相关结构：
 
 ~~~text
-Base Image
-    ↓
-Build Environment
-    ↓
-Dependency
-    ↓
-Source
-    ↓
-Build Artifact
-    ↓
-Runtime Command
+browser-monitor/
+│
+├── package.json
+├── pnpm-workspace.yaml
+├── pnpm-lock.yaml
+│
+├── protocol/
+│   ├── package.json
+│   └── src/
+│
+├── sdk/
+│   ├── package.json
+│   └── src/
+│
+└── platform/
+    │
+    ├── package.json
+    ├── .env.example
+    │
+    ├── apps/
+    │   ├── api/
+    │   │   ├── package.json
+    │   │   └── src/
+    │   ├── worker/
+    │   │   ├── package.json
+    │   │   └── src/
+    │   ├── audit-worker/
+    │   │   ├── package.json
+    │   │   └── src/
+    │   └── web/
+    │       ├── package.json
+    │       └── src/
+    │
+    ├── packages/
+    │   ├── database/
+    │   │   ├── package.json
+    │   │   └── src/
+    │   └── shared/
+    │       ├── package.json
+    │       └── src/
+    │
+    └── infra/
+        ├── docker-compose.yml
+        ├── Dockerfile.backend
+        ├── Dockerfile.web
+        ├── Dockerfile.audit-worker
+        └── Caddyfile
 ~~~
 
-分析。
+文件职责：
 
-### 【FROM 决定 Base Image】
+| 文件 | 当前职责 |
+| --- | --- |
+| Dockerfile.backend | 构建 API / Worker 共用 Backend Image |
+| Dockerfile.web | Build Web，再生成 Caddy Runtime Image |
+| Dockerfile.audit-worker | 构建额外包含 Chromium 的 Audit Worker Image |
+| docker-compose.yml | 组织 TimescaleDB、Redis、Migration、API、Worker、Audit Worker、Web、可选 Mailpit |
+| Caddyfile | Web 静态资源服务和 API Reverse Proxy |
+| .env.example | Runtime 配置示例 |
 
-当前 Backend：
-
-~~~dockerfile
-FROM node:22-bookworm-slim
-~~~
-
-意味着：
-
-~~~text
-Debian Bookworm Slim 用户空间
-+
-Node.js 22
-~~~
-
-已经由 Base Image 提供。
-
-当前项目不是从空文件系统开始构建 Node Runtime，而是在官方 Node Image 基础上增加自己的 Package、Source 和 Build Artifact。
-
-Web 的第二阶段：
-
-~~~dockerfile
-FROM caddy:2.10-alpine
-~~~
-
-则说明最终 Runtime 不需要 Node，而是基于 Caddy Image 运行。
-
-### 【ENV 设置 Image / Container 环境变量】
-
-Backend：
-
-~~~dockerfile
-ENV PNPM_HOME=/pnpm
-ENV PATH=$PNPM_HOME:$PATH
-~~~
-
-使后续 Build Instruction 和 Container Runtime 能找到 pnpm。
-
-Dockerfile 官方文档中，\`ENV\` 用于设置环境变量，并会影响后续构建步骤以及从 Image 启动的 Container。[[2]](https://docs.docker.com/reference/dockerfile/)
-
-### 【WORKDIR 定义后续构建和启动的默认目录】
-
-当前：
-
-~~~dockerfile
-WORKDIR /workspace
-~~~
-
-之后：
-
-~~~dockerfile
-COPY ...
-RUN ...
-CMD ...
-~~~
-
-都会以 \`/workspace\` 作为默认工作目录。
-
-它可以直观理解成：
-
-~~~text
-后续 Dockerfile Instruction 默认在 /workspace 下操作
-~~~
-
-### 【COPY 把 Build Context 中的文件复制进 Image】
+### 【Dockerfile.backend 从 browser-monitor Build Context 构建 Backend Image】
 
 当前 Compose：
 
@@ -438,248 +1304,211 @@ build:
   dockerfile: platform/infra/Dockerfile.backend
 ~~~
 
-Dockerfile 位于：
+Compose File 位于：
 
 ~~~text
 browser-monitor/platform/infra/
 ~~~
 
-而 \`context: ../..\` 指向：
+所以：
 
 ~~~text
+../..
+=
 browser-monitor/
 ~~~
 
-所以 Dockerfile 能够：
+即 Build Context 是 browser-monitor/。
 
-~~~dockerfile
-COPY protocol ./protocol
-COPY platform ./platform
-~~~
-
-Docker Build Context（构建上下文）决定 Dockerfile 构建过程中哪些 Host 文件可以被 COPY/ADD 使用。
-
-因此：
-
-> Dockerfile 所在目录和 Build Context 不是同一个概念。
-
-当前实际是：
+Dockerfile 位置和 Build Context 不同：
 
 ~~~text
 Dockerfile Location
-browser-monitor/platform/infra/
+browser-monitor/platform/infra/Dockerfile.backend
 
 Build Context
 browser-monitor/
 ~~~
 
----
-
-## 6. Docker Layer 与 Build Cache 决定镜像构建效率
-
-Dockerfile 并不是每次都从第一行完全重新执行。
-
-Docker Build 会为可复用的构建步骤利用 Cache。Docker 官方说明，Builder 会按 Dockerfile Instruction 逐步检查是否存在可复用缓存；一旦某一步 Cache 失效，后续相关步骤需要重新执行。[[3]](https://docs.docker.com/build/cache/invalidation/)
-
-### 【为什么先 COPY package.json 再 COPY Source】
-
-当前 Backend Dockerfile：
+#### <u>1. FROM 建立 Node Base Image</u>
 
 ~~~dockerfile
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY protocol/package.json ./protocol/package.json
-COPY sdk/package.json ./sdk/package.json
-COPY platform/package.json ./platform/package.json
-COPY platform/apps/api/package.json ./platform/apps/api/package.json
-COPY platform/apps/worker/package.json ./platform/apps/worker/package.json
-COPY platform/apps/web/package.json ./platform/apps/web/package.json
-COPY platform/packages/database/package.json ./platform/packages/database/package.json
-COPY platform/packages/shared/package.json ./platform/packages/shared/package.json
+FROM node:22-bookworm-slim
+~~~
 
+得到：
+
+~~~text
+Debian Bookworm Slim 用户空间
++
+Node.js 22
+~~~
+
+#### <u>2. ENV 与 Corepack 准备 pnpm</u>
+
+~~~dockerfile
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable
+~~~
+
+目的：
+
+~~~text
+Image 内准备 pnpm 环境
+↓
+后续 RUN pnpm ... 可执行
+~~~
+
+#### <u>3. WORKDIR 创建 Image 内部 /workspace</u>
+
+~~~dockerfile
+WORKDIR /workspace
+~~~
+
+这里的 /workspace：
+
+~~~text
+不是
+browser-monitor/workspace/
+
+而是
+Image Filesystem /workspace
+~~~
+
+随后：
+
+~~~dockerfile
+COPY package.json ./
+~~~
+
+目标实际是：
+
+~~~text
+/workspace/package.json
+~~~
+
+#### <u>4. 先复制 Manifest 是为了 Dependency Install Cache</u>
+
+Dockerfile 先复制：
+
+~~~text
+root package.json
+pnpm-workspace.yaml
+pnpm-lock.yaml
+
+protocol/package.json
+sdk/package.json
+platform/package.json
+api/package.json
+worker/package.json
+web/package.json
+database/package.json
+shared/package.json
+~~~
+
+然后：
+
+~~~dockerfile
 RUN pnpm install --frozen-lockfile
+~~~
 
+原因：
+
+~~~text
+Package Manifest
+变化相对少
+↓
+Dependency Install
+成本较高
+↓
+放在 Source COPY 之前
+↓
+业务源码变化时仍可复用 Install Cache
+~~~
+
+如果只修改：
+
+~~~text
+platform/apps/api/src/main.ts
+~~~
+
+理想 Cache：
+
+~~~text
+Manifest COPY        → Cache Hit
+pnpm install         → Cache Hit
+Source COPY          → Cache Miss
+Application Build    → Re-run
+~~~
+
+这就是 Layer Cache 在当前项目中的具体作用。
+
+#### <u>5. 再复制 Source 并执行 Project Build</u>
+
+当前：
+
+~~~dockerfile
 COPY protocol ./protocol
 COPY platform ./platform
 ~~~
 
-这里没有直接：
-
-~~~dockerfile
-COPY . .
-RUN pnpm install
-~~~
-
-原因是 Package Manifest 与业务 Source 的变化频率不同。
-
-如果：
+因为 WORKDIR 是 /workspace，最终 Image 内：
 
 ~~~text
-COPY 全部源码
+/workspace/
+├── protocol/
+└── platform/
+~~~
+
+然后 Build：
+
+~~~text
+protocol
 ↓
-RUN pnpm install
+shared
+↓
+database
+↓
+api
+↓
+worker
 ~~~
 
-那么只修改：
+这些任务生成 Runtime 需要的 dist 文件。
 
-~~~text
-platform/apps/api/src/*
-~~~
-
-也会导致前面的 COPY Layer 发生变化，从而影响后续 Dependency Install Cache。
-
-当前设计：
-
-~~~text
-先复制 package.json / lockfile
-        ↓
-pnpm install
-        ↓
-再复制 Source
-        ↓
-Build
-~~~
-
-意味着只修改业务源码时：
-
-~~~text
-Package Manifest 没变
-        ↓
-Dependency Layer 更容易复用
-        ↓
-跳过重复 install
-        ↓
-只重新复制 Source 并 Build
-~~~
-
-Docker 官方也把“先复制依赖清单、安装依赖、再复制源码”作为 Node 类应用提高 Cache 命中率的典型优化。[[4]](https://docs.docker.com/get-started/docker-concepts/building-images/using-the-build-cache/)
-
-**面试回答**
-
-> Dockerfile 顺序本身就是构建性能设计。低频变化、代价高的步骤尽量放在前面；高频变化的业务源码放在后面，可以最大化 Layer Cache 复用。
-
----
-
-## 7. RUN、CMD 与 ENTRYPOINT 属于不同生命周期
-
-这三个指令是 Docker 高频面试题。
-
-可以先建立：
-
-~~~text
-RUN
-Image Build 阶段执行
-
-CMD
-Container Start 时提供默认命令
-
-ENTRYPOINT
-定义 Container 的主要可执行入口
-~~~
-
-### 【RUN 在 docker build 阶段执行】
-
-当前 Backend：
-
-~~~dockerfile
-RUN pnpm install --frozen-lockfile
-~~~
-
-以及：
-
-~~~dockerfile
-RUN pnpm --filter @browser-monitor/protocol build \
- && pnpm --filter @browser-monitor/shared build \
- && pnpm --filter @browser-monitor/database build \
- && pnpm --filter @browser-monitor/api build \
- && pnpm --filter @browser-monitor/worker build
-~~~
-
-它们发生在：
-
-~~~text
-docker build
-~~~
-
-阶段。
-
-结果是：
-
-~~~text
-Dependency
-+
-Build Artifact
-~~~
-
-进入 Image。
-
-Container 每次启动时不会重新执行这些 RUN。
-
-### 【CMD 在 Container 启动阶段执行】
-
-Backend：
+#### <u>6. CMD 定义默认 API Runtime Command</u>
 
 ~~~dockerfile
 CMD ["pnpm", "--filter", "@browser-monitor/api", "start"]
 ~~~
 
-它描述：
+API package.json：
 
-> 如果创建 Container 时没有提供其他启动命令，默认启动 API。
-
-Dockerfile 官方将 CMD 定义为 Container 运行时的默认命令。[[2]](https://docs.docker.com/reference/dockerfile/)
-
-### 【ENTRYPOINT 更强调固定主程序】
-
-当前 Browser Monitor Dockerfile 没有使用 ENTRYPOINT。
-
-通用上可以这样理解：
-
-~~~text
-ENTRYPOINT
-更适合定义“这个 Image 的主要程序是什么”
-
-CMD
-可以作为默认命令，或者为 ENTRYPOINT 提供默认参数
+~~~json
+"start": "node dist/main.js"
 ~~~
 
-例如主流设计：
-
-~~~dockerfile
-ENTRYPOINT ["node"]
-CMD ["dist/main.js"]
-~~~
-
-运行时可以覆盖 CMD 参数，但 ENTRYPOINT 仍保持 Node 主程序。
-
-当前项目无需为了使用而强行引入 ENTRYPOINT；理解两者职责即可。
-
----
-
-## 8. 同一个 Backend Image 可以运行不同 Process
-
-当前 Backend Dockerfile 默认：
-
-~~~dockerfile
-CMD ["pnpm", "--filter", "@browser-monitor/api", "start"]
-~~~
-
-Compose 中 API 没有覆盖 command：
-
-~~~yaml
-api:
-  build:
-    dockerfile: platform/infra/Dockerfile.backend
-~~~
-
-因此：
+所以默认链路：
 
 ~~~text
 Backend Image
-    ↓ 默认 CMD
-API Process
+↓
+创建 API Container
+↓
+使用 Dockerfile CMD
+pnpm --filter @browser-monitor/api start
+↓
+node dist/main.js
+↓
+Node API Process
+↓
+长期处理 HTTP Request
 ~~~
 
-但是 Worker：
+### 【Worker 使用同一 Backend Image，但 command 覆盖默认 CMD】
+
+Worker Compose：
 
 ~~~yaml
 worker:
@@ -690,2076 +1519,776 @@ worker:
     ["pnpm", "--filter", "@browser-monitor/worker", "start"]
 ~~~
 
-Compose \`command\` 覆盖了 Image 的默认 CMD。
-
-于是：
+因此对 Worker Container：
 
 ~~~text
-同一个 Backend Image
-        │
-        ├── API Container
-        │      ↓
-        │   API Process
-        │
-        └── Worker Container
-               ↓
-            Worker Process
+Dockerfile CMD
+pnpm ... api start
+↓
+本次不执行
+
+Compose command
+pnpm ... worker start
+↓
+worker package start
+↓
+node dist/main.js
+↓
+Node Worker Process
 ~~~
 
-这说明：
+Backend Image 本身没有被改掉。
 
-> Image Boundary（镜像边界）与 Process Boundary（进程边界）并不一一对应。
-
-同一个 Image 可以通过不同 Container Start Command 运行不同 Process。
-
-**面试追问**
-
-> 一个 Container 是否只能运行一个 Process？
-
-严格来说 Container 中可以存在多个 Process，但工程实践通常倾向让一个 Container 围绕一个主要职责 / 主进程设计，这样生命周期、日志、健康检查和扩缩容更清晰。
-
-当前 API 与 Worker 就是：
+API Container：
 
 ~~~text
-共享 Image
-但独立 Container / Process
+没有 command Override
+↓
+仍使用 Image CMD
+↓
+启动 API
 ~~~
 
----
+完整图：
 
-## 9. Multi-stage Build 将构建环境与运行环境分离
-
-当前 Web Dockerfile：
-
-~~~dockerfile
-FROM node:22-bookworm-slim AS build
-...
-RUN pnpm --filter @browser-monitor/web build
-
-FROM caddy:2.10-alpine
-COPY platform/infra/Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /workspace/platform/apps/web/dist /srv
+~~~text
+Backend Image
+CMD = API Default
+      │
+      ├── API Container
+      │      没有 Override
+      │      ↓
+      │      API CMD 生效
+      │
+      └── Worker Container
+             Compose command Override
+             ↓
+             原 CMD 本次不执行
+             ↓
+             Worker Command 生效
 ~~~
 
-这就是 Multi-stage Build（多阶段构建）。
+### 【API、Worker、Web、SDK 的运行链必须分别理解】
 
-Docker 官方定义：一个 Dockerfile 可以包含多个 FROM，每个 FROM 开始一个新的 Build Stage，并可以只从前一个 Stage 复制需要的 Artifact 到最终 Image。[[5]](https://docs.docker.com/build/building/multi-stage/)
+#### <u>1. API</u>
 
-### 【第一阶段负责 Build】
+~~~text
+API src/main.ts
+↓
+tsc -p tsconfig.build.json
+↓
+dist/main.js
+↓
+放入 Backend Image
+↓
+创建 API Container
+↓
+node dist/main.js
+↓
+Node API Process
+↓
+监听端口并处理 HTTP Request
+~~~
+
+#### <u>2. Worker</u>
+
+~~~text
+Worker src/main.ts
+↓
+tsc
+↓
+dist/main.js
+↓
+放入 Backend Image
+↓
+创建 Worker Container
+↓
+Compose command 选择 Worker start
+↓
+node dist/main.js
+↓
+Node Worker Process
+↓
+持续执行后台任务逻辑
+~~~
+
+API 和 Worker 都是 Node Process，但职责不同：
+
+~~~text
+API
+处理 Request / Response
+
+Worker
+处理后台异步任务
+~~~
+
+#### <u>3. Web</u>
+
+~~~text
+React / TypeScript Source
+↓
+tsc -b && vite build
+↓
+dist/
+HTML / JavaScript / CSS
+↓
+只把 dist 复制进 Caddy Runtime Image
+↓
+创建 Web Container
+↓
+Caddy Process
+↓
+向 Browser 返回 HTML / JS / CSS
+↓
+JavaScript 最终在 Browser 中执行
+~~~
+
+所以 Web Container 真正长期运行的是 Caddy，不是 React Node Server。
+
+#### <u>4. SDK</u>
+
+~~~text
+SDK TypeScript Source
+↓
+tsup
+↓
+dist/index.js
+dist/index.d.ts
+dist/index.global.js
+↓
+Package 发布 / 被业务页面引入
+↓
+Browser 执行 SDK JavaScript
+~~~
+
+SDK 没有独立的 SDK Server Process，因此 Compose 不需要 sdk Service。
+
+这再次说明：
+
+~~~text
+Workspace Package
+≠
+Runtime Service
+~~~
+
+### 【Dockerfile.web 使用 Multi-stage Build】
+
+第一阶段：
 
 ~~~text
 node:22-bookworm-slim
-    ↓
+↓
 pnpm install
-    ↓
-vite build
-    ↓
-dist/
+↓
+Web Build
+↓
+/workspace/platform/apps/web/dist
 ~~~
 
-这个阶段需要：
-
-~~~text
-Node.js
-pnpm
-TypeScript
-Vite
-Source Code
-Build Dependency
-~~~
-
-### 【第二阶段只负责 Runtime】
+第二阶段：
 
 ~~~text
 caddy:2.10-alpine
-    ↓
-COPY dist
-    ↓
-Caddy Serve Static Assets
+↓
+COPY Caddyfile
+↓
+COPY --from=build dist → /srv
+↓
+Final Web Image
 ~~~
 
 最终 Runtime Image 不需要：
 
 ~~~text
-Node.js
+Node
 pnpm
+TypeScript Compiler
 Vite
-完整 Source
-开发依赖
+完整 Web Source
 ~~~
 
-因此 Multi-stage 的主要价值包括：
+### 【Dockerfile.audit-worker 因 Chromium Runtime 单独拆 Image】
+
+Audit Worker package 依赖：
 
 ~~~text
-Build Environment
-与
-Runtime Environment
-分离
-        ↓
-最终 Image 更小
-        ↓
-不携带无关 Build Tool
-        ↓
-减少 Attack Surface
-~~~
-
-Docker 官方也明确指出 Multi-stage 能减少最终镜像中不需要的构建工具和文件，从而降低镜像体积和攻击面。[[6]](https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/)
-
----
-
-## 10. Audit Worker 使用独立 Image 是 Runtime Dependency Boundary 的体现
-
-普通 API / Worker 需要：
-
-~~~text
-Node.js
-Application Dependency
-Build Artifact
-~~~
-
-Audit Worker 还需要：
-
-~~~text
-Lighthouse
+lighthouse
 chrome-launcher
-Chromium
-CA Certificates
 ~~~
 
-当前：
-
-~~~dockerfile
-FROM node:22-bookworm-slim
-...
-RUN ... install ca-certificates ...
-RUN ... install chromium ...
-...
-USER node
-CMD ["node", "platform/apps/audit-worker/dist/main.js"]
-~~~
-
-如果把 Chromium 直接安装进通用 Backend Image：
-
-~~~text
-API
-Worker
-~~~
-
-也会被迫携带：
-
-~~~text
-Chromium
-Lighthouse Runtime Dependency
-~~~
-
-这会增加：
-
-~~~text
-Image Size
-Build Time
-Security Surface
-Runtime Complexity
-~~~
-
-所以当前项目采用：
-
-~~~text
-Backend Image
-├── API
-└── Worker
-
-Audit Image
-└── Audit Worker + Chromium
-~~~
-
-这是典型的：
-
-> 根据 Runtime Dependency 划分 Image Boundary。
-
----
-
-## 11. Web Runtime 由 Caddy 提供静态文件与反向代理能力
-
-Web Build 后：
-
-~~~text
-React / TypeScript
-    ↓
-Vite Build
-    ↓
-dist/
-~~~
-
-最终 Runtime：
-
-~~~text
-Caddy
-    ↓
-/srv
-    ↓
-HTML / JavaScript / CSS
-~~~
-
-Caddyfile：
-
-~~~text
-/api/*      → api:3000
-/health/*   → api:3000
-/internal/* → private network only → api:3000
-
-其他路径
-→ /srv Static Files
-→ SPA fallback /index.html
-~~~
-
-因此当前 Web Container 不是：
-
-~~~text
-Node React Server
-~~~
-
-而是：
-
-~~~text
-Caddy Process
-+
-Web Static Artifact
-~~~
-
-同时承担入口反向代理。
-
----
-
-## 12. Container Writable Layer 不适合承担长期持久化数据
-
-Docker 创建 Container 时会为它提供可写文件系统层。Docker 官方说明，运行 Container 会获得可写层，但这个层属于 Container 生命周期。[[1]](https://docs.docker.com/get-started/docker-overview/)
-
-如果数据库直接把数据只写进 Container Writable Layer：
-
-~~~text
-Database Container
-└── Database Files
-~~~
-
-删除 Container 后，很难把这种数据当作长期独立状态管理。
-
-因此数据库通常使用 Volume。
-
----
-
-## 13. Volume 将持久化数据从 Container 生命周期中分离
-
-当前 TimescaleDB：
-
-~~~yaml
-volumes:
-  - monitor-timescale-data:/home/postgres/pgdata/data
-~~~
-
-Redis：
-
-~~~yaml
-volumes:
-  - monitor-redis-data:/data
-~~~
-
-形成：
-
-~~~text
-TimescaleDB Container
-        │
-        ↓ mount
-monitor-timescale-data
-
-Redis Container
-        │
-        ↓ mount
-monitor-redis-data
-~~~
-
-Docker 官方把 Volume 定义为由 Docker 管理的持久化数据存储，并指出 Volume 数据在使用它的 Container 被移除后仍可以保留。[[7]](https://docs.docker.com/engine/storage/volumes/)
+Lighthouse Runtime 还需要 Chromium。
 
 所以：
 
 ~~~text
-Container
-可以删除 / 重建
-
-Volume
-独立保留
-~~~
-
-### 【Volume 与 Bind Mount 区别】
-
-Volume：
-
-~~~text
-Docker 管理 Host 存储位置
-适合数据库等长期持久化状态
-~~~
-
-Bind Mount：
-
-~~~text
-Host 明确路径
-        ↓
-直接挂载到 Container
-~~~
-
-例如开发环境：
-
-~~~yaml
-volumes:
-  - ./src:/app/src
-~~~
-
-Docker 官方区分：
-
-- Volume：存储位置由 Docker 管理；
-- Bind Mount：Host 文件或目录直接挂入 Container。[[7]](https://docs.docker.com/engine/storage/volumes/) [[8]](https://docs.docker.com/engine/storage/bind-mounts/)
-
-可以先记：
-
-| 类型 | 更常见用途 |
-| --- | --- |
-| Named Volume | Database / Runtime Persistent Data |
-| Bind Mount | 本地源码、配置、需要 Host 直接访问的文件 |
-| tmpfs | 不需要持久化的临时内存数据 |
-
----
-
-## 14. Audit Worker 的 tmpfs 体现临时写入与只读 Root Filesystem 的组合
-
-当前 Audit Worker：
-
-~~~yaml
-read_only: true
-
-tmpfs:
-  - /tmp:size=1g,mode=1777
-~~~
-
-Dockerfile 又设置：
-
-~~~dockerfile
-ENV HOME=/tmp
-ENV XDG_CONFIG_HOME=/tmp/.config
-ENV XDG_CACHE_HOME=/tmp/.cache
-~~~
-
-这形成：
-
-~~~text
-Root Filesystem
-只读
-
-/tmp
-tmpfs 可写
-~~~
-
-Chromium/Lighthouse 在运行过程中需要临时文件和缓存，因此不能简单把整个 Container 都变成完全不可写。
-
-当前方案是：
-
-~~~text
-不允许随意修改 Root FS
+Node.js
 +
-只给 /tmp 明确的临时写空间
-~~~
-
-Docker 官方说明 tmpfs 数据保存在内存中，不用于持久化，Container 停止后不会长期保留。[[9]](https://docs.docker.com/engine/storage/)
-
----
-
-## 15. Docker Network 解决 Container 之间如何通信
-
-当前 API 环境变量：
-
-~~~text
-DATABASE_URL=
-postgres://monitor:...@timescaledb:5432/monitor
-
-REDIS_URL=
-redis://redis:6379
-~~~
-
-注意 Host 不是：
-
-~~~text
-localhost
-~~~
-
-而是：
-
-~~~text
-timescaledb
-redis
-~~~
-
-原因在于 Compose 默认会为应用创建 Network，并使同一 Network 中的 Container 能够通过 Service Name 互相发现。Docker 官方说明，Compose 默认创建一个应用级网络，Service 在该网络中可以通过 Service Name 进行发现。[[10]](https://docs.docker.com/compose/how-tos/networking/)
-
-因此：
-
-~~~text
-API Container
-    │
-    ├── timescaledb:5432
-    └── redis:6379
-~~~
-
-### 【Container 中 localhost 指向 Container 自己】
-
-如果 API Container 中访问：
-
-~~~text
-localhost:6379
-~~~
-
-含义是：
-
-~~~text
-API Container 自己的 6379
-~~~
-
-不是 Redis Container。
-
-所以 Docker Compose 环境应该：
-
-~~~text
-redis:6379
-~~~
-
-而非：
-
-~~~text
-localhost:6379
-~~~
-
-这也是为什么当前 \`.env.example\` 的本地非 Docker 模式写：
-
-~~~env
-DATABASE_URL=postgres://monitor:monitor@localhost:5432/monitor
-REDIS_URL=redis://localhost:6379
-~~~
-
-而 Docker Compose 写：
-
-~~~text
-timescaledb:5432
-redis:6379
-~~~
-
-两种运行位置不同：
-
-~~~text
-Host Node Process
-    ↓
-localhost
-
-Container Process
-    ↓
-Compose Service Name
-~~~
-
-这是 Docker 面试中非常高频的网络问题。
-
----
-
-## 16. Port Mapping 解决 Host 如何访问 Container
-
-当前 Web：
-
-~~~yaml
-ports:
-  - "8080:8080"
-~~~
-
-TimescaleDB：
-
-~~~yaml
-ports:
-  - "5432:5432"
-~~~
-
-Redis：
-
-~~~yaml
-ports:
-  - "6379:6379"
-~~~
-
-格式：
-
-~~~text
-Host Port : Container Port
-~~~
-
-例如：
-
-~~~text
-Host localhost:8080
-        ↓
-Web Container :8080
-~~~
-
-需要区分两种通信：
-
-~~~text
-Host → Container
-通常依赖 Published Port
-
-Container → Container
-直接通过 Docker Network + Service Name
-~~~
-
-因此 API Container 访问 Redis：
-
-~~~text
-redis:6379
-~~~
-
-并不需要先绕：
-
-~~~text
-Host localhost:6379
-~~~
-
----
-
-## 17. Environment Variable 把 Image 与不同运行环境解耦
-
-同一份 Image 应尽量保持稳定：
-
-~~~text
-Same Image
-~~~
-
-不同环境通过 Runtime Config 改变：
-
-~~~text
-Development
-DATABASE_URL=A
-
-Staging
-DATABASE_URL=B
-
-Production
-DATABASE_URL=C
-~~~
-
-当前 Compose 使用：
-
-~~~yaml
-environment:
-  NODE_ENV:
-  PUBLIC_BASE_URL:
-  DATABASE_URL:
-  REDIS_URL:
-  COOKIE_SECRET:
-  USER_HASH_SECRET:
-  ...
-~~~
-
-因此可以理解为：
-
-~~~text
-Image
+Audit Worker JS
 +
-Runtime Environment
-=
-Container Runtime Configuration
+Lighthouse
++
+Chromium
++
+CA Certificates
 ~~~
 
-### 【ARG 与 ENV 要区分 Build-time 和 Runtime】
-
-Audit Dockerfile：
-
-~~~dockerfile
-ARG DEBIAN_MIRROR_BASE=https://deb.debian.org
-~~~
-
-Compose：
-
-~~~yaml
-build:
-  args:
-    DEBIAN_MIRROR_BASE: ...
-~~~
-
-它主要影响：
-
-~~~text
-Image Build 阶段
-apt 使用哪个 Debian Mirror
-~~~
-
-而：
-
-~~~dockerfile
-ENV AUDIT_CHROME_PATH=/usr/bin/chromium
-~~~
-
-会进入 Image 配置并可影响 Container Runtime。
-
-可以先记：
-
-~~~text
-ARG
-主要服务于 Build-time
-
-ENV
-可以成为 Image / Container Environment
-~~~
-
-但安全上不能因为 ENV 方便，就把长期 Secret 直接 Bake 进 Image。
-
----
-
-## 18. Docker Compose 描述的是整个 Multi-container Runtime Topology
-
-Compose 不只是“一条命令启动很多 Container”。
-
-它统一声明：
-
-~~~text
-有哪些 Service
-每个 Service 使用什么 Image
-是否需要 Build
-环境变量是什么
-暴露哪些 Port
-挂载哪些 Volume
-Service 如何联网
-谁依赖谁
-什么时候算 Healthy
-退出以后是否 Restart
-~~~
-
-Docker 官方将 Compose 用于定义和运行 Multi-container Application，并通过 Compose File 描述 Service 等运行关系。[[11]](https://docs.docker.com/compose/)
-
----
-
-## 19. Browser Monitor 当前 Compose 可以先按职责分成四类 Service
+与普通 API / Worker 不同。
 
 当前：
 
 ~~~text
-基础设施
-├── timescaledb
-├── redis
-└── mailpit
+Dockerfile.backend
+→ API / Worker
 
-一次性初始化任务
+Dockerfile.audit-worker
+→ Audit Worker + Chromium
+~~~
+
+这体现：
+
+> 根据 Runtime Dependency 划分 Image Boundary。
+
+### 【Compose 把项目 Service 分成四类】
+
+~~~text
+1. Infrastructure
+├── TimescaleDB
+├── Redis
+└── Mailpit（dev profile）
+
+2. Initialization Job
 └── migrate
 
-业务 Application
+3. Application Process
 ├── api
 ├── worker
 └── audit-worker
 
-系统入口
-└── web / Caddy
+4. Entry / Static Web
+└── web + Caddy
 ~~~
 
-按职责理解比直接记八个 Service 更清楚。
+### 【项目启动顺序由 Ready Condition 控制】
 
-### 【基础设施 Service】
+~~~text
+TimescaleDB
+↓ pg_isready
+Healthy
+↓
+migrate
+↓ Migration Exit 0
+Completed Successfully
+↓
+API / Worker / Audit Worker
+
+Redis
+↓ redis-cli ping
+Healthy
+↓
+API / Worker
+
+API
+↓ /health/ready
+Healthy
+↓
+Web
+~~~
+
+合并：
+
+~~~text
+TimescaleDB Healthy
+        ↓
+     Migration
+        ↓ success
+ ┌──────┼─────────────┐
+ ↓      ↓             ↓
+API   Worker     Audit Worker
+↑       ↑
+└─ Redis Healthy
+
+API Healthy
+    ↓
+   Web
+~~~
+
+### 【Volume 保存 TimescaleDB 和 Redis 的长期数据】
 
 TimescaleDB：
 
 ~~~text
-时序 / 关系数据库
+Container Path
+/home/postgres/pgdata/data
+        ↓
+Named Volume
+monitor-timescale-data
 ~~~
 
 Redis：
 
 ~~~text
-高速状态 / 缓存 / 限流等 Runtime Dependency
+Container Path
+/data
+        ↓
+Named Volume
+monitor-redis-data
 ~~~
 
-Mailpit：
+### 【Compose Network 让 Service 通过名称通信】
 
-~~~text
-开发环境邮件接收与查看
-~~~
-
-### 【Migration 是 One-shot Job】
-
-Migration：
-
-~~~text
-Start
-↓
-执行数据库 Schema Migration
-↓
-成功
-↓
-Exit 0
-~~~
-
-它不是一个长期监听请求的 Service。
-
-### 【API / Worker / Audit Worker 是长期业务 Process】
+项目中：
 
 ~~~text
 API
-持续处理 HTTP Request
-
-Worker
-持续轮询 / 消费异步任务
-
-Audit Worker
-持续处理 Lighthouse 审计任务
-~~~
-
-### 【Web 是外部入口】
-
-~~~text
-Browser
 ↓
-Web / Caddy
-├── Static File
-└── Reverse Proxy → API
-~~~
+timescaledb:5432
 
----
+API / Worker
+↓
+redis:6379
 
-## 20. depends_on 只描述依赖关系，Ready 需要 Health Check
-
-Docker Compose 很常见的错误理解：
-
-> A depends_on B，就代表 B 已经可以提供服务。
-
-并不一定。
-
-Docker 官方明确说明：Compose 默认只知道依赖 Container 是否已经启动，不会自动等待内部应用真正 Ready。要等待 Ready，需要通过 \`healthcheck\` 与 \`condition: service_healthy\`。[[12]](https://docs.docker.com/compose/how-tos/startup-order/)
-
-### 【TimescaleDB 先通过 pg_isready】
-
-当前：
-
-~~~yaml
-timescaledb:
-  healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U monitor -d monitor"]
-~~~
-
-Migration：
-
-~~~yaml
-depends_on:
-  timescaledb:
-    condition: service_healthy
-~~~
-
-执行链：
-
-~~~text
-TimescaleDB Container Start
-        ↓
-pg_isready
-        ↓
-Healthy
-        ↓
-Migration Start
-~~~
-
-### 【API 等待 Migration 成功完成】
-
-API：
-
-~~~yaml
-depends_on:
-  migrate:
-    condition: service_completed_successfully
-  redis:
-    condition: service_healthy
-~~~
-
-因此：
-
-~~~text
-DB Healthy
-    ↓
-Migration
-    ↓ completed successfully
-API Start
-~~~
-
-Docker 官方当前支持：
-
-~~~text
-service_started
-service_healthy
-service_completed_successfully
-~~~
-
-三类 Condition。[[12]](https://docs.docker.com/compose/how-tos/startup-order/)
-
-### 【Web 等待 API Healthy】
-
-API 自己：
-
-~~~yaml
-healthcheck:
-  test:
-    ["CMD", "node", "-e", "fetch('http://localhost:3000/health/ready')..."]
-~~~
-
-Web：
-
-~~~yaml
-depends_on:
-  api:
-    condition: service_healthy
-~~~
-
-所以：
-
-~~~text
-API Process Start
-    ↓
-/health/ready
-    ↓
-Healthy
-    ↓
-Web Start
-~~~
-
----
-
-## 21. 当前 Compose 启动图体现三种不同生命周期
-
-可以把完整启动关系整理为：
-
-~~~text
-TimescaleDB
-      ↓ service_healthy
-Migration
-      ↓ service_completed_successfully
- ┌──────────┬──────────────┐
- ↓          ↓              ↓
-API       Worker      Audit Worker
-↑           ↑
-│           │
-Redis ──────┘
-service_healthy
-
-API
-↓ service_healthy
-Web
-~~~
-
-这里存在：
-
-~~~text
-Infrastructure
-长期运行
-
-One-shot Job
-执行后退出
-
-Application Service
-长期运行
-
-Entry Service
-等待 API Ready 后启动
-~~~
-
-所以 Compose 编排的不是简单“顺序”，而是不同 Runtime Lifecycle 之间的依赖关系。
-
----
-
-## 22. restart policy 描述 Container 退出后的生命周期策略
-
-当前大多数 Service：
-
-~~~yaml
-restart: unless-stopped
-~~~
-
-而 Migration：
-
-~~~yaml
-restart: "no"
-~~~
-
-原因非常直接：
-
-~~~text
-API / Worker / DB
-期望长期运行
-异常退出后通常需要恢复
-
-Migration
-本来就是 One-shot Job
-执行成功后退出是正常结果
-~~~
-
-因此：
-
-> Restart Policy 要与 Process Lifecycle 一起设计，而不是所有 Service 都统一配置。
-
----
-
-## 23. Compose Profile 用于控制可选开发 Service
-
-当前：
-
-~~~yaml
-mailpit:
-  profiles: ["dev"]
-~~~
-
-说明 Mailpit 不一定属于所有环境的固定 Runtime。
-
-它更像：
-
-~~~text
-Development Support Service
-~~~
-
-需要时通过对应 Profile 启动。
-
-这种设计适合：
-
-~~~text
-Mail Sandbox
-Debug Tool
-Local Mock
-Development-only Service
-~~~
-
-将“所有环境都必须存在的 Service”和“特定环境可选 Service”分开。
-
----
-
-## 24. SDK 不应该因为在 Monorepo 中就自动成为 Docker Service
-
-Browser Monitor Workspace 中有：
-
-~~~text
-SDK
-Protocol
-Database Package
-Shared Package
-API
-Worker
-Audit Worker
-Web
-~~~
-
-但 Compose 没有：
-
-~~~yaml
-sdk:
-~~~
-
-这不是遗漏。
-
-SDK 生命周期：
-
-~~~text
-SDK Source
-    ↓
-Build
-    ↓
-JavaScript Package
-    ↓
-业务页面安装 / 引入
-    ↓
-Browser Runtime
-~~~
-
-API：
-
-~~~text
-Server Artifact
-    ↓
-Node Process
-~~~
-
-Worker：
-
-~~~text
-Worker Artifact
-    ↓
-Node Process
-~~~
-
-Web：
-
-~~~text
-Static Artifact
-    ↓
 Caddy
+↓
+api:3000
 ~~~
 
-所以：
+而不是 localhost。
+
+Caddyfile：
 
 ~~~text
-Workspace Package
-≠
-Process
-≠
-Container
-≠
-Service
+/api/*
+↓
+reverse_proxy api:3000
 ~~~
 
-Docker Compose 管理的是 Runtime Service，而不是把 Monorepo 中每一个 Package 都变成一个 Container。
+这里的 api 就是 Compose Service Name。
 
-这也是 Monorepo 与 Docker 两套体系最重要的边界之一。
+### 【Audit Worker 同时体现 Container Security Hardening】
+
+当前：
+
+~~~text
+USER node
+↓
+Non-root
+
+read_only: true
+↓
+Root Filesystem Read-only
+
+tmpfs /tmp
+↓
+只开放临时写入区域
+
+cap_drop: ALL
+↓
+移除 Linux Capability
+
+no-new-privileges
+↓
+禁止获取新增权限
+~~~
+
+Docker 提供隔离基础，真正安全仍依赖：
+
+~~~text
+User
+Capability
+Filesystem
+Secret
+Network
+Image
+Runtime Config
+~~~
 
 ---
 
-## 25. Docker 与本地非 Docker 启动解决的是不同问题
+## 7. Docker 工程治理围绕构建效率、可重复性、安全和排障展开
 
-当前项目完全可以不用 Docker 启动 Node Application。
+前六章已经建立运行机制，这一章才进入工程优化。
 
-例如：
+### 【构建效率首先来自正确的 Cache Dependency】
 
-~~~text
-本机安装：
-TimescaleDB
-Redis
-Chrome / Chromium
-SMTP
-Node.js
-pnpm
-~~~
-
-然后：
+优先级：
 
 ~~~text
-pnpm build / dev
+合理组织 Dockerfile Instruction
 ↓
-API Process
-Worker Process
-Audit Worker Process
-Web Dev Server
-SDK Watch Build
-~~~
-
-这种模式的优点：
-
-~~~text
-调试直接
-文件访问简单
-开发反馈快
-~~~
-
-但本机需要自己维护所有依赖环境。
-
-Docker 模式：
-
-~~~text
-Docker Image
+低频输入在前
+高频 Source 在后
 ↓
-固定 Runtime
-↓
-Compose
-↓
-统一启动 DB / Redis / API / Worker / Web ...
+提高昂贵步骤 Cache Hit
 ~~~
 
-更强调：
+进一步可使用 BuildKit Cache Mount 等能力，但属于进阶优化，不是当前项目已确认实现。
 
-~~~text
-环境一致
-一键重建
-运行拓扑可声明
-依赖版本固定
+### 【Reproducible Build 依赖锁定构建输入】
+
+当前项目根：
+
+~~~json
+"packageManager": "pnpm@10.28.2"
 ~~~
-
-因此：
-
-> Docker 解决的是 Runtime Environment Management，不是 Node Application 唯一的运行方式。
-
----
-
-## 26. Container Security 要从最小权限和最小写入面开始
-
-当前 Audit Worker 已经体现多项 Container Hardening（容器安全加固）措施。
-
-### 【使用 Non-root User】
 
 Dockerfile：
 
-~~~dockerfile
-USER node
+~~~text
+corepack enable
+pnpm install --frozen-lockfile
 ~~~
 
-意味着 Runtime 不以 root 作为默认用户。
-
-### 【Root Filesystem 只读】
-
-Compose：
-
-~~~yaml
-read_only: true
-~~~
-
-减少 Runtime 进程修改基础文件系统的能力。
-
-### 【只提供明确 tmpfs 写空间】
-
-~~~yaml
-tmpfs:
-  - /tmp:size=1g,mode=1777
-~~~
-
-使 Chrome 仍有必要的临时空间。
-
-### 【Drop Linux Capabilities】
-
-~~~yaml
-cap_drop:
-  - ALL
-~~~
-
-减少 Container Process 的 Linux Capability。
-
-### 【禁止获得新权限】
-
-~~~yaml
-security_opt:
-  - no-new-privileges:true
-~~~
-
-进一步限制进程运行期间获取额外权限。
-
-这组设计可以总结为：
+意图：
 
 ~~~text
-Non-root
+固定 Package Manager 版本
 +
-Read-only Root FS
-+
-Explicit Temporary Writable Area
-+
-Drop Capabilities
-+
-No New Privileges
+遵循 pnpm-lock.yaml
+↓
+减少同一个 Commit 在不同时间解析出不同 Dependency Set
 ~~~
 
-安全原则不是“Docker 天生安全”，而是：
+### 【Image Size 优化是减少 Runtime 不需要的内容】
 
-> Container 提供隔离基础，实际安全性仍依赖 Image、用户权限、Capability、Filesystem、Secret、Network、Runtime 配置等具体设计。
+不能简单等价成“全部换 Alpine”。
 
----
+需要综合：
 
-## 27. Secret 不应该直接写死进 Image
+~~~text
+Base Image
+Build Tool
+Dev Dependency
+Source
+System Package
+Temporary Package Metadata
+Multi-stage
+~~~
 
-当前 Compose 的敏感配置包括：
+当前例子：
+
+~~~text
+Web
+Multi-stage
+→ Final Image 只保留 Caddy + dist
+
+Audit Worker
+apt install 后删除 /var/lib/apt/lists/*
+~~~
+
+### 【Secret 应与 Image 分离】
+
+不要把 Production Secret 写进 Dockerfile：
 
 ~~~text
 COOKIE_SECRET
-USER_HASH_SECRET
-AUDIT_HEADER_ENCRYPTION_KEY
-SMTP_PASSWORD
-POSTGRES_PASSWORD
+DB Password
+Encryption Key
+SMTP Password
 ~~~
 
-当前开发配置使用环境变量和默认值，例如：
-
-~~~text
-COOKIE_SECRET = local development default
-~~~
-
-这种默认值适合 Local Development，但 Production 不应该继续使用示例 Secret。
-
-需要区分：
+更合理：
 
 ~~~text
 Image
-保存可复用程序和 Runtime
+保存程序和通用 Runtime
 
-Secret
-运行环境注入
+Deployment Environment
+注入 Secret
 ~~~
 
-主流生产方案包括：
+生产可进一步使用 Docker Secret、Kubernetes Secret、Cloud Secret Manager、Vault。
+
+当前 Compose 有开发默认值，但这不能理解为 Production Secret Management 已完成。
+
+### 【Debug 应沿对象链逐层排查】
+
+固定顺序：
 
 ~~~text
-Environment Secret Injection
-Docker Secret
-Kubernetes Secret
-Cloud Secret Manager
-Vault
+1. Image 是否 Build 成功
+2. Container 是否创建
+3. Container 是否 Running / Exited
+4. Main Command 是什么
+5. Logs 报什么
+6. Environment 是否正确
+7. Network 是否可达
+8. Volume 是否挂载
+9. Healthcheck 是否通过
 ~~~
 
-但当前仓库是否已经接入生产级 Secret Manager，需要单独查看部署配置，不能仅根据 Compose 推断。
-
----
-
-## 28. Docker Debug 应建立固定排查链路
-
-Docker 使用能力不能只会 \`docker compose up\`。
-
-排查可以沿：
-
-~~~text
-Container 是否存在
-    ↓
-Container 是否 Running
-    ↓
-日志有什么错误
-    ↓
-环境变量是否正确
-    ↓
-网络是否连通
-    ↓
-文件和进程是否正确
-    ↓
-Healthcheck 是否通过
-~~~
-
-### 【查看 Container】
-
-~~~bash
-docker ps
-docker ps -a
-~~~
-
-### 【查看日志】
-
-~~~bash
-docker logs <container>
-docker logs -f <container>
-~~~
-
-Compose：
-
-~~~bash
-docker compose logs
-docker compose logs -f api
-~~~
-
-### 【进入 Container】
-
-~~~bash
-docker exec -it <container> sh
-~~~
-
-Compose：
-
-~~~bash
-docker compose exec api sh
-~~~
-
-### 【查看详细配置】
-
-~~~bash
-docker inspect <container>
-~~~
-
-### 【查看 Image】
+Image：
 
 ~~~bash
 docker images
 docker image history <image>
+docker inspect <image>
 ~~~
 
-### 【查看 Volume】
+Container：
+
+~~~bash
+docker ps
+docker ps -a
+docker logs <container>
+docker logs -f <container>
+docker exec -it <container> sh
+docker inspect <container>
+~~~
+
+Storage：
 
 ~~~bash
 docker volume ls
 docker volume inspect <volume>
 ~~~
 
-### 【查看 Network】
+Network：
 
 ~~~bash
 docker network ls
 docker network inspect <network>
 ~~~
 
-### 【查看 Compose 最终解析结果】
+Compose：
 
 ~~~bash
+docker compose ps
+docker compose logs
+docker compose logs -f api
+docker compose exec api sh
 docker compose config
 ~~~
 
-尤其当 Compose 使用：
+docker compose config 很适合确认 Environment Interpolation、Anchor、Profile 和最终生效配置。
+
+### 【Docker 在 CI/CD 中连接 Build、Release 与 Deploy】
 
 ~~~text
-.env
-Variable Interpolation
-Anchor
-Profile
+Git Commit
+↓
+Test
+↓
+docker build
+↓
+Image
+↓
+Tag
+↓
+Registry
+↓
+Deployment Environment Pull
+↓
+Container
 ~~~
 
-时，\`docker compose config\` 很适合验证最终配置。
-
----
-
-## 29. Docker 常用生命周期命令应该按对象理解
-
-不要背成随机命令列表。
-
-### 【Image Lifecycle】
-
-~~~bash
-docker build -t my-image .
-docker images
-docker pull redis:7.4-alpine
-docker rmi my-image
-~~~
-
-### 【Container Lifecycle】
-
-~~~bash
-docker run ...
-docker ps
-docker stop <container>
-docker start <container>
-docker rm <container>
-~~~
-
-### 【Compose Application Lifecycle】
-
-~~~bash
-docker compose build
-docker compose up
-docker compose up -d
-docker compose ps
-docker compose logs
-docker compose down
-~~~
-
-### 【重新 Build】
-
-~~~bash
-docker compose build
-docker compose up -d --build
-~~~
-
-### 【指定 Profile】
-
-~~~bash
-docker compose --profile dev up
-~~~
-
-理解对象以后：
+常见 Image Tag：
 
 ~~~text
-Image Command
-Container Command
-Compose Application Command
+api:1.4.2
+api:<git-sha>
 ~~~
 
-边界就比较清楚。
+当前 Browser Monitor 是否已有自动 Image Push 和 Production Deployment Workflow，需要单独读取 CI 配置后确认。
 
----
-
-## 30. Build Context 和 .dockerignore 共同影响构建输入
-
-Docker Build Context 决定 Builder 能看到的文件范围。
-
-当前：
-
-~~~yaml
-context: ../..
-~~~
-
-意味着 Browser Monitor Workspace 是构建上下文。
-
-如果 Build Context 非常大：
+### 【Compose 与 Kubernetes 管理的规模不同】
 
 ~~~text
-.git
-node_modules
-test output
-local cache
-logs
-temporary files
+Dockerfile
+构建 Image
+
+Container Runtime
+运行单个 Container
+
+Compose
+组织单 Docker Environment 的多个 Service
+
+Kubernetes
+组织 Cluster 级 Workload
 ~~~
 
-都会增加 Builder 处理成本，甚至可能无意中进入 Build Context。
-
-主流 Docker 工程会通过：
+Kubernetes 进一步处理：
 
 ~~~text
-.dockerignore
-~~~
-
-排除不需要进入 Build Context 的文件。
-
-是否存在以及当前规则如何，需要读取仓库对应文件后再评价；这里先建立通用知识：
-
-> Build Context 应只包含构建真正需要的输入，.dockerignore 用于减少无关文件和潜在敏感文件进入构建上下文。
-
----
-
-## 31. Image Size 优化不能只看 Alpine
-
-“换成 Alpine”不是完整的 Docker 优化方案。
-
-真正的 Image Optimization 应同时看：
-
-~~~text
-Base Image
-Build Stage
-Runtime Dependency
-Layer
-Package Manager Cache
-Source / Dev Dependency
-System Package
-~~~
-
-常见方向：
-
-~~~text
-选择合理的 Base Image
-↓
-Multi-stage Build
-↓
-Runtime Image 不携带 Build Tool
-↓
-删除 apt cache / 临时文件
-↓
-只 COPY 必要 Artifact
-↓
-避免无关 Source
-↓
-减少重复 Layer
-~~~
-
-当前 Audit Dockerfile：
-
-~~~dockerfile
-rm -rf /var/lib/apt/lists/*
-~~~
-
-就是清理 apt Metadata，避免把不需要的 Package List 留在 Image 中。
-
-当前 Web 则通过 Multi-stage：
-
-~~~text
-Node Build Stage
-↓
-只复制 dist
-↓
-Caddy Runtime
-~~~
-
-减少最终 Runtime Image 内容。
-
----
-
-## 32. Reproducible Build 要避免“今天和明天 Build 出不同依赖”
-
-当前 Backend：
-
-~~~dockerfile
-RUN pnpm install --frozen-lockfile
-~~~
-
-含义是：
-
-> 安装必须按照已有 Lockfile，且当 Manifest 与 Lockfile 不一致时不自动修改 Lockfile。
-
-这对 Container Build 非常重要，因为 Image 构建通常要求：
-
-~~~text
-同一个 Commit
-+
-同一组 Build Input
-↓
-尽可能得到稳定 Dependency Set
-~~~
-
-因此 Lockfile 与固定 Package Manager Version 都属于 Reproducible Build（可重复构建）设计的一部分。
-
-当前根：
-
-~~~json
-"packageManager": "pnpm@10.28.2"
-~~~
-
-再配合：
-
-~~~dockerfile
-RUN corepack enable
-RUN pnpm install --frozen-lockfile
-~~~
-
-是在构建过程中固定 pnpm 与 Dependency Resolution 规则。
-
----
-
-## 33. Docker Compose 不等于 Kubernetes
-
-Docker Compose 主要解决：
-
-~~~text
-单个 Docker Environment
-↓
-多个 Container 如何组成 Application
-~~~
-
-例如开发环境、单机部署、集成测试环境。
-
-Kubernetes 继续解决：
-
-~~~text
-多机器 Cluster
-↓
 Scheduling
 Replica
 Self-healing
 Rolling Update
 Service Discovery
-Load Balancing
-Secret / Config
 Resource Management
 ~~~
 
-因此关系可以理解为：
+---
+
+## 8. 面试与答辩应该沿 Docker 主链回答，而不是背零散题目
+
+### 【第一层追问：Docker 基础模型】
+
+**Docker 主要解决什么问题？**
+
+推荐主线：
+
+> Docker 把应用运行需要的 Runtime、Dependency 和文件组织成 Image，再从 Image 创建隔离 Container。没有 Docker 应用也能运行，Docker 主要解决运行环境一致性、可移植性和可重建性。
+
+追问：
+
+- Image 和 Container 区别？
+- Docker 与 VM 区别？
+- Container 底层为什么比 VM 轻？
+- Container 是否只是普通进程？
+
+### 【第二层追问：Image Build】
+
+**Dockerfile、Build Context 和 Image 的关系是什么？**
 
 ~~~text
+Build Context
+提供构建输入
+
 Dockerfile
-解决 Image Build
+描述如何处理输入
 
-Container Runtime
-解决一个运行实例
-
-Docker Compose
-解决多个 Container 的应用拓扑
-
-Kubernetes
-解决 Cluster 级 Container Workload Orchestration
-~~~
-
-不能把：
-
-~~~text
-Docker → Compose → Kubernetes
-~~~
-
-理解成单纯“工具越来越高级”，而是管理对象逐渐扩大。
-
----
-
-## 34. CI/CD 中 Docker 连接 Build、Release 与 Deploy
-
-典型交付链：
-
-~~~text
-Git Commit
-    ↓
-CI
-    ↓
-Test / Build
-    ↓
 docker build
-    ↓
+执行构建
+
 Image
-    ↓
-Tag
-    ↓
-Registry Push
-    ↓
-Deployment Environment Pull
-    ↓
-Container Start
-~~~
-
-例如：
-
-~~~text
-my-api:1.4.2
-my-api:<git-sha>
-~~~
-
-可以将某个 Git Commit 与具体 Image 关联起来。
-
-这使 Rollback 也可以围绕已发布 Image Version 进行。
-
-当前 Browser Monitor 是否已经存在自动 Registry Publish、Image Tagging、Production Deployment Workflow，需要查仓库 CI 配置后才能判断；这里只作为 Docker 在完整交付链中的主流位置。
-
----
-
-## 35. Browser Monitor 的 Docker Runtime 可以用一张完整图复盘
-
-~~~text
-                           Host / Docker Engine
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │        Compose Network         │
-                    │                               │
-         ┌──────────▼──────────┐                    │
-         │ TimescaleDB         │                    │
-         │ pg17                │                    │
-         │ Volume              │                    │
-         └──────────┬──────────┘                    │
-                    │ healthy                       │
-                    ▼                               │
-               ┌─────────┐                          │
-               │ migrate │                          │
-               │ one-shot│                          │
-               └────┬────┘                          │
-                    │ completed successfully        │
-          ┌─────────┼──────────────┐                │
-          ▼         ▼              ▼                │
-       ┌─────┐   ┌──────┐    ┌─────────────┐       │
-       │ API │   │Worker│    │Audit Worker │       │
-       └──┬──┘   └──────┘    │+ Chromium   │       │
-          ▲                    └─────────────┘       │
-          │                                          │
-   ┌──────┴───────┐                                  │
-   │ Redis        │                                  │
-   │ Volume       │                                  │
-   └──────────────┘                                  │
-          │                                          │
-          │ API healthy                              │
-          ▼                                          │
-      ┌────────┐                                     │
-      │ Web    │                                     │
-      │ Caddy  │                                     │
-      └───┬────┘                                     │
-          │ :8080                                    │
-──────────┼───────────────────────────────────────────┘
-          ▼
-       Browser
-~~~
-
-需要注意：
-
-1. TimescaleDB 与 Redis 的数据通过 Named Volume 持久化。
-2. Migration 是一次性 Job，不是长期 Service。
-3. API / Worker 可以共享 Backend Image，但运行不同 Command。
-4. Audit Worker 因 Chromium 需要单独 Image。
-5. Web Runtime 使用 Caddy，不需要 Node。
-6. Service 之间主要通过 Compose Default Network + Service Name 通信。
-7. SDK 不属于 Compose Runtime Service，它是 Browser-side Package。
-
----
-
-## 36. Docker 知识体系可以压缩成八个主分支
-
-快速复习时，不需要先背命令。
-
-~~~text
-Docker
-│
-├── 1. Containerization
-│   ├── 为什么需要 Container
-│   ├── Docker vs VM
-│   └── Process Isolation
-│
-├── 2. Image
-│   ├── Image vs Container
-│   ├── Registry
-│   ├── Layer
-│   └── Build Cache
-│
-├── 3. Dockerfile
-│   ├── FROM
-│   ├── WORKDIR
-│   ├── COPY
-│   ├── RUN
-│   ├── ARG / ENV
-│   ├── CMD / ENTRYPOINT
-│   ├── USER
-│   └── Multi-stage Build
-│
-├── 4. Container Runtime
-│   ├── Process
-│   ├── Port
-│   ├── Environment
-│   ├── Log
-│   └── Restart
-│
-├── 5. Storage & Network
-│   ├── Writable Layer
-│   ├── Volume
-│   ├── Bind Mount
-│   ├── tmpfs
-│   ├── Compose Network
-│   └── Service Discovery
-│
-├── 6. Docker Compose
-│   ├── Service
-│   ├── image / build
-│   ├── depends_on
-│   ├── healthcheck
-│   ├── profile
-│   └── One-shot Job
-│
-├── 7. Engineering
-│   ├── Build Context
-│   ├── Layer Cache
-│   ├── Multi-stage
-│   ├── .dockerignore
-│   ├── Reproducible Build
-│   ├── Debug
-│   └── CI Image Build
-│
-└── 8. Security & Production
-    ├── Non-root
-    ├── Read-only FS
-    ├── Capability
-    ├── Secret
-    ├── Health Check
-    ├── Registry
-    └── Compose → Kubernetes
-~~~
-
-这八个分支分别回答：
-
-~~~text
-为什么容器化
-↓
-Image 怎么产生
-↓
-Container 怎么启动
-↓
-运行数据和网络怎么办
-↓
-多个 Container 怎么组成系统
-↓
-构建效率怎么保证
-↓
-运行安全怎么治理
-↓
-最终怎么进入生产交付
-~~~
-
----
-
-## 37. 面试高频问题应挂在对应知识主线下回答
-
-### 【基础模型】
-
-**Docker 解决什么问题？**
-
-结论：Docker 主要解决运行环境可复现和应用隔离问题，把 Runtime、Dependency 和 Artifact 组织成 Image，再从 Image 创建 Container。
-
-追问：
-
-- 没有 Docker 能否运行应用？
-- Docker 为什么比 VM 轻？
-- Container 底层是否只是进程？
-- Docker Engine、containerd、runc 分别是什么？
-
-### 【Image 与 Container】
-
-**Image 和 Container 有什么区别？**
-
-结论：
-
-~~~text
-Image
-静态构建模板
-
-Container
-Image 的运行实例
+保存构建结果
 ~~~
 
 追问：
 
-- 一个 Image 可以启动几个 Container？
-- Container 修改文件会不会改 Image？
-- Container 删除以后 Writable Layer 怎么办？
+- WORKDIR 为什么项目里没有对应目录？
+- COPY 的源路径从哪里解析？
+- .dockerignore 的作用？
+- Layer 是什么？
+- Cache 缓存什么？
 
-### 【Dockerfile】
-
-**RUN、CMD、ENTRYPOINT 区别？**
-
-~~~text
-RUN
-Build Image 时执行
-
-CMD
-Container 默认启动命令
-
-ENTRYPOINT
-Container 主执行程序
-~~~
-
-追问：
-
-- Compose command 会覆盖什么？
-- CMD 与 ENTRYPOINT 怎么配合？
-- 为什么要用 Exec Form？
-
-### 【Build Cache】
+### 【第三层追问：Layer Cache】
 
 **为什么先 COPY package.json 再 COPY Source？**
 
-结论：因为依赖文件变化频率低，先基于 Manifest 安装 Dependency 可以让 Dependency Layer 更容易复用 Cache，源码变化不必每次重新 install。
-
-追问：
-
-- COPY 变化为什么影响后续 Layer？
-- .dockerignore 有什么作用？
-- BuildKit Cache Mount 有什么作用？
-
-### 【Multi-stage Build】
-
-**为什么 Web Image 要分 Build Stage 和 Runtime Stage？**
-
-结论：Build 阶段需要 Node / pnpm / Vite，Runtime 只需要静态文件和 Caddy，把两者分离可以降低最终 Image Size 和 Attack Surface。
-
-追问：
-
-- Node Backend 能不能也 Multi-stage？
-- 为什么不能直接把 node_modules 和源码全部留在最终 Image？
-- Runtime Image 是否越小越好？
-
-### 【Network】
-
-**为什么 Container 中不能用 localhost 访问 Redis Container？**
-
-结论：Container 中的 localhost 指向自己；Compose 中其他 Service 通过 Default Network 和 Service Name 访问。
-
-追问：
-
-- Service Name 如何解析？
-- Container IP 能不能直接写死？
-- ports 是否影响 Container 间通信？
-
-### 【Port】
-
-**\`8080:80\` 怎么理解？**
+> Build Cache 会复用之前相同输入下的构建步骤结果。依赖 Manifest 比业务源码变化少，把 Manifest COPY 和依赖安装放在 Source COPY 之前，可以让源码变化时继续复用依赖安装结果，避免每次重新 install。
 
 ~~~text
-Host :8080
-    ↓
-Container :80
+Source Changed
+
+Manifest COPY     Cache Hit
+Install           Cache Hit
+Source COPY       Cache Miss
+Build             Re-run
 ~~~
 
 追问：
 
-- EXPOSE 是否等于 Published Port？
-- Container 间访问为什么不一定需要 ports？
+- package.json 变化会发生什么？
+- 为什么一层失效会影响后续步骤？
+- --no-cache 是什么？
 
-### 【Storage】
+### 【第四层追问：Container Runtime】
 
-**Volume 和 Bind Mount 区别？**
+**CMD 被 Compose command 覆盖是什么意思？**
 
-结论：
+> Dockerfile CMD 是 Image 的默认 Runtime Command；Compose Service 如果声明 command，就为该 Container 提供新的 Runtime Command。因此该 Container 启动时原 CMD 不执行，但 Image 的默认 CMD 本身仍然存在，其他没有 Override 的 Container 仍可使用。
+
+项目例子：
 
 ~~~text
-Volume
-由 Docker 管理
-更适合 Runtime Persistent Data
+Backend Image
+CMD → API start
 
-Bind Mount
-直接映射 Host Path
-更适合开发源码 / Host 文件
+API Container
+没有 command
+→ API start
+
+Worker Container
+command → Worker start
+→ 原 API CMD 本次不执行
 ~~~
 
 追问：
 
-- Container 删除后 Volume 还在吗？
-- 数据库为什么不直接写 Container Layer？
-- tmpfs 的数据在哪里？
+- command 会修改 Image 吗？
+- ENTRYPOINT 又是什么？
+- RUN 和 CMD 区别？
 
-### 【Compose】
+### 【第五层追问：Storage 与 Network】
 
-**Docker Compose 解决什么问题？**
+高频问题：
 
-结论：Compose 把多 Container Application 的 Service、Image、Network、Volume、Environment 和依赖关系统一声明在一个配置中。
+- 为什么数据库使用 Volume？
+- Volume 和 Bind Mount 区别？
+- Container 删除后 Volume 是否保留？
+- 为什么 Container 内 localhost 不能访问另一个 Service？
+- Compose Service Name 为什么能直接作为 Host？
+- ports 的 8080:3000 分别是什么？
+
+### 【第六层追问：Compose】
+
+**Compose 的真正作用是什么？**
+
+> Compose 不是简单批量执行 docker run，而是声明 Multi-container Application 的 Runtime Topology，包括 Service、Image、Build、Environment、Network、Volume、Health、Dependency 和 Lifecycle。
 
 追问：
 
-- image 与 build 区别？
-- Compose 是不是生产编排工具？
-- Docker Compose 与 Kubernetes 区别？
+- depends_on 是否代表 Ready？
+- Health Check 有什么作用？
+- Migration 为什么适合 One-shot Job？
+- Profile 的用途？
+- restart policy 怎么选择？
 
-### 【depends_on】
+### 【第七层追问：Browser Monitor 项目答辩】
 
-**depends_on 是否保证数据库已经 Ready？**
+可以沿：
 
-结论：默认不等于 Ready；需要 healthcheck + service_healthy，或者使用 service_completed_successfully 等 Condition。[[12]](https://docs.docker.com/compose/how-tos/startup-order/)
+> 当前项目的 Docker 配置位于 platform/infra。API 和普通 Worker 都使用 Node 22，因此 Dockerfile.backend 构建一份共用 Backend Image；Dockerfile 默认 CMD 启动 API，而 Worker 在 Compose 中通过 command 覆盖这个默认 CMD，从同一 Image 启动另一个 Node Worker Process。
+>
+> Web 的源码通过 TypeScript 和 Vite 构建为 dist 静态资源，Dockerfile.web 使用 Multi-stage Build：第一阶段用 Node 完成构建，第二阶段只保留 Caddy 和 dist，最终由 Caddy 提供静态资源并反向代理 API。
+>
+> Audit Worker 因 Lighthouse 需要 Chromium，所以使用独立 Dockerfile，避免 API 和普通 Worker 的 Image 携带无关浏览器 Runtime。
+>
+> Compose 再把 TimescaleDB、Redis、Migration、API、Worker、Audit Worker、Web 和开发 Mailpit 组织起来。TimescaleDB 与 Redis 使用 Named Volume；Service 通过默认 Compose Network 和 Service Name 通信。TimescaleDB Healthy 后执行 Migration，Migration 成功后启动业务 Process，API Ready 后再启动 Web。
+>
+> SDK 不进入 Compose，因为 SDK Build 后是被业务页面消费的浏览器 Package，不形成一个独立 Server Process。这也是 Package、Image、Container 和 Service 边界的区别。
 
-项目示例：
-
-~~~text
-TimescaleDB Healthy
-↓
-Migration Success
-↓
-API Start
-↓
-API Healthy
-↓
-Web Start
-~~~
-
-### 【Security】
-
-**Container 如何做最小权限？**
-
-可以从：
+### 【后续深入顺序】
 
 ~~~text
-Non-root User
-Read-only Root FS
-Drop Capability
-No New Privileges
-Explicit Writable Mount
-Secret Externalization
+Container Internals
+Namespace / Cgroup / OCI / containerd / runc
+
+Image Internals
+OverlayFS / BuildKit / Registry / Digest / SBOM
+
+Security
+Seccomp / AppArmor / Rootless / Resource Limit / Image Scan
+
+Orchestration
+Compose → Kubernetes
+Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 ~~~
 
-回答。
-
-当前 Audit Worker 已经实践了前四类能力。
-
-### 【架构边界】
-
-**为什么 SDK 不放进 Docker Compose？**
-
-结论：
-
-> Docker Compose 管理 Runtime Service；SDK 是 Browser-side Package，Build 后被业务页面消费，不形成一个独立长期 Service。
-
-这道题同时考察：
-
-~~~text
-Package
-Process
-Container
-Service
-~~~
-
-四种边界是否真正理解。
+不要在第一轮 Docker 学习时把这些底层名词与 Image、Container、Compose 平铺在同一层。
 
 ---
 
-## 38. 面试和答辩应沿一条统一主线介绍 Docker
-
-如果需要完整介绍 Browser Monitor 的 Docker 设计，可以沿下面的顺序回答：
-
-> 项目首先通过 Monorepo 管理 SDK、Protocol、API、Worker、Web 和内部 Package；各 Project Build 后会形成不同 Artifact。Docker 从 Artifact 之后接管 Runtime Environment。
->
-> API 和普通 Worker 都运行在 Node 22 环境中，因此项目通过 Dockerfile.backend 构建统一 Backend Image，再由不同 Container Command 分别启动 API 和 Worker。Audit Worker 额外依赖 Chromium 和 Lighthouse，所以使用独立 Dockerfile，避免普通 Backend Image 携带不需要的浏览器 Runtime。
->
-> Web 使用 Multi-stage Build：Node Stage 负责 Vite Build，最终只把 dist 复制到 Caddy Image。这样 Production Web Container 不需要 Node、pnpm 和前端源码。
->
-> Compose 再把 TimescaleDB、Redis、Migration、API、Worker、Audit Worker、Web 组织成完整 Runtime。数据库和 Redis 使用 Named Volume 持久化；Service 之间通过 Compose Network 和 Service Name 通信；Host 通过 Published Port 访问 Web、数据库或 Redis。
->
-> 启动过程不是简单的 Container 先后顺序。TimescaleDB 先经过 pg_isready 变成 Healthy，Migration 成功完成后 API/Worker 才启动，API readiness 通过后 Web 才启动。Migration 属于 One-shot Job，而其他业务进程属于 Long-running Service。
->
-> 安全上 Audit Worker 使用 Non-root、Read-only Root Filesystem、tmpfs、Drop Capabilities 和 No New Privileges，体现 Container 最小权限设计。
->
-> 因此 Docker 在这个项目里不是“把所有 Package 装进 Container”，而是把不同 Build Artifact 与对应 Runtime Dependency 组合成 Image，再通过 Compose 形成可重建的完整运行系统。
-
----
-
-## 39. 后续深入可以沿四条主线继续
-
-### 【Container 底层实现】
-
-继续理解：
-
-~~~text
-Linux Namespace
-Cgroup
-Mount Namespace
-Network Namespace
-PID Namespace
-Union Filesystem
-OCI
-containerd
-runc
-~~~
-
-目标：
-
-> 能解释 Container 为什么既是 Host Process，又拥有独立文件系统、网络和进程视图。
-
-### 【Image Build 深入】
-
-继续：
-
-~~~text
-Layer
-OverlayFS
-BuildKit
-Cache Mount
-Secret Mount
-Multi-platform Build
-Image Manifest
-Registry
-Image Digest
-SBOM
-~~~
-
-目标：
-
-> 能解释一个 Dockerfile 如何真正转成可缓存、可分发的 Image。
-
-### 【Runtime 与安全深入】
-
-继续：
-
-~~~text
-Linux Capability
-Seccomp
-AppArmor / SELinux
-Rootless Docker
-Resource Limit
-CPU / Memory Limit
-Read-only Filesystem
-Container Escape
-~~~
-
-目标：
-
-> 能说明“Container 隔离不是 VM 隔离”，以及生产环境如何进一步降低风险。
-
-### 【Compose 到 Kubernetes】
-
-继续：
-
-~~~text
-Compose Service
-↓
-Kubernetes Pod / Deployment / Service
-
-Healthcheck
-↓
-Liveness / Readiness / Startup Probe
-
-Environment
-↓
-ConfigMap / Secret
-
-Volume
-↓
-PersistentVolume / PVC
-
-restart
-↓
-Controller Self-healing
-~~~
-
-目标：
-
-> 理解为什么从单机 Multi-container Application 扩展到 Cluster 后，需要 Kubernetes 这类 Orchestrator。
-
----
-
-## 40. 参考资料
+## 9. 参考资料
 
 1. Docker Docs, **What is Docker?**：https://docs.docker.com/get-started/docker-overview/
 2. Docker Docs, **Dockerfile reference**：https://docs.docker.com/reference/dockerfile/
-3. Docker Docs, **Build cache invalidation**：https://docs.docker.com/build/cache/invalidation/
-4. Docker Docs, **Using the build cache**：https://docs.docker.com/get-started/docker-concepts/building-images/using-the-build-cache/
+3. Docker Docs, **What is an image?**：https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
+4. Docker Docs, **Build cache invalidation**：https://docs.docker.com/build/cache/invalidation/
 5. Docker Docs, **Multi-stage builds**：https://docs.docker.com/build/building/multi-stage/
-6. Docker Docs, **Multi-stage builds – Get Started**：https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/
-7. Docker Docs, **Volumes**：https://docs.docker.com/engine/storage/volumes/
-8. Docker Docs, **Bind mounts**：https://docs.docker.com/engine/storage/bind-mounts/
-9. Docker Docs, **Storage**：https://docs.docker.com/engine/storage/
-10. Docker Docs, **Networking in Compose**：https://docs.docker.com/compose/how-tos/networking/
-11. Docker Docs, **Docker Compose**：https://docs.docker.com/compose/
-12. Docker Docs, **Control startup and shutdown order in Compose**：https://docs.docker.com/compose/how-tos/startup-order/
-13. Browser Monitor：\`browser-monitor/platform/infra/docker-compose.yml\`
-14. Browser Monitor：\`browser-monitor/platform/infra/Dockerfile.backend\`
-15. Browser Monitor：\`browser-monitor/platform/infra/Dockerfile.web\`
-16. Browser Monitor：\`browser-monitor/platform/infra/Dockerfile.audit-worker\`
-17. Browser Monitor：\`browser-monitor/platform/infra/Caddyfile\`
-18. Browser Monitor：\`browser-monitor/platform/.env.example\`
+6. Docker Docs, **Dockerfile CMD / ENTRYPOINT reference**：https://docs.docker.com/reference/dockerfile/
+7. Docker Docs, **Compose services / command**：https://docs.docker.com/reference/compose-file/services/
+8. Docker Docs, **Volumes**：https://docs.docker.com/engine/storage/volumes/
+9. Docker Docs, **Networking in Compose**：https://docs.docker.com/compose/how-tos/networking/
+10. Docker Docs, **Control startup and shutdown order in Compose**：https://docs.docker.com/compose/how-tos/startup-order/
+11. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
+12. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
+13. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
+14. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
+15. Browser Monitor：browser-monitor/platform/infra/Caddyfile
+16. Browser Monitor：browser-monitor/platform/apps/api/package.json
+17. Browser Monitor：browser-monitor/platform/apps/worker/package.json
+18. Browser Monitor：browser-monitor/platform/apps/web/package.json
+19. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
+20. Browser Monitor：browser-monitor/sdk/package.json
