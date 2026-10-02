@@ -3399,13 +3399,14 @@ Pod / Deployment / Service / Probe / ConfigMap / Secret / PVC
 8. Docker Docs, **Volumes**：https://docs.docker.com/engine/storage/volumes/
 9. Docker Docs, **Networking in Compose**：https://docs.docker.com/compose/how-tos/networking/
 10. Docker Docs, **Control startup and shutdown order in Compose**：https://docs.docker.com/compose/how-tos/startup-order/
-11. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
-12. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
-13. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
-14. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
-15. Browser Monitor：browser-monitor/platform/infra/Caddyfile
-16. Browser Monitor：browser-monitor/platform/apps/api/package.json
-17. Browser Monitor：browser-monitor/platform/apps/worker/package.json
-18. Browser Monitor：browser-monitor/platform/apps/web/package.json
-19. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
-20. Browser Monitor：browser-monitor/sdk/package.json
+11. Docker Docs, **Bind mounts**：https://docs.docker.com/engine/storage/bind-mounts/
+12. Browser Monitor：browser-monitor/platform/infra/docker-compose.yml
+13. Browser Monitor：browser-monitor/platform/infra/Dockerfile.backend
+14. Browser Monitor：browser-monitor/platform/infra/Dockerfile.web
+15. Browser Monitor：browser-monitor/platform/infra/Dockerfile.audit-worker
+16. Browser Monitor：browser-monitor/platform/infra/Caddyfile
+17. Browser Monitor：browser-monitor/platform/apps/api/package.json
+18. Browser Monitor：browser-monitor/platform/apps/worker/package.json
+19. Browser Monitor：browser-monitor/platform/apps/web/package.json
+20. Browser Monitor：browser-monitor/platform/apps/audit-worker/package.json
+21. Browser Monitor：browser-monitor/sdk/package.json
