@@ -518,3 +518,95 @@ Health Check
 ```
 
 逐层定位，而不是看到 `FAILED` 就默认认为 Docker Build 失败。
+
+
+## 15. 生成 Railway 公网域名并修正公开基地址
+
+### 15.1 Web 公网域名
+
+四个核心 Service 全部成功运行后，为 `web` Service 生成 Railway 提供的免费公网域名，并显式绑定到 Caddy 监听的 8080 端口：
+
+```text
+https://web-production-2d509.up.railway.app
+```
+
+当前公网拓扑变为：
+
+```text
+Internet
+   ↓ HTTPS
+web-production-2d509.up.railway.app
+   ↓ Railway Edge
+Web / Caddy :8080
+   ↓ /api/*, /health/*
+Railway Private Network
+   ↓
+Backend :3000
+   ├── API
+   └── Worker
+   ↓
+TimescaleDB / Redis
+```
+
+Backend、TimescaleDB、Redis 仍不创建 Public Domain，继续只通过 Railway Private Network 通信。
+
+### 15.2 PUBLIC_BASE_URL 从占位值切换为真实 Web 地址
+
+首次部署时，为了在尚未生成公网域名的情况下满足 API Configuration Schema，Backend 使用：
+
+```text
+PUBLIC_BASE_URL=https://placeholder.invalid
+```
+
+Web Domain 生成后，将 Backend 的 `PUBLIC_BASE_URL` 更新为：
+
+```text
+PUBLIC_BASE_URL=https://web-production-2d509.up.railway.app
+```
+
+修改该环境变量会触发 Backend 新版本部署。此次部署仅用于使运行中的 API 获得真实公网基地址，不改变代码和数据库结构。
+
+`PUBLIC_BASE_URL` 会用于生成：
+
+```text
+/verify-email
+/reset-password
+/accept-invitation
+```
+
+等完整 URL，因此不能长期保留占位地址。
+
+### 15.3 当前验证状态
+
+Web Domain 已由 Railway 成功创建，Backend 因 `PUBLIC_BASE_URL` 变化正在执行新的 Deployment。
+
+截至本次记录：
+
+```text
+redis        SUCCESS
+timescaledb  SUCCESS
+web          SUCCESS
+backend      DEPLOYING
+```
+
+上一个 Backend Deployment 已经处于 SUCCESS，因此本次属于配置更新后的滚动发布。
+
+第一次从外部执行 DNS/HTTPS 访问验证时，域名尚未在当前验证环境中完成 DNS 解析，因此公网访问验证暂记为“等待 Railway 域名解析/传播完成”，不能将该现象判断为应用启动失败。
+
+后续验证顺序：
+
+```text
+Backend 新部署 SUCCESS
+  ↓
+Web Domain DNS 可解析
+  ↓
+GET /
+  ↓
+GET /health/ready
+  ↓
+Web /api/* → Backend
+  ↓
+注册/登录页面基础请求
+  ↓
+SDK ingestion
+```
