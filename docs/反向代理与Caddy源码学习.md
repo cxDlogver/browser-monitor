@@ -469,9 +469,9 @@ Request Context / Rate Limit / Audit
 
 理解当前反向代理是否必要，必须先看真实 Deployment Topology，而不是只看 Caddyfile。
 
-### 【Dockerfile.web 决定 Web Runtime 最终运行的是 Caddy 而不是 Vite】
+### 【Dockerfile.web 把 Web 的 Build Runtime 与 Production Runtime 明确分开】
 
-当前 `platform/infra/Dockerfile.web` 是 Multi-stage Build：
+当前 `platform/infra/Dockerfile.web` 是典型的 Multi-stage Build（多阶段构建）：
 
 ~~~dockerfile
 FROM node:22-bookworm-slim AS build
@@ -483,25 +483,120 @@ COPY platform/infra/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /workspace/platform/apps/web/dist /srv
 ~~~
 
-执行过程：
+理解这段 Dockerfile 的关键，不是只看到“Node + Caddy 两个镜像”，而是要区分 **Build Time（构建阶段）** 与 **Runtime（运行阶段）**。
+
+第一阶段：
+
+~~~dockerfile
+FROM node:22-bookworm-slim AS build
+~~~
+
+创建的是 Build Stage。这里需要 Node.js，是因为 pnpm、TypeScript、Vite 等前端工具需要在 Node.js Runtime 中运行：
 
 ~~~text
 React / TypeScript Source
-↓
-Node Build Stage
-↓
+        ↓
+Node.js Build Runtime
+        ↓
+pnpm
+        ↓
 Vite Build
-↓
+        ↓
 dist/
-↓
-复制到 Final Caddy Image /srv
-↓
-Container Start
-↓
-Caddy Process
 ~~~
 
-所以 Production Web Container 并不是：
+Vite 官方将 `vite build` 定位为 Production Build：把应用源码构建成适合由 Static Hosting Service（静态托管服务）提供的生产资源。[[18]](https://vite.dev/guide/build)
+
+因此 `dist/` 已经不是 React / TypeScript 源码本身，而是浏览器最终能够下载的生产静态资源，例如：
+
+~~~text
+dist/
+├── index.html
+└── assets/
+    ├── index-xxxx.js
+    └── index-xxxx.css
+~~~
+
+第二个：
+
+~~~dockerfile
+FROM caddy:2.10-alpine
+~~~
+
+不是“继续在前面的 Node Image 中安装 Caddy”，而是开始一个新的 Final Stage。Docker 官方对 Multi-stage Build 的定义也是：每个 `FROM` 可以开始新的 Build Stage，再通过 `COPY --from` 选择性复制前一阶段的构建产物，从而把构建工具留在 Build Stage，而不进入最终 Runtime Image。[[19]](https://docs.docker.com/build/building/multi-stage/)
+
+所以：
+
+~~~dockerfile
+COPY --from=build /workspace/platform/apps/web/dist /srv
+~~~
+
+真正发生的是：
+
+~~~text
+Build Stage
+Node.js
+├── pnpm
+├── Vite
+├── TypeScript
+├── Source
+└── dist/
+      │
+      │ COPY --from=build
+      ↓
+Final Stage
+Caddy
+├── /etc/caddy/Caddyfile
+└── /srv
+    ├── index.html
+    └── assets/
+~~~
+
+也就是说，Node.js 和 Vite 在这里主要承担 **“生产 dist”** 的职责；最终生产镜像以 `caddy:2.10-alpine` 为基础，长期运行的 Web Server Process 是 Caddy。
+
+因此完整执行链应该写成：
+
+~~~text
+Build Time
+────────────────────────────
+
+React / TypeScript Source
+        ↓
+Node.js
+        ↓
+Vite Build
+        ↓
+dist/
+
+
+Server Runtime
+────────────────────────────
+
+Web Container
+        ↓
+Caddy Process
+        │
+        ├── Serve /srv Static Files
+        └── Reverse Proxy /api/*
+
+
+Browser Runtime
+────────────────────────────
+
+Browser 下载 HTML / JS / CSS
+        ↓
+JavaScript Engine 执行生产 JS
+        ↓
+React Application 启动
+        ↓
+页面渲染
+~~~
+
+这里最容易混淆的一点是：
+
+> **Caddy 不执行 React，Vite 也不是当前 Production Container 中长期运行的 Web Server。Caddy 负责把 Vite 已经构建好的静态文件发送给 Browser，真正的 React JavaScript 最终运行在 Browser Runtime 中。**
+
+所以当前 Production Web Container 并不是：
 
 ~~~text
 Vite Dev Server
@@ -510,10 +605,117 @@ Vite Dev Server
 而是：
 
 ~~~text
-Caddy
+Web Container
+↓
+Caddy Process
 ├── Serve React Static Files
 └── Reverse Proxy API
 ~~~
+
+### 【一次页面访问会先经过 Caddy 获取静态资源，再由 Browser 启动 React】
+
+例如 Browser 请求：
+
+~~~text
+GET /
+~~~
+
+当前 Caddy 的 Static Web Branch 会进入：
+
+~~~caddyfile
+handle {
+  root * /srv
+  try_files {path} /index.html
+  file_server
+}
+~~~
+
+于是链路首先是：
+
+~~~text
+Browser
+↓ GET /
+Caddy
+↓
+读取 /srv/index.html
+↓
+HTTP Response
+↓
+Browser
+~~~
+
+Browser 解析 `index.html` 后继续请求构建产物：
+
+~~~text
+GET /assets/index-xxxx.js
+GET /assets/index-xxxx.css
+~~~
+
+Caddy 再从 `/srv/assets/` 返回对应文件：
+
+~~~text
+Browser
+↓
+Caddy
+↓
+/srv/assets/index-xxxx.js
+↓
+Browser JavaScript Engine
+↓
+执行 Production JavaScript
+↓
+React Boot
+~~~
+
+所以从“谁在运行什么”的视角看，当前项目同时存在三个不同阶段：
+
+| 阶段 | Runtime / Process | 当前职责 |
+| --- | --- | --- |
+| Build Time | Node.js + Vite | 把 React / TypeScript Source 构建成 `dist/` |
+| Server Runtime | Caddy Process | 提供 `dist/` 静态资源并代理 Backend Request |
+| Browser Runtime | Browser JavaScript Engine | 执行构建后的 JavaScript 并运行 React |
+
+### 【Development 使用 Vite Dev Server，不代表 Production 也必须运行 Vite】
+
+开发环境通常执行：
+
+~~~text
+pnpm dev
+↓
+Vite Dev Server
+↓
+Browser
+~~~
+
+Vite Dev Server 在开发阶段同时承担源码转换、Module Loading、HMR（Hot Module Replacement，热模块替换）和 HTTP Development Server 等职责。
+
+Production 则完全不同：
+
+~~~text
+React / TypeScript Source
+↓
+Vite Build
+↓
+dist/
+↓
+Caddy
+↓
+Browser
+↓
+React Runtime
+~~~
+
+因此可以把开发与生产的边界总结为：
+
+| 维度 | Development | Production |
+| --- | --- | --- |
+| 前端输入 | React / TypeScript Source | Vite 已构建的 `dist/` |
+| Vite 角色 | Dev Server + 开发期转换 | Build Tool |
+| 对 Browser 提供 HTTP 的程序 | Vite Dev Server | Caddy |
+| React JavaScript 最终执行位置 | Browser | Browser |
+| API 转发入口 | 可由 Dev Proxy 或其他开发配置承担 | 当前由 Caddy `reverse_proxy` 承担 |
+
+这个区分也解释了为什么 `Dockerfile.web` 同时出现 Node 和 Caddy：它们不在竞争“谁是 Web Server”，而是分别处于 **构建链** 与 **生产运行链**。
 
 ### 【Compose 只把 Web/Caddy 的 8080 暴露给 Host】
 
@@ -1486,3 +1688,8 @@ Docker Service Name
 15. [Web API Client](../platform/apps/web/src/api/client.ts)
 16. [React Router](../platform/apps/web/src/App.tsx)
 17. [NestJS / Fastify API Bootstrap](../platform/apps/api/src/main.ts)
+
+### 【Build 与 Runtime】
+
+18. Vite Docs, **Building for Production**：https://vite.dev/guide/build
+19. Docker Docs, **Multi-stage builds**：https://docs.docker.com/build/building/multi-stage/
