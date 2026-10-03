@@ -354,3 +354,43 @@ Browser Monitor
 ```
 
 因此优先保证完整链路能够在线运行，再逐步补齐独立 Worker、Mail、Audit Worker、自定义域名、备份和更大的数据库存储。
+
+
+## 13. 首次 Railway 部署执行记录
+
+首次 staged changes 已提交到 Railway：
+
+```text
+Project: successful-elegance
+Environment: production
+Commit message: Deploy browser-monitor trial topology
+```
+
+首次部署同时触发四个 Service：
+
+```text
+redis
+timescaledb
+backend
+web
+```
+
+截至本次记录：
+
+| Service | 状态 |
+| --- | --- |
+| `redis` | SUCCESS |
+| `timescaledb` | DEPLOYING |
+| `backend` | BUILDING |
+| `web` | BUILDING |
+
+Backend 与 Web 已进入 Railway Docker Build 流程，构建日志显示 Railway 正确读取：
+
+```text
+platform/infra/Dockerfile.backend
+platform/infra/Dockerfile.web
+```
+
+并以仓库根目录作为 Docker Build Context，因此 pnpm workspace 文件和内部 packages 可以正常进入构建上下文。
+
+下一步需要等待 Backend / Web / TimescaleDB 首次 Deployment 结束；若失败，则根据 Railway Build Log、Deploy Log 和 Pre-deploy migration 日志继续定位，并把失败原因和修复过程继续追加到本文档。
