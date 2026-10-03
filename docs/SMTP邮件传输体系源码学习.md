@@ -1,694 +1,123 @@
 # SMTP 邮件传输体系源码学习
 
-> **学习目标**：以当前 Browser Monitor 的真实邮件发送源码为入口，建立完整的邮件传输知识体系。学习顺序不是先背 \`EHLO / MAIL FROM / RCPT TO\`，而是按照“业务触发 → 邮件消息 → SMTP 提交 → 服务器传输 → 邮箱投递 → 邮件访问 → 身份认证与可靠性”逐层展开。
+> **学习目标**：从 Browser Monitor 当前真实邮件链路出发，把“业务服务、MailerService、Nodemailer、SMTP Server、Mailpit、生产 Mail Provider、收件服务器、Mailbox、客户端读取、发送状态返回”放进同一条生命周期。本文优先解释系统角色和数据流，不先深入 SMTP 命令、MIME 编码等底层细节。
 >
-> **分析范围**：项目事实以当前 \`browser-monitor/platform\` 源码为准；SMTP、Internet Message Format、MIME、Message Submission、SPF、DKIM、DMARC 等通用知识以 IETF RFC 为主要依据；Nodemailer 与 Mailpit 部分以各自官方文档为参考。
+> **项目事实边界**：当前 Browser Monitor 已实现 Outbound Email，即注册验证、密码重置和项目邀请通过 Nodemailer SMTP Transport 发送；开发环境使用 Mailpit。项目当前没有实现邮件接收、IMAP 读取、Provider Delivery Webhook，也没有把邮件任务接入现有 Outbox Worker。
 >
-> **与已有文档的关系**：[\`NestJS-Fastify-API源码学习.md\`](./NestJS-Fastify-API源码学习.md) 已经解释 API、Service 与 Infrastructure 的基本边界，[服务端数据管理源码学习-2.md](./服务端数据管理源码学习-2.md) 已经指出 PostgreSQL Transaction 无法覆盖 Redis、Mailer 等外部系统。本文从当前 \`MailerService\` 继续向外展开，解释一封业务邮件如何从 Browser Monitor 进入完整的 Internet Mail System。
+> **通用知识入口**：脱离项目的完整邮件系统框架维护在 [Full-Stack-AI-NOTES · 邮件传输与邮件系统完整框架](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/邮件传输与邮件系统完整框架.md)。本文只负责把通用框架映射回 Browser Monitor 当前实现和工程取舍。
 
-邮件体系不按 SMTP、MIME、IMAP、SPF、DKIM 等名词平铺，而按下面的依赖关系展开：
+## 1. Browser Monitor 的邮件链路先区分业务服务器和邮件服务器
+
+当前项目中最容易混淆的是：
 
 ~~~text
-第一层：业务为什么需要邮件
-Register / Verify Email / Reset Password / Project Invitation
-            │
-            ▼
-第二层：一封邮件本身如何表达
-RFC 5322 / Header / Body / MIME / Attachment
-            │
-            ▼
-第三层：应用如何把邮件提交出去
-Nodemailer / SMTP Client / MSA / 587 / 465 / TLS / AUTH
-            │
-            ▼
-第四层：邮件服务器如何把邮件送到目标域
-SMTP Relay / MTA / DNS MX / Port 25 / Queue / Retry
-            │
-            ▼
-第五层：目标系统如何投递和访问邮件
-Mailbox / MDA / IMAP / POP3 / Mail Client
-            │
-            ▼
-第六层：邮件身份和可信度如何建立
-Envelope / Header / SPF / DKIM / DMARC
-            │
-            ▼
-第七层：邮件如何形成生产级可靠能力
-Response / Retry / Bounce / Outbox / Idempotency / Observability
+Browser Monitor API
+        ≠
+Mail Server
 ~~~
 
-## 1. Browser Monitor 的邮件能力首先是业务系统访问外部 Mail Service
+Browser Monitor API 是业务服务器。它负责：
 
-### 【当前项目已经存在三个真实邮件业务】
+~~~text
+注册用户
+密码找回
+项目邀请
+生成业务Token
+构造业务链接
+决定给哪个邮箱发什么内容
+~~~
 
-当前邮件不是独立 Demo，而是账号与项目协作流程的一部分。核心实现位于：
+真正承担 SMTP Server 角色的是另一个服务。
+
+当前本地开发环境：
+
+~~~text
+Browser Monitor API
+        ↓ SMTP
+      Mailpit
+~~~
+
+生产环境则应替换为真实 SMTP Provider：
+
+~~~text
+Browser Monitor API
+        ↓ SMTP
+Production Mail Provider
+        ↓
+互联网邮件系统
+~~~
+
+所以邮件能力不是“API Server 自己变成邮件服务器”，而是：
+
+> **API Server 作为 SMTP Client，连接并调用一个 Mail Server。**
+
+### 【当前项目中的角色映射】
+
+| 系统角色 | Browser Monitor 当前实现 | 职责 |
+| --- | --- | --- |
+| 业务服务 | API / AuthService / ProjectsService | 决定为什么发邮件 |
+| 邮件基础设施适配 | MailerService | 把业务动作转换成发送调用 |
+| SMTP Client Library | Nodemailer | 建立 SMTP Transport 并发送消息 |
+| 开发 SMTP Server | Mailpit | 接收并保存本地测试邮件 |
+| 生产 SMTP Server | 由 SMTP 配置指定，仓库未固定具体厂商 | 接收应用提交并继续投递 |
+| 收件服务器 | Gmail / Outlook 等外部系统 | 接收目标域邮件并写入 Mailbox |
+| Mail Client | Gmail Web、Outlook 等 | 用户读取 Mailbox |
+
+这张表是后面所有知识的起点。
+
+## 2. 当前三个业务场景共用同一个MailerService发送出口
+
+当前 MailerService 位于：
 
 ~~~text
 platform/apps/api/src/auth/mailer.service.ts
 ~~~
 
-\`MailerService\` 已提供：
+它提供三个业务发送方法：
 
 ~~~ts
-async sendVerification(email: string, token: string)
-async sendPasswordReset(email: string, token: string)
-async sendInvitation(email: string, token: string, projectName: string)
+sendVerification(email, token)
+
+sendPasswordReset(email, token)
+
+sendInvitation(email, token, projectName)
 ~~~
 
-对应关系：
+对应：
 
-| 业务行为 | 邮件作用 | 关键凭据 |
+| 业务场景 | 上游 Service | 邮件目的 |
 | --- | --- | --- |
-| 注册账号 | 验证邮箱控制权 | verify-email Token |
-| 忘记密码 | 建立密码恢复入口 | reset-password Token |
-| 邀请成员 | 把项目邀请交给目标邮箱用户 | invitation Token |
+| 注册 | AuthService.register | 验证邮箱 |
+| 忘记密码 | AuthService.forgotPassword | 发送密码重置链接 |
+| 项目邀请 | ProjectsService.invite | 发送项目邀请链接 |
 
-所以邮件在项目中的位置首先是：
+虽然业务不同，但都收敛到：
 
 ~~~text
-Business Action
-      ↓
-Application Service
+Business Service
       ↓
 MailerService
       ↓
-External Mail System
-~~~
-
-项目源码：
-
-- [MailerService](../platform/apps/api/src/auth/mailer.service.ts)
-- [AuthService](../platform/apps/api/src/auth/auth.service.ts)
-- [ProjectsService](../platform/apps/api/src/projects/projects.service.ts)
-
-### 【当前实际发送者是API进程而不是Worker】
-
-以注册为例：
-
-~~~text
-POST /auth/register
-        ↓
-AuthService.register()
-        ↓
-PostgreSQL Transaction
-        │
-        ├── User
-        └── Verification Token
-        ↓
-COMMIT
-        ↓
-MailerService.sendVerification()
-        ↓
 Nodemailer
-        ↓
-SMTP Server
-~~~
-
-当前源码中邮件是在 API 完成数据库提交以后直接发送，并没有进入现有 Outbox Worker。后文的 Email Outbox 属于可演进方案，不应描述成当前已实现。
-
-## 2. MailerService、Nodemailer、SMTP与Mailpit属于不同层次
-
-当前 \`MailerService\` 创建 Nodemailer Transport：
-
-~~~ts
-this.transporter = nodemailer.createTransport({
-  host: config.SMTP_HOST,
-  port: config.SMTP_PORT,
-  secure: config.SMTP_SECURE,
-  ...(config.SMTP_USER
-    ? { auth: { user: config.SMTP_USER, pass: config.SMTP_PASSWORD } }
-    : {}),
-});
-~~~
-
-最终调用：
-
-~~~ts
-await this.transporter.sendMail({
-  from: this.config.SMTP_FROM,
-  to,
-  subject,
-  text,
-});
-~~~
-
-这几层分别是：
-
-| 概念 | 当前项目中的角色 |
-| --- | --- |
-| AuthService / ProjectsService | 决定为什么发送 |
-| MailerService | 封装邮件基础设施 |
-| Nodemailer | Node.js 邮件发送库与 SMTP Client 封装 |
-| SMTP | 邮件提交和传输协议 |
-| Mailpit | 开发环境 SMTP Server 与邮件查看工具 |
-| SMTP_* | SMTP Server 连接配置 |
-
-因此：
-
-~~~text
-MailerService
-    ≠ SMTP
-
-Nodemailer
-    ≠ SMTP Server
-
-Mailpit
-    ≠ Nodemailer
-~~~
-
-正确关系：
-
-~~~text
-Browser Monitor API
-        ↓
-MailerService
-        ↓
-Nodemailer
-        ↓ SMTP
-Mailpit / Production SMTP Provider
-~~~
-
-Nodemailer SMTP Transport：
-https://nodemailer.com/smtp
-
-## 3. 完整邮件系统由生成、提交、传输、投递和读取共同组成
-
-SMTP 只是邮件系统中的一个环节。
-
-~~~text
-Browser Monitor
-      │
-      │ 构造业务邮件
-      ▼
-Message Construction
-RFC 5322 / MIME
-      │
-      │ Message Submission
-      ▼
-MSA / SMTP Provider
-      │
-      │ SMTP Relay
-      ▼
-MTA
-      │
-      │ DNS MX + SMTP
-      ▼
-Recipient Mail Server
-      │
-      │ Delivery
-      ▼
-Mailbox
-      │
-      │ IMAP / POP3 / Webmail
-      ▼
-User
-~~~
-
-常见角色：
-
-| 缩写 | 英文 | 作用 |
-| --- | --- | --- |
-| MUA | Mail User Agent | 编写、提交和查看邮件的客户端 |
-| MSA | Mail Submission Agent | 接受新邮件提交 |
-| MTA | Mail Transfer Agent | 在邮件服务器之间转发邮件 |
-| MDA | Mail Delivery Agent | 将邮件写入最终 Mailbox |
-
-RFC 6409 专门区分 Message Submission 与 Message Relay：
-https://www.rfc-editor.org/rfc/rfc6409.html
-
-## 4. 邮件内容与邮件运输是两套协议问题
-
-### 【SMTP解决怎么运输，不完整定义邮件长什么样】
-
-一封验证邮件可能表现为：
-
-~~~text
-From: Browser Monitor <monitor@example.com>
-To: user@example.com
-Subject: Verify your Browser Monitor account
-
-Verify your email:
-https://monitor.example.com/verify-email?token=xxx
-~~~
-
-这里有两个问题：
-
-~~~text
-这封邮件本身怎样组织？
-        ↓
-RFC 5322 / MIME
-
-这封邮件怎样被送出去？
-        ↓
-SMTP
-~~~
-
-所以：
-
-~~~text
-RFC 5322
-    定义 Internet Message Format
-
-MIME
-    扩展 HTML、附件、多媒体和 Multipart
-
-SMTP
-    负责提交和传输 Message
-~~~
-
-RFC 5322：
-https://www.rfc-editor.org/rfc/rfc5322.html
-
-### 【RFC 5322把消息组织成Header Section与Body】
-
-基本结构：
-
-~~~text
-Header Fields
-     +
-Empty Line
-     +
-Message Body
-~~~
-
-常见 Header：
-
-~~~text
-From:
-To:
-Cc:
-Date:
-Subject:
-Message-ID:
-Reply-To:
-Content-Type:
-~~~
-
-因此业务代码中的：
-
-~~~ts
-sendMail({ from, to, subject, text })
-~~~
-
-必须先形成合法 Message，再通过 SMTP Transport 发送。
-
-### 【MIME把纯文本邮件扩展成真实产品邮件】
-
-MIME（Multipurpose Internet Mail Extensions，多用途互联网邮件扩展）解决：
-
-~~~text
-HTML Body
-附件
-图片
-非 ASCII 内容
-multipart
-内容编码
-~~~
-
-如果以后邮件升级为：
-
-~~~text
-text/plain
-    +
-text/html
-    +
-Logo
-    +
-PDF Report
-~~~
-
-就会涉及：
-
-~~~text
-MIME-Version
-Content-Type
-Content-Disposition
-Content-Transfer-Encoding
-multipart/alternative
-multipart/mixed
-Boundary
-Base64
-~~~
-
-这些通常由 Nodemailer 生成，而不是业务层手工拼接。
-
-RFC 2045：
-https://www.rfc-editor.org/rfc/rfc2045.html
-
-## 5. SMTP本质上是运行在TCP之上的命令—响应协议
-
-SMTP（Simple Mail Transfer Protocol，简单邮件传输协议）属于应用层协议。
-
-~~~text
-SMTP Client
-    │
-    │ TCP Connection
-    ▼
-SMTP Server
-~~~
-
-典型会话：
-
-~~~text
-S: 220 smtp.example.com ready
-
-C: EHLO monitor.example.com
-S: 250 ...
-
-C: STARTTLS
-S: 220 Ready to start TLS
-
-        TLS Handshake
-
-C: EHLO monitor.example.com
-S: 250 AUTH ...
-
-C: AUTH ...
-S: 235 Authentication successful
-
-C: MAIL FROM:<bounce@monitor.example.com>
-S: 250 OK
-
-C: RCPT TO:<user@example.com>
-S: 250 OK
-
-C: DATA
-S: 354 Start mail input
-
-C:
-From: Browser Monitor <monitor@example.com>
-To: user@example.com
-Subject: Verify your account
-
-Verify your email...
-.
-
-S: 250 Message accepted
-
-C: QUIT
-S: 221 Bye
-~~~
-
-所以一行：
-
-~~~ts
-await transporter.sendMail(...)
-~~~
-
-底层可能经历：
-
-~~~text
-DNS
-  ↓
-TCP Connect
-  ↓
-SMTP Greeting
-  ↓
-EHLO
-  ↓
-TLS / STARTTLS
-  ↓
-AUTH
-  ↓
-MAIL FROM
-  ↓
-RCPT TO
-  ↓
-DATA
-  ↓
-SMTP Response
-  ↓
-Connection Close / Reuse
-~~~
-
-SMTP 主规范：
-https://www.rfc-editor.org/rfc/rfc5321.html
-
-## 6. EHLO、MAIL FROM、RCPT TO与DATA形成发送状态推进
-
-不要把 SMTP Command 当作孤立词汇记忆。
-
-~~~text
-Connection
-   ↓
-Greeting
-   ↓
-EHLO
-   ↓
-Capability Negotiation
-   ↓
-MAIL FROM
-   ↓
-建立发件 Envelope
-   ↓
-RCPT TO
-   ↓
-增加收件人
-   ↓
-DATA
-   ↓
-提交完整 Message
-   ↓
-Accept / Reject
-~~~
-
-EHLO 响应可以声明 STARTTLS、AUTH、SIZE、8BITMIME、PIPELINING 等扩展能力；客户端再决定后续行为。
-
-MAIL FROM 与 RCPT TO 属于 Transport Envelope；DATA 后才传输 RFC 5322 Message。
-
-## 7. SMTP Envelope与用户看到的From/To Header不是同一层
-
-~~~text
-SMTP Envelope
-────────────────────────────
-MAIL FROM:<bounce@example.com>
-RCPT TO:<user@example.com>
-
-RFC 5322 Message
-────────────────────────────
-From: Browser Monitor <notice@example.com>
-To: user@example.com
-Subject: Verify account
-~~~
-
-所以：
-
-~~~text
-MAIL FROM
-≠
-From:
-
-RCPT TO
-≠
-To:
-~~~
-
-Envelope 主要服务于运输、投递和退信；Header 主要描述用户看到的逻辑消息。
-
-Bcc 也可以从这里理解：
-
-~~~text
-Envelope:
-RCPT TO:<visible@example.com>
-RCPT TO:<hidden@example.com>
-
-Message Header:
-To: visible@example.com
-~~~
-
-这个边界后面会直接连接 Return-Path、Bounce、SPF 与 DMARC。
-
-## 8. Message Submission与服务器之间的SMTP Relay是两个阶段
-
-RFC 6409 将“提交一封新邮件”和“邮件服务器之间转发”拆开：
-
-~~~text
-Application / MUA
-        ↓
-Message Submission
-        ↓
-MSA
-        ↓
-SMTP Relay
-        ↓
-MTA
-~~~
-
-典型端口：
-
-| 端口 | 常见职责 | 项目中的位置 |
-| --- | --- | --- |
-| 25 | MTA ↔ MTA SMTP Relay | 应用通常不直接使用 |
-| 587 | Message Submission | 常见生产配置 |
-| 465 | Implicit TLS Submission | 常见生产配置 |
-| 1025 | Mailpit 开发 SMTP | 当前 Compose 默认 |
-| 8025 | Mailpit Web UI | 开发者查看邮件 |
-
-RFC 6409：
-https://www.rfc-editor.org/rfc/rfc6409.html
-
-RFC 8314：
-https://www.rfc-editor.org/rfc/rfc8314.html
-
-## 9. SMTP_HOST通常指向自己的邮件提供方而不是目标邮箱服务器
-
-假设目标是：
-
-~~~text
-user@gmail.com
-~~~
-
-生产应用通常不是：
-
-~~~text
-Browser Monitor
       ↓
-直接连接 Gmail MX
+Configured SMTP Server
 ~~~
 
-而是：
+因此 MailerService 的价值不是“实现 SMTP 协议”，而是把业务层和邮件传输层隔开。
+
+业务层只关心：
 
 ~~~text
-Browser Monitor
-      ↓
-SMTP Submission
-      ↓
-Own Mail Provider
-      ↓
-Provider Queue / Relay
-      ↓
-DNS MX
-      ↓
-Recipient MTA
+发送验证邮件
+发送重置邮件
+发送邀请邮件
 ~~~
 
-因此：
+不需要知道 SMTP Host、Port、认证方式等连接细节。
 
-~~~text
-SMTP_HOST
-    当前应用使用的 SMTP Provider
+## 3. 本地开发链路通过Mailpit截断真实互联网邮件传输
 
-Recipient Domain
-    决定 Provider 后续应把邮件送往哪个邮件系统
-~~~
-
-这也解释了为什么切换邮件服务商主要是 Infrastructure Configuration 变化，而不是业务逻辑变化。
-
-## 10. DNS MX负责帮助发送方找到目标域的Mail Exchanger
-
-目标地址：
-
-~~~text
-user@example.com
-~~~
-
-先提取：
-
-~~~text
-example.com
-~~~
-
-然后：
-
-~~~text
-Recipient Domain
-      ↓
-DNS MX Query
-      ↓
-MX Record
-      ↓
-Mail Exchanger Host
-      ↓
-Resolve Address
-      ↓
-SMTP Relay
-~~~
-
-因此：
-
-~~~text
-DNS MX
-    解决“发到哪台邮件服务器”
-
-SMTP
-    解决“怎样把邮件交给服务器”
-~~~
-
-## 11. TLS与SMTP AUTH解决不同安全问题
-
-当前项目配置中同时存在：
-
-~~~text
-SMTP_SECURE
-SMTP_USER
-SMTP_PASSWORD
-~~~
-
-它们不是同一种安全能力。
-
-~~~text
-TLS
-    保护连接的机密性和完整性
-
-SMTP AUTH
-    验证当前 Client 是否有权使用 Submission Server
-~~~
-
-SMTP AUTH：
-https://www.rfc-editor.org/rfc/rfc4954.html
-
-## 12. STARTTLS与Implicit TLS代表两种建立加密连接的方式
-
-STARTTLS：
-
-~~~text
-TCP
- ↓
-SMTP Greeting
- ↓
-EHLO
- ↓
-STARTTLS
- ↓
-TLS Handshake
- ↓
-EHLO
- ↓
-AUTH / MAIL FROM / ...
-~~~
-
-常见配置：
-
-~~~text
-Port 587
-secure: false
-~~~
-
-这里的 \`secure: false\` 不等于最终一定明文，它表示连接建立时不立即使用 TLS；服务器支持 STARTTLS 时仍可以升级。
-
-Implicit TLS：
-
-~~~text
-TCP Connect
- ↓
-TLS Handshake
- ↓
-SMTP
-~~~
-
-常见配置：
-
-~~~text
-Port 465
-secure: true
-~~~
-
-RFC 8314：
-https://www.rfc-editor.org/rfc/rfc8314.html
-
-## 13. Mailpit只承担当前开发环境邮件捕获
-
-Docker Compose 当前定义：
+Docker Compose 当前启动：
 
 ~~~yaml
 mailpit:
@@ -699,321 +128,421 @@ mailpit:
     - "1025:1025"
 ~~~
 
-开发环境默认值是：
+API 的默认邮件配置：
 
 ~~~text
-SMTP_HOST=mailpit
-SMTP_PORT=1025
-SMTP_SECURE=false
+SMTP_HOST = mailpit
+SMTP_PORT = 1025
+SMTP_SECURE = false
+SMTP_USER = empty
+SMTP_PASSWORD = empty
+SMTP_FROM = Browser Monitor <monitor@example.test>
 ~~~
 
-所以：
+因此一次本地注册验证邮件的完整链路是：
 
 ~~~text
-API
- ↓ SMTP :1025
+Browser
+   ↓ HTTP
+Browser Monitor API
+   ↓
+AuthService.register
+   ↓
+创建User + Verification Token
+   ↓
+MailerService.sendVerification
+   ↓
+Nodemailer
+   ↓ SMTP :1025
 Mailpit
- ↓
-Capture Message
- ↓ HTTP :8025
+   ↓
+本地保存测试邮件
+   ↓ HTTP :8025
 Developer Browser
 ~~~
 
-它主要用于验证：
+这里没有：
 
 ~~~text
-邮件是否发出
-收件人是否正确
-Subject 是否正确
-Token URL 是否正确
-正文是否正确
-避免开发环境误发真实外部邮件
+DNS MX
+Gmail SMTP Server
+真实互联网投递
+用户真实Mailbox
 ~~~
 
-Mailpit：
-https://mailpit.axllent.org/docs/
+因为 Mailpit 已经把邮件截住。
 
-## 14. 生产SMTP Provider可以通过配置替换而不修改业务层
-
-当前配置 Schema：
+### 【1025和8025属于两个不同接口】
 
 ~~~text
-SMTP_HOST
-SMTP_PORT
-SMTP_SECURE
-SMTP_USER
-SMTP_PASSWORD
-SMTP_FROM
-~~~
+API → Mailpit
+使用 SMTP :1025
 
-开发：
-
-~~~text
-MailerService
-     ↓
-mailpit:1025
-~~~
-
-生产：
-
-~~~text
-MailerService
-     ↓
-smtp.provider.example:465/587
-~~~
-
-而业务代码仍然只是：
-
-~~~ts
-await mailer.sendVerification(...)
-await mailer.sendPasswordReset(...)
-await mailer.sendInvitation(...)
-~~~
-
-所以稳定的抽象是：
-
-~~~text
-Business Logic
-      ↓
-Mailer Infrastructure
-      ↓
-Transport
-      ↓
-External Provider
-~~~
-
-SMTP 只是当前 Transport 选择。未来也可以替换为 SES HTTP API 等 Provider API，而不应该让注册业务直接依赖协议细节。
-
-## 15. SPF、DKIM和DMARC解决Domain Authentication
-
-SMTP Provider 接受了客户端认证，只说明当前客户端能使用它，不代表收件服务器必然信任邮件中的发送域。
-
-### 【SPF声明哪些主机被域名授权发送】
-
-SPF（Sender Policy Framework）通过 DNS Policy 声明允许哪些主机使用某个 Domain 进行邮件发送。
-
-接收方结合：
-
-~~~text
-Sending Host
-+
-MAIL FROM / HELO Domain
-+
-DNS SPF Policy
-~~~
-
-进行判断。
-
-RFC 7208：
-https://www.rfc-editor.org/rfc/rfc7208.html
-
-### 【DKIM通过签名把Message与Signing Domain关联】
-
-~~~text
-Message
-  ↓
-Private Key Sign
-  ↓
-DKIM-Signature
-  ↓
-Transport
-  ↓
-Recipient
-  ↓
-DNS Public Key
-  ↓
-Verify Signature
-~~~
-
-RFC 6376：
-https://www.rfc-editor.org/rfc/rfc6376.html
-
-### 【DMARC把RFC5322.From与SPF/DKIM认证结果建立Alignment】
-
-DMARC 关注 Author Domain，并围绕 Alignment、Policy 与 Reporting 建立规则。
-
-截至 2026 年，当前 DMARC 主规范是 RFC 9989，它取代 RFC 7489 与 RFC 9091：
-
-https://www.rfc-editor.org/rfc/rfc9989.html
-
-以后文档应优先引用 RFC 9989。
-
-## 16. TLS、SMTP AUTH与域名认证位于不同安全层
-
-~~~text
-Email Security
-│
-├── Transport Security
-│      └── TLS / STARTTLS
-│
-├── Submission Authentication
-│      └── SMTP AUTH
-│
-└── Domain Authentication
-       ├── SPF
-       ├── DKIM
-       └── DMARC
-~~~
-
-分别回答：
-
-~~~text
-TLS
-    当前连接是否安全？
-
-SMTP AUTH
-    当前客户端是否有权使用这台 SMTP Server？
-
-SPF / DKIM / DMARC
-    邮件与声明的发送域之间是否具有可信认证关系？
+Developer Browser → Mailpit
+使用 HTTP :8025
 ~~~
 
 因此：
 
-~~~text
-SMTP AUTH 成功
-≠ DMARC 一定通过
+- 1025 是应用提交测试邮件的 SMTP 端口；
+- 8025 是开发者查看邮件的 Web UI 端口。
 
-TLS 成功
-≠ From Domain 一定可信
-
-SPF 通过
-≠ DKIM 一定通过
-
-DKIM 通过
-≠ DMARC 一定通过
-~~~
-
-## 17. SMTP状态码决定发送失败是否值得重试
-
-第一阶段先建立：
+这也解释了为什么可以：
 
 ~~~text
-2xx
-    Success
-
-4xx
-    Temporary Failure
-
-5xx
-    Permanent Failure
+应用通过SMTP发送
+        ↓
+开发者通过浏览器HTTP查看
 ~~~
 
-例如：
+两条连接服务于不同角色。
+
+## 4. 当前MailerService通过配置建立到SMTP Server的发送通道
+
+核心代码是：
+
+~~~ts
+this.transporter = nodemailer.createTransport({
+  host: config.SMTP_HOST,
+  port: config.SMTP_PORT,
+  secure: config.SMTP_SECURE,
+  auth: SMTP_USER存在时使用用户名和密码
+});
+~~~
+
+最终发送：
+
+~~~ts
+await this.transporter.sendMail({
+  from,
+  to,
+  subject,
+  text
+});
+~~~
+
+这里可以把配置理解成四个问题：
+
+| 配置 | 解决的问题 |
+| --- | --- |
+| SMTP_HOST | 我要连接哪台邮件服务器 |
+| SMTP_PORT | 通过哪个端口连接 |
+| SMTP_SECURE | 连接建立时采用怎样的 TLS 模式 |
+| SMTP_USER / SMTP_PASSWORD | 当前应用是否有权使用该发送服务器 |
+| SMTP_FROM | 当前邮件声明的发送方 |
+
+所以项目中的配置关系是：
 
 ~~~text
-250
-Message accepted
-
-421
-Service temporarily unavailable
-
-450
-Requested action temporarily unavailable
-
-550
-Requested action rejected
+Browser Monitor API
+      ↓
+读取SMTP配置
+      ↓
+Nodemailer Transport
+      ↓
+目标SMTP Server
 ~~~
 
-工程策略：
+不是：
 
 ~~~text
-SMTP Result
-   │
-   ├── 2xx → accepted
-   ├── 4xx → retry
-   └── 5xx → failed
+配置所有Gmail / Outlook / QQ邮箱服务器
 ~~~
 
-Enhanced Status Codes：
-https://www.rfc-editor.org/rfc/rfc3463.html
+Browser Monitor 只需要知道自己的第一跳邮件服务。
 
-## 18. sendMail成功不等于用户已经看到邮件
+### 【当前项目只实现SMTP接入，没有实现Provider HTTPS API】
 
-如果：
+通用邮件服务可以使用：
+
+~~~text
+SMTP
+或
+HTTPS API
+~~~
+
+但是当前 Browser Monitor 源码明确使用 Nodemailer SMTP Transport，因此当前事实是：
+
+~~~text
+Browser Monitor
+      ↓ SMTP
+Configured SMTP Server
+~~~
+
+如果未来切换 Amazon SES API、SendGrid API 等 HTTPS Provider API，需要新增或替换 Mail Transport 实现，不能把它描述成当前已经存在的能力。
+
+## 5. 生产环境完整邮件链路在第一跳之后由Mail Provider继续完成
+
+当前仓库只直接控制到：
 
 ~~~text
 Browser Monitor
       ↓
-SMTP Provider
-      ↓
-250 Accepted
+Configured SMTP Server
 ~~~
 
-这里只能说明当前 SMTP Server 已经接受 Message 并承担下一阶段处理责任。
-
-后面仍然可能经历：
+如果把 SMTP_HOST 指向真实 Provider，则完整生产链可以理解成：
 
 ~~~text
+Browser Monitor API
+        ↓
+MailerService
+        ↓
+Nodemailer
+        ↓ SMTP Submission
+Production Mail Provider
+        ↓
 Provider Queue
-     ↓
+        ↓
+读取收件地址
+        ↓
+example@gmail.com
+        ↓
+提取 gmail.com
+        ↓
 DNS MX
-     ↓
-Remote SMTP
-     ↓
-Recipient Policy
-     ↓
-Spam Filter
-     ↓
-Mailbox
+        ↓
+Gmail Mail Server
+        ↓ SMTP Relay
+接收和投递检查
+        ↓
+Gmail Mailbox
+        ↓
+Gmail Web / App
+        ↓
+User
 ~~~
 
-仍然可能发生：
+这里要建立责任边界：
 
 ~~~text
-Delay
-Bounce
-Reject
-Quarantine
-Spam
-Delivered
+Browser Monitor直接负责
+────────────────────
+业务触发
+邮件内容
+SMTP第一跳连接配置
+调用结果处理
+
+
+Mail Provider和收件系统负责
+────────────────────
+发送队列
+目标域路由
+DNS MX
+跨服务器SMTP Relay
+收件策略
+Mailbox投递
 ~~~
 
-因此生产邮件状态通常应区分：
+这也是为什么普通业务服务不需要自己运行完整的互联网邮件 MTA。
+
+## 6. 邮件发送结果必须区分调用结果和最终投递结果
+
+当前 MailerService 的 private send 方法：
+
+~~~ts
+private async send(...): Promise<void> {
+  await this.transporter.sendMail(...);
+}
+~~~
+
+这里有一个很重要的项目事实：
+
+> **MailerService 当前把 Nodemailer sendMail 的详细返回值丢弃，只向上层暴露 Promise 成功或抛错。**
+
+所以 AuthService / ProjectsService 当前能够直接判断的只有：
+
+~~~text
+await成功
+    ↓
+当前SMTP调用没有抛出错误
+
+await失败
+    ↓
+当前发送调用发生错误
+~~~
+
+不能由此直接判断：
+
+~~~text
+用户已经收到
+邮件进入Inbox
+用户已经打开
+~~~
+
+### 【完整状态链应该按阶段理解】
 
 ~~~text
 Requested
-   ↓
+    ↓
 Submitted
-   ↓
-Accepted
-   ↓
-Delivered
-   ↓
-Opened / Clicked
+    ↓
+Accepted by Sending Server
+    ↓
+Queued
+    ↓
+Accepted by Recipient Server
+    ↓
+Delivered / Bounced
+    ↓
+Opened
 ~~~
 
-其中 Delivered、Bounce、Complaint 等结果通常依赖邮件 Provider Webhook / Event API，不是单靠本次 SMTP 调用就能完整知道。
+Browser Monitor 当前主要覆盖：
 
-## 19. 当前同步发送链存在数据库提交与SMTP发送的一致性边界
+~~~text
+Requested
+    ↓
+Submitted
+    ↓
+当前SMTP调用结果
+~~~
 
-当前注册流程关键顺序：
+后面的 Delivered / Bounced 等最终状态，当前仓库没有 Provider Webhook 或 Delivery Event 接入。
+
+### 【SMTP同步结果和Provider异步结果是两类不同返回】
+
+同步：
+
+~~~text
+Browser Monitor
+      ↓ SMTP
+Mail Provider
+      ↓
+Success / Error
+~~~
+
+异步：
+
+~~~text
+Mail Provider
+      ↓
+继续向目标域投递
+      ↓
+最终成功 / 退信 / 拒绝
+      ↓
+Webhook / Event
+      ↓
+Browser Monitor
+~~~
+
+当前只实现第一条。
+
+如果以后产品需要“查看邮件是否真正投递”，需要补第二条状态回传链，而不是只修改 sendMail 的返回判断。
+
+## 7. 邮件读取和用户回复不属于当前Browser Monitor邮件能力
+
+当前项目实现的是：
+
+~~~text
+Outbound Email
+Browser Monitor → User
+~~~
+
+没有实现：
+
+~~~text
+Inbound Email
+User → Browser Monitor
+~~~
+
+### 【用户读取邮件不是Browser Monitor把邮件主动推到客户端】
+
+真实生产环境中：
+
+~~~text
+Browser Monitor
+      ↓
+Mail Provider
+      ↓
+Recipient Mail Server
+      ↓
+Mailbox
+~~~
+
+到这里发送链已经结束。
+
+用户读取时通常是：
+
+~~~text
+Mail Client
+      ↓
+访问 / 同步
+      ↓
+Recipient Mail Server
+      ↓
+Mailbox
+      ↓
+返回邮件内容
+~~~
+
+也就是说：
+
+> 收件服务器保存邮件，客户端再读取或同步；Browser Monitor 不参与这一段。
+
+如果用户使用 Gmail Web：
+
+~~~text
+Browser
+    ↓ HTTPS
+Gmail Web Application
+    ↓
+Gmail Mailbox
+~~~
+
+如果使用通用桌面客户端，则可能通过 IMAP 同步服务器 Mailbox。
+
+### 【用户Reply不是SMTP Response】
+
+SMTP Response：
+
+~~~text
+Browser Monitor
+      ↓
+Mail Server
+      ↓
+发送调用结果
+~~~
+
+User Reply：
+
+~~~text
+User
+  ↓
+写一封新的邮件
+  ↓
+用户自己的Mail Server
+  ↓
+原发送域的收件服务器
+  ↓
+目标Mailbox
+~~~
+
+它是一封新的反向邮件。
+
+当前 Browser Monitor 没有 Inbox、IMAP Client 或 Inbound Webhook，因此即使 SMTP_FROM 使用一个可回复地址，也不代表 Browser Monitor API 会自动收到并处理回复。
+
+## 8. 当前同步邮件发送存在数据库状态和外部SMTP之间的一致性边界
+
+注册流程当前是：
 
 ~~~text
 BEGIN
- ↓
-Write User
- ↓
-Write Verification Token
- ↓
+  ↓
+写入User
+  ↓
+写入Verification Token Hash
+  ↓
 COMMIT
- ↓
-MailerService.sendVerification()
+  ↓
+MailerService.sendVerification
+  ↓
+SMTP
 ~~~
 
-因此存在：
+这意味着数据库事务结束之后，才调用外部 SMTP Server。
 
-~~~text
-PostgreSQL Transaction
-        ↓
-结束
-
-SMTP External Call
-        ↓
-新的失败边界
-~~~
-
-例如：
+如果：
 
 ~~~text
 Database COMMIT
@@ -1022,77 +551,88 @@ Database COMMIT
 
 SMTP Send
       ↓
-网络故障
-      ↓
 失败
 ~~~
 
-结果可能是：
+就可能出现：
 
 ~~~text
-Database:
-Verification Token 已存在
+数据库
+    已存在有效验证Token
 
-Mailbox:
-用户没有收到邮件
+邮件
+    没有成功发送
 ~~~
 
-当前项目通过“未验证邮箱再次注册时轮换旧验证凭据并重新发送”提供业务恢复路径，但这不等于数据库和 SMTP 组成同一个原子事务。
-
-这与 [服务端数据管理源码学习-2.md](./服务端数据管理源码学习-2.md) 中“本地事务不能覆盖外部系统”的知识直接相连。
-
-## 20. 邮件成为关键生产能力后可以演进到Email Outbox
-
-下面是**演进方案，不是当前实现**。
+当前注册逻辑存在一个业务恢复机制：
 
 ~~~text
-HTTP Request
+未验证账号重新注册
       ↓
+旧验证凭据失效
+      ↓
+生成新的Verification Token
+      ↓
+再次发送
+~~~
+
+但是它仍然不等于“数据库和邮件发送已经组成一个原子事务”。
+
+### 【Email Outbox属于后续可靠性演进而不是当前实现】
+
+可以演进成：
+
+~~~text
 Database Transaction
       │
       ├── Business State
-      └── Email Outbox
+      └── Email Task
       ↓
 COMMIT
-      ↓
-HTTP Response
-
-
-Email Outbox
       ↓
 Email Worker
       ↓
 SMTP Provider
       ↓
-Success / Retry / Dead Letter
+Retry / Failed
 ~~~
 
-收益：
+这样能改善：
 
-| 当前问题 | Outbox后的能力 |
-| --- | --- |
-| SMTP响应慢 | 不阻塞主要请求 |
-| 临时网络失败 | Retry |
-| API进程重启 | Task 仍持久化 |
-| 连续失败 | Failed / Dead Letter |
-| 邮件积压 | 可独立监控 |
-| 吞吐增长 | Worker 可扩容 |
+- SMTP 临时故障；
+- API 请求等待外部邮件服务；
+- Worker 重试；
+- 邮件积压监控；
+- Failed / Dead Letter 管理。
 
-它与 Browser Monitor 已有的遥测 Outbox / Worker 属于相同可靠性思想，但不代表两类任务必须共用同一个数据模型。
+但当前 Browser Monitor 的 Outbox / Worker 用于遥测任务，不用于邮件发送。
 
-## 21. 异步邮件又会引出敏感Token存储取舍
-
-当前同步模式：
+所以答辩时必须说：
 
 ~~~text
-Create Raw Token
-      │
-      ├── Hash(Token) → Database
-      │
-      └── Raw Token → Mailer
+现有实现：
+API同步调用SMTP
+
+可演进方案：
+Email Outbox + Worker
 ~~~
 
-如果改成异步：
+不能把二者混为一谈。
+
+### 【异步发送还会带来Token安全问题】
+
+当前注册验证逻辑：
+
+~~~text
+Raw Token
+   │
+   ├── Hash(Token) → Database
+   └── Raw Token → Mailer
+~~~
+
+数据库只保存 Token Hash。
+
+如果改成：
 
 ~~~text
 API
@@ -1104,219 +644,119 @@ Worker
 Mailer
 ~~~
 
-Worker 必须在未来拿到构造链接所需的数据。
+Worker 需要未来仍能生成包含 Raw Token 的验证链接。
 
-可能方案：
-
-~~~text
-A. Outbox保存Raw Token
-   → 简单
-   → 扩大敏感凭据存储面
-
-B. 保存加密Token或完整加密Payload
-   → 减少明文暴露
-   → 引入密钥管理
-
-C. 重新设计一次性凭据领取机制
-   → 边界更严格
-   → 实现复杂度更高
-~~~
-
-所以演进并不是“异步一定更好”，而是：
+于是需要重新设计：
 
 ~~~text
-可靠性
-   ↕
-安全暴露面
-   ↕
-系统复杂度
+Raw Token如何安全进入异步任务？
+是否加密存储？
+邮件Payload是否包含敏感凭据？
+任务完成后何时删除？
 ~~~
 
-这是一个真实的架构取舍点。
+因此 Email Outbox 是可靠性提升，同时也增加新的敏感数据治理问题。
 
-## 22. 邮件读取属于IMAP/POP3另一条链，不是SMTP反向执行
+## 9. 当前项目的完整邮件知识框架收敛到一条主链
 
-发送完成以后：
+不要再按 SMTP、Mailpit、DNS、IMAP 等词平铺学习，而只保留下面这张图：
 
 ~~~text
-SMTP
- ↓
-Mailbox
+                          Browser Monitor邮件链
+                                  │
+                              业务触发
+                                  ↓
+                     AuthService / ProjectsService
+                                  ↓
+                             MailerService
+                                  ↓
+                             Nodemailer
+                                  ↓
+                         SMTP第一跳提交
+                                  ↓
+               ┌──────────────────┴──────────────────┐
+               ↓                                     ↓
+            本地开发                               生产环境
+            Mailpit                         Production Mail Provider
+               │                                     │
+        Web UI :8025                             Provider Queue
+                                                     ↓
+                                                  DNS MX
+                                                     ↓
+                                             Recipient Mail Server
+                                                     ↓
+                                                  Mailbox
+                                                     ↓
+                                                Mail Client
+                                                     ↓
+                                                   User
 ~~~
 
-用户访问 Mailbox 进入另一组协议：
+然后把其他知识挂在这条链上：
 
-~~~text
-Mailbox
-   ├── IMAP
-   ├── POP3
-   └── Webmail / Provider API
-~~~
+| 分支 | 当前项目位置 |
+| --- | --- |
+| 本地邮件测试 | Mailpit 1025 / 8025 |
+| SMTP连接 | Nodemailer + SMTP_* |
+| 业务邮件 | Verification / Reset / Invitation |
+| 发送结果 | sendMail Promise 成功 / 抛错 |
+| 最终投递状态 | 当前未实现 |
+| Provider Webhook | 当前未实现 |
+| 邮件读取 | 当前不负责 |
+| 用户回复处理 | 当前未实现 |
+| Email Outbox | 可演进方案 |
+| SPF / DKIM / DMARC | 生产发送域治理，仓库当前无完整配置事实 |
 
-所以：
+这样每个新知识点都能先回答：
 
-~~~text
-SMTP
-    Submit / Transfer
+> **它处在当前邮件生命周期的哪一段，解决什么问题？**
 
-IMAP
-    Access / Synchronize Mailbox
+## 10. 项目答辩可以沿完整链路回答
 
-POP3
-    Retrieve Mail
-~~~
+### 【项目为什么需要Mailpit】
 
-当前 Browser Monitor 只需要主动发送邮件，不需要读取用户邮箱，因此没有必要为了“邮件系统完整”而接入 IMAP / POP3。
+结论：
 
-## 23. 当前项目邮件体系最终收敛为七层
+> Browser Monitor API 是业务服务器而不是邮件服务器。本地开发通过 SMTP 把邮件交给 Mailpit，Mailpit 作为本地 SMTP Server 截获测试邮件，再通过 8025 Web UI 供开发者查看，从而避免开发过程真实向互联网邮箱发信。
 
-~~~text
-第一层：Business
-Register / Forgot Password / Invitation
-        ↓
-第二层：Application
-AuthService / ProjectsService
-        ↓
-第三层：Mail Infrastructure
-MailerService / Nodemailer
-        ↓
-第四层：Message
-RFC 5322 / MIME
-        ↓
-第五层：Submission
-SMTP / TLS / AUTH / MSA
-        ↓
-第六层：Internet Transfer
-MTA / DNS MX / SMTP Relay / Queue
-        ↓
-第七层：Delivery & Trust
-Mailbox / SPF / DKIM / DMARC / Bounce
-~~~
+### 【SMTP_HOST配置的是什么】
 
-当前源码直接实现到：
+结论：
 
-~~~text
-Business
-  ↓
-MailerService
-  ↓
-Nodemailer SMTP Client
-  ↓
-Configured SMTP Server
-~~~
+> SMTP_HOST 配置的是 Browser Monitor 第一跳要连接的 SMTP Server，而不是最终收件人的 Gmail / Outlook Server。开发环境指向 Mailpit；生产环境应指向真实 Mail Provider。
 
-开发环境中的 Mailpit 不会自然代表后续互联网 Relay、SPF/DKIM/DMARC 和真实邮箱 Delivery 已经发生。项目事实与通用邮件体系必须保持这个边界。
+### 【sendMail成功是否代表用户收到】
 
-## 24. 第一阶段只建立完整链路与概念边界
+结论：
 
-| 知识 | 当前需要掌握 | 后续再深入 |
-| --- | --- | --- |
-| SMTP | Client/Server、Submission、Relay、核心命令 | ESMTP Extension |
-| RFC 5322 | Header + Body | ABNF Grammar |
-| MIME | HTML、附件、Multipart | Encoding / Boundary |
-| MSA / MTA | Submission 与 Relay | Routing Internals |
-| DNS MX | 找目标 Mail Exchanger | Priority / Fallback |
-| Port | 25 / 587 / 465 / 1025 / 8025 | 历史兼容 |
-| TLS | STARTTLS / Implicit TLS | MTA-STS / DANE |
-| SMTP AUTH | Client Authentication | SASL Mechanism |
-| Envelope | MAIL FROM / RCPT TO | Bounce Routing |
-| SPF | 授权发送主机 | DNS Lookup 规则 |
-| DKIM | Domain Signature | Canonicalization |
-| DMARC | Alignment / Policy / Reporting | Reports |
-| SMTP Result | 2xx / 4xx / 5xx | DSN / Bounce |
-| Reliability | Retry / Queue / Outbox | Idempotency / Backoff |
-| IMAP / POP3 | 与 SMTP 的边界 | Protocol State Machine |
+> 不代表。当前项目只能确认本次 Nodemailer SMTP 调用是否成功返回，后续 Provider Queue、目标服务器接收、Spam Policy、Mailbox 投递都不在当前同步调用结果中；项目也还没有接入 Delivery Webhook。
 
-完成这一阶段后，应能串起来回答：
+### 【邮件是怎样被用户读取的】
 
-~~~text
-Browser Monitor为什么需要邮件？
+结论：
 
-MailerService、Nodemailer、SMTP、Mailpit分别是什么？
+> Browser Monitor 负责把邮件交给发送系统，最终邮件存储在收件方 Mailbox。用户的 Mail Client 再通过 Webmail HTTPS、IMAP 或 Provider 自有同步机制读取 Mailbox；不是 Browser Monitor 直接把邮件推到用户客户端。
 
-一封邮件从sendMail开始经历了什么？
+### 【当前邮件链最大的工程边界】
 
-SMTP与RFC 5322 / MIME是什么关系？
+结论：
 
-SMTP与IMAP是什么关系？
+> 数据库业务状态先提交，随后才同步调用外部 SMTP，因此存在数据库成功而邮件发送失败的跨系统一致性窗口。可以通过业务重发恢复，进一步也可以设计 Email Outbox + Worker，但这会重新引出 Raw Token 在异步任务中的安全存储问题。
 
-为什么存在25、587、465？
+## 11. 相关源码与资料
 
-Mailpit的1025与8025分别是什么？
+### 【项目源码】
 
-STARTTLS和Implicit TLS有什么区别？
+- platform/apps/api/src/auth/mailer.service.ts：Nodemailer SMTP Transport 与三类邮件构造。
+- platform/apps/api/src/auth/auth.service.ts：注册、验证 Token、密码重置与邮件调用顺序。
+- platform/apps/api/src/projects/projects.service.ts：项目邀请与邮件调用。
+- platform/packages/shared/src/config.ts：SMTP_HOST、SMTP_PORT、SMTP_SECURE、SMTP_USER、SMTP_PASSWORD、SMTP_FROM。
+- platform/infra/docker-compose.yml：Mailpit 以及开发环境默认 SMTP 配置。
 
-SMTP AUTH与TLS分别解决什么问题？
+### 【通用资料】
 
-MAIL FROM与From Header为什么不是同一个概念？
-
-DNS MX在传输中解决什么？
-
-SPF、DKIM、DMARC分别解决什么？
-
-sendMail成功为什么不等于用户收到？
-
-当前同步邮件发送为什么存在跨系统一致性边界？
-
-Email Outbox能解决什么，又会新增什么安全问题？
-~~~
-
-## 25. 后续从一次sendMail的真实执行链继续深入
-
-下一阶段最适合沿：
-
-~~~ts
-await this.transporter.sendMail(...)
-~~~
-
-继续向下拆：
-
-~~~text
-Configuration
-   ↓
-DNS
-   ↓
-TCP Connection
-   ↓
-SMTP Greeting
-   ↓
-EHLO
-   ↓
-Capability Negotiation
-   ↓
-STARTTLS / TLS
-   ↓
-SMTP AUTH
-   ↓
-MAIL FROM
-   ↓
-RCPT TO
-   ↓
-DATA
-   ↓
-Server Response
-   ↓
-Connection Reuse / Close
-~~~
-
-这样可以把 DNS、TCP、TLS、应用层协议与 Browser Monitor 的真实 SMTP 调用连接起来。
-
-## 26. 参考资料
-
-1. Browser Monitor. [MailerService](../platform/apps/api/src/auth/mailer.service.ts).
-2. Browser Monitor. [AuthService](../platform/apps/api/src/auth/auth.service.ts).
-3. Browser Monitor. [ProjectsService](../platform/apps/api/src/projects/projects.service.ts).
-4. Browser Monitor. [Shared Config](../platform/packages/shared/src/config.ts).
-5. Browser Monitor. [Docker Compose](../platform/infra/docker-compose.yml).
-6. IETF. RFC 5321 — Simple Mail Transfer Protocol. https://www.rfc-editor.org/rfc/rfc5321.html
-7. IETF. RFC 5322 — Internet Message Format. https://www.rfc-editor.org/rfc/rfc5322.html
-8. IETF. RFC 2045 — Multipurpose Internet Mail Extensions Part One. https://www.rfc-editor.org/rfc/rfc2045.html
-9. IETF. RFC 6409 — Message Submission for Mail. https://www.rfc-editor.org/rfc/rfc6409.html
-10. IETF. RFC 8314 — Use of TLS for Email Submission and Access. https://www.rfc-editor.org/rfc/rfc8314.html
-11. IETF. RFC 4954 — SMTP Service Extension for Authentication. https://www.rfc-editor.org/rfc/rfc4954.html
-12. IETF. RFC 3463 — Enhanced Mail System Status Codes. https://www.rfc-editor.org/rfc/rfc3463.html
-13. IETF. RFC 7208 — Sender Policy Framework. https://www.rfc-editor.org/rfc/rfc7208.html
-14. IETF. RFC 6376 — DomainKeys Identified Mail Signatures. https://www.rfc-editor.org/rfc/rfc6376.html
-15. IETF. RFC 9989 — Domain-Based Message Authentication, Reporting, and Conformance. https://www.rfc-editor.org/rfc/rfc9989.html
-16. Nodemailer. SMTP Transport. https://nodemailer.com/smtp
-17. Mailpit. Documentation. https://mailpit.axllent.org/docs/
+1. IETF. RFC 5321 — Simple Mail Transfer Protocol. https://www.rfc-editor.org/rfc/rfc5321.html
+2. IETF. RFC 6409 — Message Submission for Mail. https://www.rfc-editor.org/rfc/rfc6409.html
+3. IETF. RFC 9051 — Internet Message Access Protocol (IMAP) Version 4rev2. https://www.rfc-editor.org/rfc/rfc9051.html
+4. Nodemailer. SMTP Transport. https://nodemailer.com/smtp
+5. Mailpit. Configuration. https://mailpit.axllent.org/docs/configuration/
