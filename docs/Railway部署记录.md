@@ -610,3 +610,121 @@ Web /api/* → Backend
   ↓
 SDK ingestion
 ```
+
+
+## 16. 公网域名配置完成后的状态与自动部署优化
+
+### 16.1 Backend 配置更新部署成功
+
+将 `PUBLIC_BASE_URL` 切换到真实 Railway Web Domain 后，Backend 自动触发新的 Deployment。
+
+最终状态：
+
+```text
+redis        SUCCESS
+timescaledb  SUCCESS
+web          SUCCESS
+backend      SUCCESS
+```
+
+对应最新 Backend Deployment：
+
+```text
+bb24e395-df09-4175-8277-70f1382e3ae8
+SUCCESS
+```
+
+说明当前生产环境中：
+
+- 数据库可运行。
+- Redis 可运行。
+- Database Migration 可执行。
+- API + Worker 可共同启动。
+- `/health/ready` 可通过 Railway Health Check。
+- Web / Caddy 可启动。
+- Backend 使用真实 `PUBLIC_BASE_URL` 后仍能健康运行。
+
+### 16.2 Railway Web Domain 已绑定
+
+当前 Web Service Domain：
+
+```text
+https://web-production-2d509.up.railway.app
+```
+
+Target Port：
+
+```text
+8080
+```
+
+Railway 侧已确认 Domain 绑定存在。Backend、TimescaleDB、Redis 仍不暴露公网。
+
+### 16.3 避免纯文档提交触发应用重新构建
+
+部署过程中发现一个工程问题：
+
+```text
+修改 docs/Railway部署记录.md
+        ↓
+GitHub main 产生 commit
+        ↓
+Railway 自动部署
+        ↓
+Backend / Web 都重新 Build
+```
+
+这对于 Monorepo 并不合理，因为文档变化不会改变运行产物，却会消耗构建时间和 Railway 资源。
+
+因此给 Backend 与 Web 增加 Watch Patterns，只在以下路径变化时触发自动部署：
+
+```text
+/platform/**
+/protocol/**
+/package.json
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
+/.dockerignore
+```
+
+这样后续只修改：
+
+```text
+/docs/**
+```
+
+不会再无意义地重新构建 Web / Backend。
+
+### 16.4 公网访问验证仍待完成
+
+Railway 已创建并绑定 Service Domain，但在本次自动验证环境中执行 DNS 查询时仍返回：
+
+```text
+Temporary failure in name resolution
+```
+
+因此当前可以确认的是：
+
+```text
+Railway Domain 创建成功
++
+Railway Service 全部 SUCCESS
++
+内部 Health Check 通过
+```
+
+尚不能从当前验证环境独立确认：
+
+```text
+Public DNS
+  ↓
+HTTPS
+  ↓
+GET /
+  ↓
+Caddy
+  ↓
+Web
+```
+
+该项继续保留为下一步验证任务。若用户本地浏览器已经能够打开该 Railway Domain，则可以直接进入 Web → API → SDK 数据链路验证。
