@@ -394,3 +394,127 @@ platform/infra/Dockerfile.web
 并以仓库根目录作为 Docker Build Context，因此 pnpm workspace 文件和内部 packages 可以正常进入构建上下文。
 
 下一步需要等待 Backend / Web / TimescaleDB 首次 Deployment 结束；若失败，则根据 Railway Build Log、Deploy Log 和 Pre-deploy migration 日志继续定位，并把失败原因和修复过程继续追加到本文档。
+
+
+## 14. Backend 首次部署失败与修复
+
+### 14.1 失败现象
+
+Railway 中以下服务状态正常：
+
+```text
+redis       SUCCESS
+timescaledb SUCCESS
+web         SUCCESS
+backend     FAILED
+```
+
+Backend Docker Build 本身成功，`protocol`、`shared`、`database`、`api`、`worker` 均完成编译；Pre-deploy Migration 也能够启动。
+
+真正失败发生在 Container Runtime 阶段。Railway Deploy Log 明确记录：
+
+```text
+sh: 1: wait: Illegal option -n
+```
+
+随后 `/health/ready` Health Check 持续返回 service unavailable，最终：
+
+```text
+1/1 replicas never became healthy
+Healthcheck failed
+```
+
+### 14.2 根因
+
+为了在 Hobby/Trial 的 Service 数量约束下将 API 与 Worker 临时运行在同一个 Container，首次 Start Command 使用：
+
+```bash
+sh -c 'pnpm --filter @browser-monitor/api start & pnpm --filter @browser-monitor/worker start & wait -n'
+```
+
+Railway 当前 Backend 镜像基于：
+
+```dockerfile
+FROM node:22-bookworm-slim
+```
+
+`sh` 对应 Debian 的 POSIX shell（通常为 dash），该 shell 的 `wait` 不支持 Bash 的 `-n` 参数，因此 Container 启动后立即报错退出。
+
+问题不是 TypeScript Build、数据库迁移或 Health Check 路径本身，而是 Runtime Start Command 与实际 shell 能力不兼容。
+
+### 14.3 第一轮修复
+
+将 Backend Start Command 修改为：
+
+```bash
+sh -c 'pnpm --filter @browser-monitor/api start & pnpm --filter @browser-monitor/worker start & wait'
+```
+
+即去掉 `wait -n`，使用 POSIX shell 支持的 `wait`。
+
+但紧接着触发的数次 Redeploy 仍然执行旧的 `wait -n` 命令。Railway Service 当前配置已经显示新命令，但旧 Deployment Snapshot 仍保留旧 Start Command，因此这些部署仍失败。
+
+### 14.4 第二轮修复
+
+确认 Service Config 已经是正确的：
+
+```text
+startCommand:
+sh -c 'pnpm --filter @browser-monitor/api start & pnpm --filter @browser-monitor/worker start & wait'
+```
+
+随后重新触发一个新的 Deployment，使 Railway 从当前 Service Configuration 创建新的 Deployment Snapshot。
+
+新的 Deployment ID：
+
+```text
+5ff476d7-642b-4a19-90cd-453942d9790f
+```
+
+截至本次记录，该部署处于：
+
+```text
+BUILDING
+```
+
+后续需要继续确认：
+
+```text
+BUILDING
+  ↓
+Pre-deploy Migration
+  ↓
+API + Worker Runtime
+  ↓
+/health/ready
+  ↓
+SUCCESS
+```
+
+### 14.5 本次排障结论
+
+这次故障体现了三个需要区分的阶段：
+
+```text
+Build 成功
+≠
+Container 能正常启动
+≠
+Health Check 能通过
+```
+
+实际定位过程应按：
+
+```text
+Deployment Status
+  ↓
+Build Log
+  ↓
+Pre-deploy Log
+  ↓
+Deploy / Runtime Log
+  ↓
+Health Check
+```
+
+逐层定位，而不是看到 `FAILED` 就默认认为 Docker Build 失败。
