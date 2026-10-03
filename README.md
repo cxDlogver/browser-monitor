@@ -144,3 +144,4 @@ docker compose --env-file platform/.env --profile dev -f platform/infra/docker-c
 - [Platform 使用与部署说明](platform/README.md)
 - [浏览器监控平台 · 服务端全链路](platform/docs/浏览器监控平台-服务端全链路.md)
 - [反向代理与 Caddy 源码学习](docs/反向代理与Caddy源码学习.md)
+- [SMTP 邮件传输体系源码学习](docs/SMTP邮件传输体系源码学习.md)
