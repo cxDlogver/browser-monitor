@@ -922,3 +922,62 @@ Web / Caddy :8080
 4. Build Success、Container Runtime Success、Health Check Success 是三个不同阶段，必须分别排查。
 5. 文档改动应通过 Watch Paths 排除，避免触发无意义生产构建。
 6. 第一次试部署可以用 Railway 免费 `*.up.railway.app` 域名，不需要先购买自定义域名。
+
+
+## 19. Mailpit 部署完成后的收件为空问题排查
+
+Mailpit Service 已成功部署：
+
+```text
+image: axllent/mailpit:v1.27
+deployment: SUCCESS
+SMTP: [::]:1025
+Web UI: [::]:8025
+Public Domain:
+https://mailpit-production-72a6.up.railway.app
+```
+
+Railway HTTP 日志确认 Mailpit Web UI 可以正常访问，`/api/v1/messages` 返回 200，因此“Mailpit 页面打不开”不是当前问题。
+
+但 Mailpit Runtime Log 在启动之后没有出现新的 SMTP 收件连接记录，说明 Backend 当前没有把邮件成功发送到 Mailpit。
+
+同时，Backend 最新成功 Deployment 仍早于 Mailpit Service 的创建时间。因此如果 Mailpit 创建后才修改 `SMTP_HOST`，必须重新部署 Backend，新的环境变量才会进入运行中的 Backend Container。
+
+Backend 应配置为：
+
+```text
+SMTP_HOST=${{mailpit.RAILWAY_PRIVATE_DOMAIN}}
+SMTP_PORT=1025
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASSWORD=
+```
+
+然后重新 Deploy Backend。
+
+另一个容易误判的测试路径是 `POST /api/v1/auth/forgot-password`。当前源码为防止账号枚举，无论目标邮箱是否存在都会返回：
+
+```http
+202
+{"message":"If the account exists, a reset email has been sent."}
+```
+
+如果数据库里不存在该邮箱，`AuthService.forgotPassword()` 会直接 return，不调用 MailerService。因此“接口返回 202 但 Mailpit 没邮件”并不能证明 SMTP 有问题。
+
+推荐使用注册接口对一个新的未验证账号做确定性验收：
+
+```text
+POST /api/v1/auth/register
+  ↓
+创建 / 更新未验证账号
+  ↓
+生成 verify token
+  ↓
+await MailerService.sendVerification()
+  ↓
+Backend → Mailpit:1025
+  ↓
+Mailpit Inbox
+```
+
+如果注册接口返回 202 且 Mailpit Inbox 出现验证邮件，则 SMTP 链路确认完成。
