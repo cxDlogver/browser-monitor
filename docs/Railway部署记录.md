@@ -728,3 +728,197 @@ Web
 ```
 
 该项继续保留为下一步验证任务。若用户本地浏览器已经能够打开该 Railway Domain，则可以直接进入 Web → API → SDK 数据链路验证。
+
+
+## 17. 公网链路验收
+
+用户已在本地浏览器确认以下公网地址可以正常打开：
+
+```text
+https://web-production-2d509.up.railway.app
+```
+
+随后继续从可联网验证环境对公网链路进行检查。
+
+### 17.1 Web 首页
+
+请求：
+
+```http
+GET /
+```
+
+结果：
+
+```text
+200 OK
+```
+
+说明链路：
+
+```text
+Browser / HTTP Client
+  ↓ HTTPS
+Railway Public Domain
+  ↓
+Railway Edge
+  ↓
+Web Service :8080
+  ↓
+Caddy
+  ↓
+React 静态资源
+```
+
+已经可以正常工作。
+
+### 17.2 Health Check 反向代理
+
+请求：
+
+```http
+GET /health/ready
+```
+
+结果：
+
+```http
+200 OK
+
+{"status":"ok"}
+```
+
+当前 Caddy 将 `/health/*` 代理到：
+
+```text
+backend.railway.internal:3000
+```
+
+因此该请求同时证明：
+
+```text
+公网 Web Domain
+  ↓
+Caddy
+  ↓
+Railway Private Network
+  ↓
+Backend
+  ↓
+NestJS Health Controller
+```
+
+链路可用。
+
+### 17.3 API 反向代理
+
+请求：
+
+```http
+GET /api/v1/auth/me
+```
+
+结果：
+
+```http
+401 Unauthorized
+
+{"code":"authentication_required"}
+```
+
+这里的 `401` 是预期结果，因为请求没有登录 Session。
+
+它反而证明了：
+
+```text
+/api/*
+  ↓
+Caddy Reverse Proxy
+  ↓
+Backend
+  ↓
+NestJS Route / Auth Guard
+```
+
+已经真正到达 API，而不是由 Web/Caddy 返回 404 或 502。
+
+### 17.4 当前线上核心链路结论
+
+截至本次验收，已经验证：
+
+```text
+Public HTTPS                 ✅
+Railway Web Domain           ✅
+React Web                    ✅
+Caddy Static Hosting         ✅
+Caddy Reverse Proxy          ✅
+Railway Private Network      ✅
+Backend API                  ✅
+Backend Health Check         ✅
+TimescaleDB                  ✅
+Redis                        ✅
+Worker Process               ✅
+Database Migration           ✅
+```
+
+因此 Browser Monitor 已经从“本地 Docker Compose 可运行”进入“公网环境核心服务可运行”阶段。
+
+尚未完成的业务级验收：
+
+```text
+注册 / 登录完整流程
+  ↓
+创建 Project
+  ↓
+生成公开 DSN
+  ↓
+业务页面接入 SDK
+  ↓
+POST /api/v3/ingest/:publicKey/envelopes
+  ↓
+Raw Event / Outbox
+  ↓
+Worker
+  ↓
+TimescaleDB 明细和聚合
+  ↓
+Web Dashboard 查询和展示
+```
+
+此外，由于当前 Railway Trial 拓扑未部署 Mailpit / 正式 SMTP，因此邮箱验证、密码重置和邀请邮件仍不属于当前可完整验收的能力范围。
+
+## 18. 部署阶段总结
+
+当前线上拓扑：
+
+```text
+Internet
+   ↓ HTTPS
+web-production-2d509.up.railway.app
+   ↓
+Railway Edge
+   ↓
+Web / Caddy :8080
+   ├── Static React SPA
+   ├── /api/* ───────────────┐
+   └── /health/* ────────────┤
+                              ↓
+                    Railway Private Network
+                              ↓
+                     Backend :3000
+                     ├── NestJS API
+                     └── Worker
+                         ↓
+               ┌─────────┴──────────┐
+               ↓                    ↓
+          TimescaleDB              Redis
+```
+
+当前阶段最重要的工程结论：
+
+1. Railway Project 对应一套系统，而 Service 对应独立运行单元。
+2. Monorepo 需要保留仓库根目录作为 Docker Build Context，避免 workspace 依赖缺失。
+3. PaaS 上不必复刻本地 Docker Compose 的所有网络暴露方式；Railway Edge 和 Private Network 替代了一部分本地 Caddy / Docker Network 职责。
+4. Build Success、Container Runtime Success、Health Check Success 是三个不同阶段，必须分别排查。
+5. 文档改动应通过 Watch Paths 排除，避免触发无意义生产构建。
+6. 第一次试部署可以用 Railway 免费 `*.up.railway.app` 域名，不需要先购买自定义域名。
