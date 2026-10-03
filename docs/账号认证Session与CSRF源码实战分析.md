@@ -1,10 +1,10 @@
 # 账号认证、Session 与 CSRF 源码实战分析
 
-本文只分析 Browser Monitor 当前源码，不把项目实现当成通用标准。通用概念与安全原则统一参考 Full-Stack-AI-NOTES 中的《Web 身份认证、Session 与访问控制体系》；本文负责解释这些知识在当前仓库里怎样落地、数据怎样流动、PostgreSQL 和 Redis 分别保存什么，以及当前实现有哪些明确边界。
+本文只分析 Browser Monitor 当前源码，不把项目实现当成通用标准。通用概念与安全原则统一参考 Full-Stack-AI-NOTES 中的《Web 身份认证、会话控制与访问控制体系》；本文负责解释这些知识在当前仓库里怎样落地、数据怎样流动、PostgreSQL 和 Redis 分别保存什么，以及当前实现有哪些明确边界。
 
 通用知识入口：
 
-- https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/Web%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81Session%E4%B8%8E%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E4%BD%93%E7%B3%BB.md
+- https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/Web%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E4%BC%9A%E8%AF%9D%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E4%BD%93%E7%B3%BB.md
 
 主要源码：
 
