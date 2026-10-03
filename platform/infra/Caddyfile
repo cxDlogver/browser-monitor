@@ -1,18 +1,21 @@
 {$SITE_ADDRESS::8080} {
   encode zstd gzip
 
+  # Local Docker Compose defaults to api:3000.
+  # PaaS deployments (for example Railway) can override API_UPSTREAM
+  # with the platform private-network hostname.
   handle /api/* {
-    reverse_proxy api:3000
+    reverse_proxy {$API_UPSTREAM:api:3000}
   }
 
   handle /health/* {
-    reverse_proxy api:3000
+    reverse_proxy {$API_UPSTREAM:api:3000}
   }
 
   handle /internal/* {
     @private remote_ip private_ranges
     handle @private {
-      reverse_proxy api:3000
+      reverse_proxy {$API_UPSTREAM:api:3000}
     }
     respond "Forbidden" 403
   }
