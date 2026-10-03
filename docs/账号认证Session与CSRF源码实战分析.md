@@ -1,0 +1,1395 @@
+# 账号认证、Session 与 CSRF 源码实战分析
+
+本文只分析 Browser Monitor 当前源码，不把项目实现当成通用标准。通用概念与安全原则统一参考 Full-Stack-AI-NOTES 中的《Web 身份认证、Session 与访问控制体系》；本文负责解释这些知识在当前仓库里怎样落地、数据怎样流动、PostgreSQL 和 Redis 分别保存什么，以及当前实现有哪些明确边界。
+
+通用知识入口：
+
+- https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/Web%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81Session%E4%B8%8E%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E4%BD%93%E7%B3%BB.md
+
+主要源码：
+
+- platform/apps/api/src/auth/auth.controller.ts
+- platform/apps/api/src/auth/auth.service.ts
+- platform/apps/api/src/auth/session.guard.ts
+- platform/apps/api/src/auth/csrf.guard.ts
+- platform/apps/api/src/auth/mailer.service.ts
+- platform/apps/web/src/pages/AuthPage.tsx
+- platform/apps/web/src/api/client.ts
+- platform/packages/shared/src/crypto.ts
+- platform/packages/database/src/schema.ts
+- platform/apps/worker/src/outbox-worker.ts
+
+---
+
+## 1. 账号生命周期由注册、邮箱验证、登录、会话使用和凭据失效组成
+
+当前实现不是“注册成功后直接登录”，而是显式经过邮箱验证：
+
+~~~text
+注册表单
+  ↓
+POST /api/v1/auth/register
+  ↓
+创建或更新未验证 User
+  ↓
+生成 Verification Token
+  ↓
+Database 只保存 Token Hash
+  ↓
+发送验证邮件
+  ↓
+用户点击 /verify-email?token=...
+  ↓
+POST /api/v1/auth/verify-email
+  ↓
+消费 Verification Token
+  ↓
+users.email_verified_at = now()
+  ↓
+用户进入登录页
+  ↓
+POST /api/v1/auth/login
+  ↓
+校验 Password
+  ↓
+检查 email_verified_at
+  ↓
+创建 Session
+  ↓
+PostgreSQL + Redis
+  ↓
+Set-Cookie: bm_session
+  ↓
+后续受保护请求
+~~~
+
+这里实际上存在四种不同状态：
+
+| 状态 | 当前项目中的证据 | 表示什么 |
+| --- | --- | --- |
+| 已注册 | users Row 存在 | 系统已经建立账号记录 |
+| 邮箱已验证 | email_verified_at 非空 | 用户已经完成邮箱控制权确认 |
+| 已登录 | Browser 持有有效 bm_session，Redis 中存在对应 Session | 当前 Browser 有在线认证状态 |
+| 有资源权限 | project_members 等资源关系通过检查 | 当前 User 可以访问具体 Project |
+
+因此：
+
+~~~text
+Registered
+≠
+Email Verified
+≠
+Authenticated Session
+≠
+Authorized Resource Access
+~~~
+
+---
+
+## 2. 注册阶段先建立 User，再建立一次性邮箱验证凭据
+
+### 【Controller 先校验输入格式】
+
+auth.controller.ts 的注册 Schema：
+
+~~~ts
+const registerSchema = z.object({
+  email: z.string().email().max(320),
+  password: z.string().min(10).max(256),
+  displayName: z.string().trim().min(1).max(120),
+});
+~~~
+
+这一层判断的是：
+
+~~~text
+Email 字符串是否合法
+Password 长度是否合法
+Display Name 格式是否合法
+~~~
+
+它并没有证明：
+
+~~~text
+邮箱真实存在
+用户能够控制这个邮箱
+邮箱已经通过验证
+~~~
+
+### 【Service 归一化邮箱并计算 Password Hash】
+
+auth.service.ts：
+
+~~~ts
+const email = emailInput.trim().toLowerCase();
+const passwordHash = await hashPassword(password);
+~~~
+
+crypto.ts 当前使用：
+
+~~~text
+Password
+  ↓
+Random 16-byte Salt
+  ↓
+Node.js scrypt
+  ↓
+64-byte Derived Key
+  ↓
+保存：
+scrypt + salt + derivedKey
+~~~
+
+因此 users.password_hash 保存的不是原始密码。
+
+### 【User 与 Verification Token 在一个数据库事务内建立】
+
+注册主体 SQL：
+
+~~~sql
+BEGIN;
+
+INSERT INTO users(
+  email,
+  password_hash,
+  display_name
+)
+VALUES ($1, $2, $3)
+ON CONFLICT (email) DO UPDATE
+SET password_hash = EXCLUDED.password_hash,
+    display_name = EXCLUDED.display_name,
+    updated_at = now()
+WHERE users.email_verified_at IS NULL
+RETURNING id;
+~~~
+
+这段 SQL 带来一个很重要的项目行为。
+
+情况一：
+
+~~~text
+Email 不存在
+  ↓
+创建 User
+~~~
+
+情况二：
+
+~~~text
+Email 已存在
+但 email_verified_at IS NULL
+  ↓
+允许重新注册
+  ↓
+更新 Password Hash 和 Display Name
+~~~
+
+情况三：
+
+~~~text
+Email 已经完成验证
+  ↓
+WHERE users.email_verified_at IS NULL 不成立
+  ↓
+RETURNING 没有 User
+  ↓
+email_already_registered
+~~~
+
+所以“未验证账号重新注册”会覆盖旧的密码和显示名，“已经验证的账号”不会被注册接口覆盖。
+
+### 【重新注册未验证账号时旧 Verification Token 会被失效】
+
+源码：
+
+~~~sql
+UPDATE account_tokens
+SET consumed_at = COALESCE(consumed_at, now())
+WHERE user_id = $1
+  AND purpose = 'verify-email'
+  AND consumed_at IS NULL;
+~~~
+
+这样同一个未验证账号不会同时保留多个仍然有效的邮箱验证链接。
+
+随后生成新的验证 Token：
+
+~~~text
+createOpaqueToken("bm_verify_")
+        ↓
+32 Byte Secure Random
+        ↓
+Base64URL
+        ↓
+bm_verify_<random>
+~~~
+
+数据库只保存：
+
+~~~text
+SHA-256(bm_verify_<random>)
+~~~
+
+写入：
+
+~~~sql
+INSERT INTO account_tokens(
+  user_id,
+  purpose,
+  token_hash,
+  expires_at
+)
+VALUES (
+  $1,
+  'verify-email',
+  $2,
+  now() + INTERVAL '24 hours'
+);
+~~~
+
+最后：
+
+~~~sql
+COMMIT;
+~~~
+
+事务提交以后才调用 MailerService 发送包含明文 Token 的验证邮件。
+
+### 【注册后的数据库状态模板】
+
+假设 User ID 为 user_001。
+
+users：
+
+~~~text
+id                  user_001
+email               alice@example.com
+password_hash       scrypt$...
+display_name        Alice
+email_verified_at   NULL
+created_at          ...
+updated_at          ...
+~~~
+
+account_tokens：
+
+~~~text
+id           token_001
+user_id      user_001
+purpose      verify-email
+token_hash   SHA256(bm_verify_xxx)
+expires_at   now + 24h
+consumed_at  NULL
+created_at   ...
+~~~
+
+Browser / Email 拿到：
+
+~~~text
+bm_verify_xxx
+~~~
+
+Database 保存：
+
+~~~text
+SHA256(bm_verify_xxx)
+~~~
+
+---
+
+## 3. 邮箱验证通过一次性 Token 把 User 从未验证转换成已验证
+
+MailerService 生成：
+
+~~~text
+PUBLIC_BASE_URL
++
+/verify-email
++
+?token=bm_verify_xxx
+~~~
+
+Web 的 AuthPage 读取 URL 中 Token 后自动发：
+
+~~~text
+POST /api/v1/auth/verify-email
+
+{
+  token: "bm_verify_xxx"
+}
+~~~
+
+Service 先 Hash：
+
+~~~text
+Submitted Token
+      ↓
+SHA-256
+      ↓
+token_hash
+~~~
+
+然后在事务中消费：
+
+~~~sql
+BEGIN;
+
+UPDATE account_tokens
+SET consumed_at = now()
+WHERE token_hash = $1
+  AND purpose = 'verify-email'
+  AND consumed_at IS NULL
+  AND expires_at > now()
+RETURNING user_id;
+~~~
+
+这四个条件共同决定 Token 是否可以使用：
+
+~~~text
+Hash 匹配
+AND Purpose = verify-email
+AND 还没使用
+AND 还没过期
+~~~
+
+成功以后：
+
+~~~sql
+UPDATE users
+SET email_verified_at = COALESCE(email_verified_at, now()),
+    updated_at = now()
+WHERE id = $1;
+
+COMMIT;
+~~~
+
+所以邮箱验证最终改变两个核心状态：
+
+~~~text
+account_tokens.consumed_at
+NULL
+  ↓
+timestamp
+~~~
+
+~~~text
+users.email_verified_at
+NULL
+  ↓
+timestamp
+~~~
+
+### 【邮箱验证成功不会自动创建登录 Session】
+
+verify-email 接口返回 204。
+
+它不会：
+
+~~~text
+INSERT user_sessions
+SET Redis Session
+Set-Cookie bm_session
+~~~
+
+因此当前生命周期是：
+
+~~~text
+完成邮箱验证
+  ↓
+回到登录页
+  ↓
+重新提交 Email + Password
+  ↓
+创建 Session
+~~~
+
+---
+
+## 4. 登录时先校验 Password，再检查邮箱是否已经验证
+
+这个顺序必须按源码描述，不能凭经验改写。
+
+Controller 首先只做输入格式校验：
+
+~~~ts
+email: z.string().email()
+password: z.string().min(1).max(256)
+~~~
+
+Service 一次查询：
+
+~~~sql
+SELECT
+  id,
+  email,
+  password_hash,
+  display_name,
+  email_verified_at
+FROM users
+WHERE email = $1;
+~~~
+
+接下来源码顺序是：
+
+~~~text
+User 不存在
+  ↓
+invalid_credentials
+
+User 存在
+  ↓
+verifyPassword()
+  │
+  ├── Wrong
+  │     ↓
+  │   invalid_credentials
+  │
+  └── Correct
+        ↓
+检查 email_verified_at
+  │
+  ├── NULL
+  │     ↓
+  │   email_not_verified
+  │
+  └── Verified
+        ↓
+Create Session
+~~~
+
+对应代码逻辑：
+
+~~~ts
+if (!row || !verifyPassword(...)) {
+  throw invalid_credentials;
+}
+
+if (!row.email_verified_at) {
+  throw email_not_verified;
+}
+~~~
+
+所以针对“每次登录是不是先验证邮箱，再验证密码”的答案是：
+
+> 当前实现不是。先做 Email 格式校验，再查 User，然后先校验 Password；只有 Password 正确时才检查 email_verified_at。
+
+这个顺序还有一个安全效果：
+
+~~~text
+不知道正确 Password 的请求者
+        ↓
+只能得到 invalid_credentials
+        ↓
+不会直接知道账号是不是
+“存在但尚未验证邮箱”
+~~~
+
+只有已经知道正确 Password 的人，才会得到 email_not_verified。
+
+---
+
+## 5. 登录成功后同时写 PostgreSQL Session Row 和 Redis 在线 Session
+
+### 【先生成三个核心值】
+
+源码逻辑：
+
+~~~text
+Session Token
+bm_session_<256-bit random>
+
+Token Hash
+SHA-256(Session Token)
+
+CSRF Token
+bm_csrf_<256-bit random>
+
+Expires At
+now + SESSION_TTL_SECONDS
+~~~
+
+### 【PostgreSQL 写 user_sessions】
+
+SQL：
+
+~~~sql
+INSERT INTO user_sessions(
+  user_id,
+  token_hash,
+  csrf_token,
+  expires_at
+)
+VALUES ($1, $2, $3, $4)
+RETURNING id;
+~~~
+
+示例：
+
+~~~text
+id            7e0d...
+user_id       user_001
+token_hash    1c65...
+csrf_token    bm_csrf_xxx
+expires_at    2026-...
+last_seen_at  now()
+created_at    now()
+~~~
+
+数据库不保存原始：
+
+~~~text
+bm_session_xxx
+~~~
+
+### 【Redis 写请求认证直接需要的 User Context】
+
+源码构造：
+
+~~~text
+AuthenticatedUser
+{
+  id,
+  email,
+  displayName,
+  sessionId,
+  csrfToken
+}
+~~~
+
+Redis：
+
+~~~text
+Key:
+session:<SHA256(session-token)>
+
+Value:
+{
+  "id": "user_001",
+  "email": "alice@example.com",
+  "displayName": "Alice",
+  "sessionId": "session-db-id",
+  "csrfToken": "bm_csrf_xxx"
+}
+
+TTL:
+SESSION_TTL_SECONDS
+~~~
+
+### 【Browser 得到原始 Session Token】
+
+Controller：
+
+~~~text
+Set-Cookie:
+bm_session=<raw session token>
+
+HttpOnly = true
+Secure   = production
+SameSite = Lax
+Path     = /
+Expires  = session.expiresAt
+~~~
+
+最终数据分布：
+
+~~~text
+Browser
+  ↓
+raw bm_session Token
+
+
+API
+  ↓
+hashToken(raw token)
+
+
+Redis
+  ↓
+session:<tokenHash>
+  ↓
+AuthenticatedUser
+
+
+PostgreSQL
+  ↓
+user_sessions
+  ↓
+token_hash / csrf_token / expires_at
+~~~
+
+---
+
+## 6. 当前 Session Token 是标准 Opaque Session Identifier 思路，但没有固定标准字段结构
+
+Session Token 的生成：
+
+~~~text
+"bm_session_"
++
+32 Byte Secure Random
++
+Base64URL
+~~~
+
+它不是 JWT：
+
+~~~text
+Header.Payload.Signature
+~~~
+
+Token 内也没有编码：
+
+~~~text
+userId
+role
+permission
+expiresAt
+~~~
+
+因此它属于：
+
+> Opaque Token（不透明令牌）/ Opaque Session Identifier（不透明会话标识符）。
+
+Client 只持有随机 Identifier，真正的用户身份和 Session 语义保存在 Server Side。
+
+OWASP Session Management Cheat Sheet 的核心要求也是：
+
+- Session ID 不应该携带敏感业务语义；
+- 应不可预测；
+- 自行生成时应使用安全随机数；
+- 用户、权限和 Session 内部信息应放在 Server-side Session Store。
+
+当前随机部分为 32 Byte，也就是 256 Bit。
+
+固定前缀：
+
+~~~text
+bm_session_
+~~~
+
+不提供随机熵，但后面的随机部分仍然是完整 256 Bit。
+
+所以项目当前结构可以概括为：
+
+~~~text
+Client Token
+= Prefix + 256-bit Random
+
+Server Lookup
+= SHA-256(Client Token)
+
+Session State
+= Redis JSON
+~~~
+
+需要特别强调：
+
+> Session Token 没有像 JWT 一样被规范要求拥有固定字段结构。所谓“标准 Session Token”更准确地说是符合随机性、不可预测性、无业务敏感信息和安全生命周期的 Session Identifier。
+
+---
+
+## 7. 当前 Redis 是在线身份认证的直接判断路径，PostgreSQL 不做 Redis Miss 回源
+
+SessionGuard：
+
+~~~text
+Request
+  ↓
+读取 Cookie bm_session
+  ↓
+没有 Cookie
+  ↓
+401 authentication_required
+~~~
+
+有 Cookie：
+
+~~~text
+bm_session
+  ↓
+SHA-256
+  ↓
+Redis GET session:<hash>
+  │
+  ├── Miss
+  │     ↓
+  │   401 session_expired
+  │
+  └── Hit
+        ↓
+JSON.parse
+        ↓
+request.auth
+        ↓
+Continue
+~~~
+
+源码中没有：
+
+~~~text
+Redis Miss
+  ↓
+SELECT user_sessions
+  ↓
+重新写 Redis
+~~~
+
+所以你的判断是正确的：
+
+> 当前实现没有 Redis 失效以后读取 PostgreSQL 恢复 Session 的功能。
+
+### 【那 PostgreSQL user_sessions 当前到底有什么用】
+
+第一，创建稳定 Session ID。
+
+~~~text
+INSERT user_sessions
+RETURNING id
+        ↓
+AuthenticatedUser.sessionId
+~~~
+
+第二，Logout 时和 Redis 一起删除。
+
+~~~text
+Redis DEL session:<hash>
++
+DELETE FROM user_sessions
+WHERE token_hash = ...
+~~~
+
+第三，Password Reset 时按 user_id 找到并撤销所有 Session。
+
+~~~sql
+DELETE FROM user_sessions
+WHERE user_id = $1
+RETURNING token_hash;
+~~~
+
+然后：
+
+~~~text
+token_hash[]
+  ↓
+Redis DEL
+session:<hash1>
+session:<hash2>
+...
+~~~
+
+第四，Worker 会清理过期数据库记录。
+
+~~~sql
+DELETE FROM user_sessions
+WHERE expires_at < now();
+~~~
+
+当前 Housekeeping 每小时触发一次。
+
+### 【因此两个 Store 现在不是典型 Cache + Database Fallback】
+
+更准确的职责是：
+
+~~~text
+在线认证
+  ↓
+Redis
+
+
+持久 Session Relationship
+批量撤销索引
+Session DB ID
+过期 Row 清理
+  ↓
+PostgreSQL
+~~~
+
+所以不能把它描述成：
+
+~~~text
+Redis 只是 Cache
+Database 是 Source of Truth
+Miss 自动回源
+~~~
+
+因为 SessionGuard 的源码不支持这个结论。
+
+### 【两个 Store 不一致时在线结果以 Redis 为准】
+
+情况一：
+
+~~~text
+DB Row 仍在
+Redis Key 提前丢失
+  ↓
+401 session_expired
+~~~
+
+用户必须重新登录。
+
+情况二：
+
+~~~text
+DB Row 被单独删除
+Redis Key 仍存在
+  ↓
+SessionGuard 仍能恢复 request.auth
+~~~
+
+只要 Redis TTL 尚未结束，在线请求仍然可能被接受。
+
+因此当前在线认证“事实”以 Redis 状态为直接判断依据。
+
+### 【last_seen_at 当前没有真正参与在线 Session 管理】
+
+Schema 有：
+
+~~~text
+last_seen_at
+~~~
+
+但当前源码中没有 Request Guard 对它做持续 UPDATE。
+
+因此不能把当前实现说成已经支持：
+
+~~~text
+Session 活跃时间
+Sliding Expiration
+设备活跃管理
+~~~
+
+字段目前主要停留在数据模型层。
+
+---
+
+## 8. Session Token 与 CSRF Token 被故意放在两条不同通道
+
+Login Response：
+
+~~~text
+Cookie:
+bm_session=<session token>
+
+Body:
+{
+  user: ...,
+  csrfToken: "bm_csrf_xxx"
+}
+~~~
+
+Web Client 把 CSRF Token 写入：
+
+~~~text
+sessionStorage
+browser-monitor-csrf
+~~~
+
+后续 Request：
+
+~~~text
+Session Token
+  ↓
+HttpOnly Cookie
+  ↓
+Browser 自动携带
+
+
+CSRF Token
+  ↓
+JavaScript 读取
+  ↓
+非 GET / HEAD / OPTIONS
+  ↓
+x-csrf-token Header
+~~~
+
+Server：
+
+~~~text
+SessionGuard
+  ↓
+恢复 request.auth.csrfToken
+  ↓
+CsrfGuard
+  ↓
+读取 x-csrf-token
+  ↓
+比较
+  │
+  ├── Match → Continue
+  └── Missing / Mismatch → 403
+~~~
+
+这就是当前项目里的 Synchronizer Token Pattern。
+
+---
+
+## 9. Synchronizer Token 为什么通常保护状态修改请求，而不要求普通 GET
+
+CsrfGuard 当前直接放行：
+
+~~~text
+GET
+HEAD
+OPTIONS
+~~~
+
+核心原因不是“GET 没有任何安全风险”，而是 HTTP 对 Safe Method 有明确语义。
+
+RFC 9110 对 Safe Method 的定义是：
+
+> Client 不请求，也不期待服务器因为这个方法而改变目标资源状态。
+
+GET、HEAD、OPTIONS、TRACE 被定义为 Safe Method。
+
+所以 CSRF 最典型的攻击目标是：
+
+~~~text
+POST
+PUT
+PATCH
+DELETE
+~~~
+
+因为攻击者想借当前用户身份执行：
+
+~~~text
+修改密码
+创建资源
+转账
+删除数据
+修改权限
+提交配置
+~~~
+
+如果应用写出了：
+
+~~~text
+GET /delete-user?id=123
+~~~
+
+问题首先是接口违反了 HTTP Safe Method 语义。
+
+RFC 9110 甚至特别说明：如果 Query Parameter 表达的是删除等 Unsafe Action，服务器必须禁止通过 Safe Method 执行，否则爬虫、预取等自动访问也可能触发副作用。
+
+参考：
+
+- RFC 9110 §9.2.1 Safe Methods
+- https://www.rfc-editor.org/rfc/rfc9110.html#name-safe-methods
+
+---
+
+## 10. GET 不校验 Synchronizer Token 不代表 GET 绝对不会造成信息泄露
+
+这里要区分两类问题：
+
+~~~text
+CSRF
+主要关注“借用户身份执行请求”
+~~~
+
+和：
+
+~~~text
+Cross-origin Read / XS-Leak
+关注“攻击者能否得到敏感信息”
+~~~
+
+### 【跨站 GET 通常可以被发出，但恶意页面通常不能直接读取 Response Body】
+
+Same-Origin Policy 通常允许：
+
+~~~text
+Link Navigation
+Form Submission
+Image Embedding
+Iframe Embedding
+~~~
+
+等一部分跨源行为。
+
+但是攻击页面 JavaScript 通常不能直接读取另一个 Origin 的敏感 Response。
+
+例如：
+
+~~~text
+evil.example
+  ↓
+请求 account.example/profile
+  ↓
+Browser 可能发送 Request
+  ↓
+account.example 返回私密页面
+  ↓
+evil.example JavaScript
+不能直接读取正文
+~~~
+
+MDN 对 Same-Origin Policy 的分类也是：
+
+- Cross-origin writes 通常允许；
+- Cross-origin embedding 通常允许；
+- Cross-origin reads 通常被限制。
+
+### 【但 Cross-origin Embedding 可能泄露“部分状态信息”】
+
+攻击者读不到正文，不等于完全得不到信息。
+
+例如可能通过：
+
+~~~text
+onload / onerror
+图片宽高
+HTTP Redirect 行为
+资源是否存在
+Timing
+Cache
+Iframe 行为
+~~~
+
+推断一些用户状态。
+
+这种问题通常归类为：
+
+> XS-Leaks（Cross-Site Leaks，跨站侧信道泄露）。
+
+举例：
+
+~~~text
+已登录用户有私密头像
+GET /private-avatar
+→ image success
+
+没有权限
+→ 404
+~~~
+
+攻击页面即使不能读图片二进制内容，也可能通过 Image load / error 判断“资源是否存在”。
+
+因此：
+
+> GET 确实可能间接造成信息泄露，但这通常不是 Synchronizer Token 主要解决的经典 CSRF Write 问题，而属于 Cross-origin Read、Embedding 和 XS-Leak 等浏览器隔离问题。
+
+### 【CORS 如果允许恶意 Origin 携带凭据，GET 内容甚至可能被直接读取】
+
+如果服务器错误允许：
+
+~~~text
+Access-Control-Allow-Origin:
+https://evil.example
+
+Access-Control-Allow-Credentials:
+true
+~~~
+
+同时 Cookie 又能被发送，那么跨源 Fetch 可能直接读取敏感 GET Response。
+
+这是：
+
+~~~text
+CORS / Credential Boundary 配置错误
+~~~
+
+不能通过“GET 本身不要求 CSRF Token”来解释或修复。
+
+### 【敏感 GET 更应该治理 Cross-origin Read，而不是简单给所有 GET 加 CSRF Token】
+
+常见方向包括：
+
+~~~text
+严格 CORS
+SameSite Cookie
+Cross-Origin-Resource-Policy
+CSP frame-ancestors
+X-Frame-Options
+正确 Content-Type
+X-Content-Type-Options: nosniff
+Fetch Metadata
+减少可区分的敏感 Side Channel
+~~~
+
+另外 OWASP 明确提醒不要把 CSRF Token 放在 GET URL / Query 中，因为 URL 很容易进入：
+
+~~~text
+Browser History
+Server Log
+Proxy Log
+Referer
+Network Diagnostic Tool
+~~~
+
+参考：
+
+- OWASP CSRF Prevention Cheat Sheet
+- https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+- MDN Same-Origin Policy
+- https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy
+
+---
+
+## 11. 一次完整受保护请求可以直接从源码按三层安全检查阅读
+
+### 【读取请求】
+
+~~~text
+GET /api/v1/projects
+      ↓
+Cookie bm_session
+      ↓
+SessionGuard
+      ↓
+Redis session:<tokenHash>
+      ↓
+恢复 request.auth
+      ↓
+Project Membership / Role
+      ↓
+Business Query
+~~~
+
+### 【写请求】
+
+~~~text
+POST / PUT / DELETE ...
+      ↓
+Cookie bm_session
++
+x-csrf-token
+      ↓
+SessionGuard
+      ↓
+恢复 Current User
+      ↓
+CsrfGuard
+      ↓
+验证当前 Session 的 CSRF Token
+      ↓
+Project Membership / Role
+      ↓
+Business Mutation
+~~~
+
+所以实际不是一个笼统的“权限校验”，而是：
+
+~~~text
+Authentication
+  ↓
+Request Authenticity
+  ↓
+Resource Authorization
+~~~
+
+三层连续检查。
+
+---
+
+## 12. Logout 与 Password Reset 展示了 Session Revocation 的实际实现
+
+### 【Logout 撤销当前 Session】
+
+请求需要先通过：
+
+~~~text
+SessionGuard
++
+CsrfGuard
+~~~
+
+然后：
+
+~~~text
+bm_session
+  ↓
+SHA-256
+  ↓
+Redis DEL session:<hash>
++
+DELETE user_sessions WHERE token_hash = ...
+  ↓
+clearCookie bm_session
+~~~
+
+所以 Logout 不只是删除 Browser Cookie，也会删除 Server-side Session。
+
+### 【Password Reset 撤销当前 User 的全部 Session】
+
+Reset Token 验证成功以后：
+
+~~~text
+UPDATE users.password_hash
+      ↓
+Consume Reset Tokens
+      ↓
+DELETE FROM user_sessions
+WHERE user_id = ...
+RETURNING token_hash[]
+      ↓
+COMMIT
+      ↓
+Redis DEL session:<hash>...
+~~~
+
+因此用户修改密码后，旧 Session 会被全部撤销。
+
+这一点把：
+
+~~~text
+Credential Change
+        ↓
+Session Revocation
+~~~
+
+真正连接起来。
+
+---
+
+## 13. 当前 Redis + PostgreSQL 双存储仍有值得继续优化的可靠性问题
+
+### 【Redis Miss 是否应该 Database Fallback 是一个语义问题，不只是性能问题】
+
+当前选择：
+
+~~~text
+Redis Miss
+  ↓
+Session Expired
+~~~
+
+优点：
+
+~~~text
+请求路径简单
+撤销即时
+不会把已经删除的 Redis Session 自动复活
+~~~
+
+代价：
+
+~~~text
+Redis Flush / 数据丢失
+  ↓
+所有在线用户重新登录
+~~~
+
+如果以后改成：
+
+~~~text
+Redis Miss
+  ↓
+SELECT user_sessions
+  ↓
+恢复 Redis
+~~~
+
+就必须解决：
+
+~~~text
+这个 DB Row 是真实有效 Session
+还是 Redis 被主动删除后的已撤销 Session？
+
+expires_at 是否有效？
+
+User 是否已禁用？
+
+怎样区分 Logout 和 Redis 数据丢失？
+
+恢复以后 CSRF Token 是否继续有效？
+~~~
+
+所以 Database Fallback 会改变 Revocation 语义，不能只当成普通 Cache Aside。
+
+### 【Login 当前存在 PostgreSQL 与 Redis 双写窗口】
+
+顺序：
+
+~~~text
+INSERT user_sessions
+      ↓
+Redis SET
+~~~
+
+两步不是一个跨系统 Transaction。
+
+如果：
+
+~~~text
+Database Insert 成功
+Redis SET 失败
+~~~
+
+结果可能是：
+
+~~~text
+Login 返回失败
+但 Database 留下一条 Session Row
+~~~
+
+这条 Row 不会形成可用在线 Session，但会存在到主动删除或过期清理。
+
+### 【Logout 也不是跨 PostgreSQL 和 Redis 的原子事务】
+
+当前使用 Promise.all 同时删除。
+
+任何分布式双写设计都要继续考虑：
+
+~~~text
+部分失败
+Retry
+Idempotency
+Cleanup
+Compensation
+~~~
+
+因此“Redis 快 + PostgreSQL 持久”只是第一层解释，不是完整可靠性设计。
+
+---
+
+## 14. 源码结论
+
+当前项目认证生命周期可以压缩成：
+
+~~~text
+注册
+→ Password scrypt Hash
+→ User 入库
+→ Verification Token Hash 入库
+→ 邮箱一次性 Token 验证
+
+登录
+→ 查 User
+→ 先验证 Password
+→ 再检查 email_verified_at
+→ 创建 Opaque Session Token
+→ 创建 CSRF Token
+→ user_sessions 写 PostgreSQL
+→ AuthenticatedUser 写 Redis
+→ raw Session Token 写 HttpOnly Cookie
+
+在线认证
+→ Cookie Token Hash
+→ Redis Session Lookup
+→ Redis Miss 直接 401
+→ 不做 PostgreSQL Fallback
+
+写请求
+→ SessionGuard
+→ CsrfGuard
+→ Resource Authorization
+
+密码重置
+→ 更新 Password Hash
+→ 撤销全部 PostgreSQL Session
+→ 删除全部 Redis Session
+~~~
+
+需要特别保留的几个事实：
+
+1. 当前 Session Token 是 256-bit 随机 Opaque Identifier，不是 JWT，也不存在固定标准字段结构。
+2. 登录顺序是 Password 正确以后才检查 Email Verified，不是反过来。
+3. Redis 是当前在线认证的直接状态来源；PostgreSQL 不是 Redis Miss Fallback。
+4. PostgreSQL user_sessions 目前主要承担 Session ID、持久关系、Logout / Password Reset 批量撤销和过期清理。
+5. last_seen_at 当前没有形成真正的请求活跃追踪。
+6. Synchronizer Token 主要保护 Unsafe / State-changing Request；GET 依赖 Safe Method 语义。
+7. GET 仍可能通过 XS-Leak、错误 CORS 或可嵌入敏感资源泄漏信息，因此“不校验 CSRF Token”不等于“完全不存在跨站读风险”。
+
+这些结论以当前仓库源码为准，后续代码变化时应重新核对实现。
