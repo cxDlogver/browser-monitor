@@ -1840,7 +1840,7 @@ PostgreSQL Transaction
 - [Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)
 - [服务端数据管理源码学习-2](./服务端数据管理源码学习-2.md)：继续理解 Transaction、Concurrency Control、Advisory Lock 与 Outbox 的数据库基础。
 - [Redis 体系源码学习](./Redis体系源码学习.md)：继续理解 Analytics Version Cache 与 Worker / Redis 的边界。
-- [浏览器监控平台 · 服务端全链路](../platform/docs/浏览器监控平台-服务端全链路.md)：把本专题放回完整 SDK → API → Storage → Worker → Analytics → Web 数据生命周期。
+- [浏览器监控平台 · 服务端全链路](./浏览器监控平台-服务端全链路.md)：把本专题放回完整 SDK → API → Storage → Worker → Analytics → Web 数据生命周期。
 
 ### 【面试与答辩可以沿八个连续追问展开】
 
