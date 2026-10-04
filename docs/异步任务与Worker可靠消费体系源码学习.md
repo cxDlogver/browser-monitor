@@ -339,6 +339,191 @@ Worker 幂等
 
 这两个问题不能混为一谈。
 
+### 【Ingestion 从接收采集数据到落库按固定顺序完成解码、校验、脱敏与同事务双写】
+
+一次采集请求进入 API 后，只在一条同步链路内完成解码、协议校验、项目与来源校验、限流、逐条事件校验与脱敏，最后在一个数据库事务里同时写入 `telemetry_events` 与 `outbox_tasks`，再返回 202。涉及文件：
+
+~~~text
+platform/apps/api/src/ingestion/ingestion.controller.ts   ← HTTP 边界（202）
+platform/apps/api/src/ingestion/ingestion.service.ts      ← ingest() 主流程
+platform/apps/api/src/ingestion/rate-limiter.service.ts   ← 按项目 + IP 限流
+platform/packages/shared/src/privacy.ts                   ← URL 清洗 / 属性脱敏
+platform/packages/shared/src/crypto.ts                    ← 用户 id HMAC 匿名化
+~~~
+
+#### 端到端链路：Controller → Service → COMMIT
+
+~~~text
+Browser SDK / sendBeacon
+    │  POST /api/v3/ingest/:publicKey/envelopes
+    ▼
+IngestionController.ingestBatch()
+    │  只做参数提取：publicKey / body(unknown) / origin / ip / requestId
+    ▼
+IngestionService.ingest()
+    ① 解码 body（sendBeacon 的 text/plain 字符串 → JSON.parse）
+    ② 协议版本校验（protocolVersion === PROTOCOL_VERSION，当前 '3.0'）
+    ③ 批头校验（telemetryBatchHeaderV3Schema）
+    ④ resolveProject(publicKey)            → ingestion_keys JOIN projects
+    ⑤ assertOrigin(projectId, origin)      → allowed_origins 白名单
+    ⑥ limiter.consume(projectId, ip, n)    → 按项目 + IP + 事件数限流
+    ⑦ 逐条事件校验 + 脱敏（sanitizeEvent）   → 通过者进入 valid[]
+    ⑧ 请求内 eventId 去重                   → uniqueValid[]
+    ▼
+BEGIN
+    ⑨ pg_advisory_xact_lock（按 eventId 排序后逐个加锁，序列化重叠批次）
+    ⑩ SELECT 已存在的 event_id（数据库幂等检查）
+    ⑪ CTE 同事务写入：
+         INSERT telemetry_events ... ON CONFLICT DO NOTHING RETURNING
+              └── INSERT outbox_tasks FROM inserted_events
+    ⑫ UPDATE ingestion_keys SET last_used_at = now()
+COMMIT
+    ▼
+⑬ Prometheus 计数 + Redis 统计（失败不影响已提交请求）
+    ▼
+202 { accepted, duplicate, rejected, requestId, rejections }
+~~~
+
+#### 每一步的处理与失败结果
+
+| # | 处理 | 失败 / 结果 |
+| --- | --- | --- |
+| ① | `typeof body === 'string'` 时 `JSON.parse`，让 sendBeacon 的 `text/plain` 与 `application/json` 走同一条校验路径 | 解析失败置 `null`，落到 ② 报错 |
+| ② | 校验 `protocolVersion === PROTOCOL_VERSION`（当前 `'3.0'`） | 422 `unsupported_protocol` |
+| ③ | `telemetryBatchHeaderV3Schema`：`protocolVersion` / `sentAt` / `sdk` / `events[1..N]` | 422 `invalid_batch`（含字段级 issues） |
+| ④ | `resolveProject`：`ingestion_keys JOIN projects`，要求 `k.active`、`p.enabled` 且密钥未过期 | 404 `invalid_ingestion_key` |
+| ⑤ | `assertOrigin`：命中 `allowed_origins`；无 `Origin` 时由 `ALLOW_ORIGINLESS_INGEST` 决定是否放行 | 403 `origin_required` / `origin_not_allowed` |
+| ⑥ | `limiter.consume(projectId, ip, events.length)` | 429 `ingestion_rate_limited` |
+| ⑦ | 逐条：结构非法 → `invalid_event`；`app.name !== project.app_name` → `app_name_mismatch`；`occurredAt` 超出 `[now-30d, now+5min]` → `event_time_out_of_range`；通过则 `sanitizeEvent` | 单条 reject，**不整批失败** |
+| ⑧ | `seenEventIds` 过滤同一请求内重复的 `eventId` | 计入 `duplicate` |
+| ⑨ | 对排序后的 `eventId` 取 `pg_advisory_xact_lock`，避免重叠批次死锁 | — |
+| ⑩ | 查询 `telemetry_events` 中已存在的 `event_id` | 已存在计入 `duplicate` |
+| ⑪ | 用一条 CTE 先 `INSERT telemetry_events ... ON CONFLICT DO NOTHING`，再仅基于真正插入的行 `INSERT outbox_tasks` | 两表要么都写、要么都不写 |
+| ⑫ | 更新 `ingestion_keys.last_used_at` | — |
+| ⑬ | `COMMIT`；事务外发 Prometheus 指标与 Redis 统计（`.catch(() => undefined)`） | 统计失败不回滚已提交请求 |
+
+#### 最终落库 JSON 示例
+
+以一条自定义业务事件为例。进入 `sanitizeEvent` 之前的原始协议事件：
+
+```json
+{
+  "protocolVersion": "3.0",  // 协议版本，必须等于 PROTOCOL_VERSION（当前 '3.0'）
+  "eventId": "evt_a1b2c3d4",  // SDK 生成的事件唯一 id（≤256），入口幂等键
+  "type": "event",  // 事件类型 performance/view/event/trace/span，须与 payload.type 一致
+  "name": "checkout_submit",  // 事件名，须与 payload.name 一致
+  "occurredAt": 1789862400000,  // 事件发生时间（epoch ms），须落在 [now-30d, now+5min] 窗口内
+  "app": {  // 应用上下文
+    "name": "cx-shop",  // 必须等于项目 app_name，否则 app_name_mismatch
+    "version": "1.4.2",  // 应用版本 → 列 app_version
+    "environment": "production"  // 运行环境 → 列 environment
+  },
+  "context": {  // 采集上下文
+    "sessionId": "sess_9f8e7d6c",  // 会话 id → 列 session_id
+    "viewId": "view_123",  // 视图 id → 列 view_id（view 类型须与 payload.viewId 一致）
+    "routeName": "checkout",  // 路由名 → 列 route_name
+    "url": "https://shop.example.com/checkout?utm_source=ad&token=secret#step2",  // 页面地址，落库前去 query 与 fragment
+    "runtime": { "sdk": { "name": "browser-monitor-sdk", "version": "0.3.0" } },  // 运行环境与 SDK 标识
+    "user": {  // 可选：用户上下文
+      "id": "user-42",  // 原始用户标识，落库前经 HMAC 匿名化 → 列 user_hash
+      "properties": { "plan": "pro", "apiKey": "pk_live_xxx" }  // 用户属性，命中敏感键的项被脱敏
+    }
+  },
+  "correlation": {},  // 关联上下文（traceId/spanId/parentSpanId），trace/span 使用
+  "payload": {  // 事件载荷
+    "type": "event",  // 须与顶层 type 一致
+    "name": "checkout_submit",  // 须与顶层 name 一致
+    "source": "custom",  // 自定义信号固定为 'custom'
+    "attributes": { "cartValue": 199.9, "coupon": "SAVE10", "authToken": "xyz" },  // 自定义属性，命中敏感键的项被脱敏
+    "metrics": { "checkoutMs": { "value": 842, "unit": "ms" } }  // 自定义指标，结构 { value, unit }
+  }
+}
+```
+
+经过 `sanitizeEvent` 后，写入 `telemetry_events.event`（以及 `outbox_tasks.event`）的 JSONB：
+
+```json
+{
+  "protocolVersion": "3.0",
+  "eventId": "evt_a1b2c3d4",
+  "type": "event",
+  "name": "checkout_submit",
+  "occurredAt": 1789862400000,  // 保持原始 epoch ms 数字，不做字符串转换
+  "app": { "name": "cx-shop", "version": "1.4.2", "environment": "production" },
+  "context": {
+    "sessionId": "sess_9f8e7d6c",
+    "viewId": "view_123",
+    "routeName": "checkout",
+    "url": "https://shop.example.com/checkout",  // 脱敏：去掉 query（?utm_source=ad&token=secret）与 fragment（#step2）
+    "runtime": { "sdk": { "name": "browser-monitor-sdk", "version": "0.3.0" } },
+    "user": {
+      "id": "3f9a1c7d5b2e804f6a1d9c0b7e4f2a8d5c3b1e9f7a0d2c4b6e8f1a3d5c7b9e00",  // 脱敏：原始 id 替换为 HMAC-SHA256 哈希
+      "properties": { "plan": "pro", "apiKey": "[REDACTED]" }  // 脱敏：apiKey 命中敏感键 → [REDACTED]
+    }
+  },
+  "correlation": {},
+  "payload": {
+    "type": "event",
+    "name": "checkout_submit",
+    "source": "custom",
+    "attributes": { "cartValue": 199.9, "coupon": "SAVE10", "authToken": "[REDACTED]" },  // 脱敏：authToken 命中敏感键
+    "metrics": { "checkoutMs": { "value": 842, "unit": "ms" } }
+  }
+}
+```
+
+对应三处脱敏：`context.url` 去掉了 `?utm_source=ad&token=secret#step2`；`context.user.id` 被替换为 HMAC 哈希；`apiKey` / `authToken` 被替换为 `[REDACTED]`。
+
+最终 `telemetry_events` 一行的列式视图（`event` 为上段 JSONB）：
+
+```json
+{
+  "project_id": "0b6f2a1e-7c34-4d5b-9a10-2f8e6c4d1b77",  // 项目 id，由路径 publicKey 解析得到
+  "event_id": "evt_a1b2c3d4",  // 事件唯一 id（协议 eventId）
+  "occurred_at": "2026-09-20T10:00:00.000Z",  // 事件发生时间（occurredAt 由 epoch ms 转为 timestamptz）
+  "received_at": "2026-09-20T10:00:00.812Z",  // 平台接收时间（DB 默认 now()）
+  "type": "event",  // 事件类型
+  "name": "checkout_submit",  // 事件名
+  "environment": "production",  // 运行环境（app.environment）
+  "app_version": "1.4.2",  // 应用版本（app.version）
+  "session_id": "sess_9f8e7d6c",  // 会话 id（context.sessionId）
+  "view_id": "view_123",  // 视图 id（context.viewId）
+  "route_name": "checkout",  // 路由名（context.routeName）
+  "user_hash": "3f9a1c7d5b2e804f6a1d9c0b7e4f2a8d5c3b1e9f7a0d2c4b6e8f1a3d5c7b9e00",  // 用户 id 的 HMAC 哈希（64 字符，无 user 时为 null）
+  "event": { "...上段脱敏后的完整事件..." },  // 脱敏后完整协议事件（JSONB，occurredAt 仍为 epoch ms）
+  "processed_at": null  // Worker 完成投影时间；插入时为 null（见第 6 章）
+}
+```
+
+同一事务内产生的 `outbox_tasks` 一行（初始状态，等待 Worker 领取）：
+
+```json
+{
+  "id": "c4d2f1a0-8e6b-4c3a-b512-9d7f0e1a2b34",  // 任务主键（uuid，DB 默认生成）
+  "project_id": "0b6f2a1e-7c34-4d5b-9a10-2f8e6c4d1b77",  // 所属项目 id
+  "event_id": "evt_a1b2c3d4",  // 对应事件 id
+  "occurred_at": "2026-09-20T10:00:00.000Z",  // 事件发生时间（与 event_id 组成唯一约束）
+  "event": { "...同一个脱敏后事件..." },  // 脱敏后事件，Worker 据此投影
+  "status": "pending",  // 任务状态：pending → processing → completed / failed
+  "attempts": 0,  // 已尝试次数，每次 Claim 加一
+  "available_at": "2026-09-20T10:00:00.812Z",  // 最早可领取时间（重试时用于指数退避）
+  "locked_at": null,  // 领取加锁时间，用于 5 分钟 stale 判定
+  "locked_by": null,  // 领取该任务的 Worker 标识（worker-<uuid>）
+  "last_error": null,  // 最近一次失败原因
+  "completed_at": null,  // 任务完成时间；完成时写入
+  "created_at": "2026-09-20T10:00:00.812Z"  // 任务创建时间（DB 默认 now()）
+}
+```
+
+#### 同步链路的实现边界
+
+一条采集事件在同步链路内依次经历：解码 → 协议/批头校验 → 项目/来源/限流 → 逐条校验 + 脱敏 → 请求内去重 → 事务内幂等检查 + 同事务双写 → 统计。
+
+- 只有全部校验通过且真正新增的事件，才会同时产生一行 `telemetry_events` 和一行 `outbox_tasks`；两者在同一事务内，正是第 2 章“错误 A / 错误 B”的消除方式。
+- `outbox_tasks` 行插入时处于初始态（`pending` / `attempts 0` / 未锁定 / `completed_at` 为 `null`），随后进入第 3 章的 Worker 领取流程。
+- 脱敏以 `privacy.ts` 的 `SENSITIVE_KEY` 正则为源码事实，实际匹配 `authorization / password / passwd / token / secret / cookie / api_key / session`（大小写不敏感），并不包含 `email` / `phone`；`ingestion.service.ts` 中“如 email / phone 等”的注释与正则不完全一致。
+- 脱敏边界：`redactProperties` 最多 100 个字段、嵌套深度 5、数组最多 50 项、单字符串截断到 4096、整体超过 16 KiB 时返回 `{ "truncated": "[Payload exceeded 16 KiB]" }`。
+
 ## 3. Worker 通过 State Machine、Claim 与 Lease 管理任务处理权
 
 ### 【Worker 主循环只做三件事：Claim、等待、处理】
