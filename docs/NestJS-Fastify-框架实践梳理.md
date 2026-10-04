@@ -1,7 +1,7 @@
 # NestJS + Fastify 框架实践梳理（以 `platform/apps/api` 为准）
 
 > **本文定位**：把 NestJS 的通用概念落到本项目 `browser-monitor/platform/apps/api` 这一份真实代码上，逐层解释「框架怎么用、代码在哪、每个方法为什么存在」。
-> 通用概念（NestFactory / Module / Provider / DI / Controller / Lifecycle）的入门说明见 `Full-Stack-AI-NOTES/NestJS快速上手.md`；本文是它的**实践对照篇**，概念编号与那篇保持一致，方便对读。
+> 通用概念（NestFactory / Module / Provider / DI / Controller / Lifecycle）的入门说明见 `Full-Stack-AI-NOTES/N-NestJS快速上手.md`；本文是它的**实践对照篇**，概念编号与那篇保持一致，方便对读。
 >
 > **事实基准**：`platform/apps/api` 当前代码 + `platform/tsconfig.base.json` + `apps/api/package.json`。文中所有路径、类名、方法名、错误码均可在源码中直接检索验证。
 

@@ -4,7 +4,7 @@
 >
 > **项目事实边界**：当前 Browser Monitor 已实现 Outbound Email，即注册验证、密码重置和项目邀请通过 Nodemailer SMTP Transport 发送；开发环境使用 Mailpit。项目当前没有实现邮件接收、IMAP 读取、Provider Delivery Webhook，也没有把邮件任务接入现有 Outbox Worker。
 >
-> **通用知识入口**：脱离项目的完整邮件系统框架维护在 [Full-Stack-AI-NOTES · 邮件传输与邮件系统完整框架](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/邮件传输与邮件系统完整框架.md)。本文只负责把通用框架映射回 Browser Monitor 当前实现和工程取舍。
+> **通用知识入口**：脱离项目的完整邮件系统框架维护在 [Full-Stack-AI-NOTES · 邮件传输与邮件系统完整框架](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/Y-邮件传输与邮件系统完整框架.md)。本文只负责把通用框架映射回 Browser Monitor 当前实现和工程取舍。
 
 ## 1. Browser Monitor 的邮件链路先区分业务服务器和邮件服务器
 
