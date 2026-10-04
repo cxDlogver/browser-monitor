@@ -2,7 +2,7 @@
 
 > **专题定位**：本篇以 Browser Monitor 当前源码为事实基础，完整梳理 Ingestion API 接收数据以后，任务怎样通过 Transactional Outbox（事务性发件箱）可靠地产生，再由独立 Worker 安全领取、投影、重试、进入死信并最终被监控和恢复。
 >
-> **通用知识入口**：[Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)。通用文档负责解释 Async Boundary、Durable Task、Outbox、ACK / Lease、At-least-once、Idempotency、Retry、Dead Letter、Backpressure 等概念；本文只回答这些机制在 Browser Monitor 当前版本中如何真实落地。
+> **通用知识入口**：[Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)。通用文档负责解释 Async Boundary、Durable Task、Outbox、ACK / Lease、At-least-once、Idempotency、Retry、Dead Letter、Backpressure 等概念；本文只回答这些机制在 Browser Monitor 当前版本中如何真实落地。
 >
 > **事实边界**：本文中的表名、状态值、重试次数、时间窗口、并发度和缓存策略均以当前仓库源码为准。没有在源码中实现的能力会明确标记为“当前未实现 / 可演进”，不会把主流方案写成项目事实。
 
@@ -1358,7 +1358,7 @@ PostgreSQL Transaction
 
 通用定义与设计边界继续阅读：
 
-- [Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)
+- [Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)
 - [服务端数据管理源码学习-2](./服务端数据管理源码学习-2.md)：继续理解 Transaction、Concurrency Control、Advisory Lock 与 Outbox 的数据库基础。
 - [Redis 体系源码学习](./Redis体系源码学习.md)：继续理解 Analytics Version Cache 与 Worker / Redis 的边界。
 - [浏览器监控平台 · 服务端全链路](../platform/docs/浏览器监控平台-服务端全链路.md)：把本专题放回完整 SDK → API → Storage → Worker → Analytics → Web 数据生命周期。
