@@ -320,7 +320,7 @@ export class AppModule {}
 要点：
 
 - **`InfrastructureModule` 带 `@Global()`**，声明一次后所有模块无需 import 即可注入 `DATABASE` / `REDIS` / `API_CONFIG`。底层的连接与配置属于「全应用基础设施」，用 `@Global()` 比在 6 个模块里各写一次 `imports` 更不容易漏。
-- **`Worker` 不在本进程**。异步投影、评级、聚合全部在 `apps/worker`（见 `platform/docs/浏览器监控平台-服务端全链路.md` 第 7 章），本 API 只负责接收与查询，因此这里看不到任何消费者代码。
+- **`Worker` 不在本进程**。异步投影、评级、聚合全部在 `apps/worker`（见 `docs/浏览器监控平台-服务端全链路.md` 第 7 章），本 API 只负责接收与查询，因此这里看不到任何消费者代码。
 
 ---
 
