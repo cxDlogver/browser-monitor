@@ -1271,7 +1271,301 @@ Kafka / RabbitMQ / SQS / Redis Streams ...
 
 即使引入 Broker，Transactional Outbox 仍可能保留在 Producer 侧，用于解决 Database Business State 与 Message Publish 的 Dual Write。
 
-## 8. 项目知识最终收敛为“可靠产生 → 安全消费 → 正确重复 → 失败恢复 → 运行治理”
+
+## 8. 当前任务分发属于 Database-backed Job Store + Pull，而不是 Kafka 或中央 Scheduler
+
+### 【当前实现可以准确描述为 Database-backed Job Store + Transactional Outbox + Polling Pull】
+
+Browser Monitor 当前没有接入 Kafka、RabbitMQ、SQS 或 Redis Streams。OutboxWorker 直接把 PostgreSQL 的 outbox_tasks 当作 Durable Job Store，并由 Worker 主动查询和领取任务。
+
+真实代码链：
+
+~~~text
+OutboxWorker.run()
+↓
+claim()
+↓
+SELECT outbox_tasks
+↓
+FOR UPDATE SKIP LOCKED
+↓
+UPDATE status = processing
+↓
+返回当前 Worker 已领取的 Task
+↓
+handle()
+↓
+EventProcessor
+~~~
+
+当 claim() 返回空数组时：
+
+~~~ts
+if (tasks.length === 0) {
+  await this.delay(this.config.WORKER_POLL_INTERVAL_MS);
+  continue;
+}
+~~~
+
+当前默认：
+
+~~~text
+WORKER_POLL_INTERVAL_MS = 1000ms
+WORKER_BATCH_SIZE = 100
+~~~
+
+领取后再按照每 10 条一组 Promise.all 执行。因此当前任务分发的准确描述是：
+
+~~~text
+Database-backed Job Store
++
+Short Polling Pull
++
+Competing Workers
++
+Row Lock / SKIP LOCKED
++
+Lease-like stale reclaim
+~~~
+
+这里不是数据库“发现某台 Worker 空闲以后主动派发”，而是 Worker 自己在有能力继续工作时再次执行 claim()。
+
+### 【当前多 Worker 的负载分摊来自“谁先回来谁继续 Claim”，而不是中央 Scheduler】
+
+假设有三个 Worker：
+
+~~~text
+Worker A
+Worker B
+Worker C
+~~~
+
+它们都会执行：
+
+~~~text
+claim()
+↓
+FOR UPDATE SKIP LOCKED
+~~~
+
+一个 Worker 锁住并领取的候选行会被其他 Worker 跳过，因此不同 Worker 可以并行领取不同 Task。
+
+如果 Worker A 处理更快：
+
+~~~text
+A 完成当前 Batch
+↓
+更早再次 claim()
+↓
+自然领取更多 Task
+~~~
+
+如果 Worker B 处理更慢：
+
+~~~text
+B 更晚返回 claim()
+↓
+自然领取更少 Task
+~~~
+
+这是一种简单的 Self-balancing（自平衡），不需要独立 Scheduler 维护：
+
+~~~text
+Worker CPU
+Memory
+Available Slot
+Heartbeat
+Placement
+~~~
+
+当前 Worker 都处理同类 Telemetry Projection，也没有 GPU、机器标签或资源亲和性等异构调度要求，因此没有必要引入“中央 Scheduler 找最空闲 Worker”的复杂模型。
+
+### 【当前是 Task-centric Queue，而不是 Kafka 的 Log + Consumer Offset 模型】
+
+当前两张核心表承担不同语义：
+
+~~~text
+telemetry_events
+=
+已经接收过的原始事实
+
+outbox_tasks
+=
+接下来必须完成的后台工作
+~~~
+
+outbox_tasks 关注的是：
+
+~~~text
+这条 Task 做完了吗？
+
+pending
+↓
+processing
+↓
+completed / failed
+~~~
+
+所以处理状态绑定在 Task 本身。
+
+Kafka 模型则更接近：
+
+~~~text
+Event Log
+长期保存 Event
+
+Consumer Group
+记录自己读到哪个 Offset
+~~~
+
+即：
+
+~~~text
+Task Queue
+=
+Task-centric
+
+Kafka
+=
+Log + Consumer-centric
+~~~
+
+Browser Monitor 当前 outbox_tasks 没有 Topic、Partition、Consumer Group、Committed Offset、Rebalance 或按 Offset Replay 等 Kafka 语义，因此不能把当前实现描述成“数据库版 Kafka”。
+
+数据库理论上可以继续增加 events + consumer_offsets 等结构模拟这些能力，但那会把 Partition、Group Membership、Retention、Replay 和 Consumer Coordination 的复杂度继续留在应用自己维护。当前需求并不需要这样做。
+
+### 【当前 Polling Pull 与 SQS、Kafka、RabbitMQ 的分发方式处于同一问题的不同实现分支】
+
+可以用同一个“任务怎样到 Consumer”问题比较：
+
+| 方案 | 分发方式 | 处理所有权 / 进度 |
+| --- | --- | --- |
+| Browser Monitor 当前 | PostgreSQL Short Poll + Claim | status + locked_by + locked_at |
+| SQS | ReceiveMessage Long Poll | Visibility Timeout + Delete |
+| RabbitMQ | Broker Push / Delivery | ACK + Prefetch |
+| Kafka | Consumer Batch Fetch | Partition Assignment + Offset |
+
+Browser Monitor 当前最接近“数据库中的 Work Queue”。
+
+SQS 同样由 Consumer 主动 Receive，只是 Long Poll 可以减少空轮询；RabbitMQ 注册 Consumer 后由 Broker 主动 Delivery，并通过 ACK / Prefetch 控制未确认消息；Kafka Consumer 也是 Pull / Fetch，但读取的是 Partitioned Log，并通过 Consumer Group + Offset 管理进度。
+
+这些差异属于通用消息模型，完整定义、Kafka Topic / Partition / Offset / Consumer Group、TypeScript KafkaJS API 和选型边界统一放在：
+
+- [Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)
+
+本文只确认 Browser Monitor 当前落在哪一支。
+
+### 【只有消费模型真正从“一次性 Projection Task”演进成“多下游 Event Stream”时 Kafka 才开始明显匹配】
+
+当前主要链路：
+
+~~~text
+Telemetry Event
+↓
+Outbox Task
+↓
+Projection Worker
+↓
+Performance / View / Custom Projection
+~~~
+
+它主要回答：
+
+> 这条 Telemetry 对应的 Projection 是否可靠完成？
+
+因此 Database Job Store 非常直接。
+
+如果未来需求变成：
+
+~~~text
+同一份 Telemetry Event
+        ↓
+需要多个独立下游
+        ├── Projection
+        ├── Realtime Alert
+        ├── Data Warehouse
+        ├── Anomaly Detection
+        └── 其他实时计算
+
+并且需要
+Retention
+Replay
+独立 Consumer Lag
+大量 Consumer Group
+Partition 级扩展
+~~~
+
+才应该重新评估 Kafka。
+
+如果真的演进，引入 Kafka 也不代表 Producer 侧 Transactional Outbox 必须删除。更稳妥的演进形态通常是：
+
+~~~text
+Ingestion API
+↓
+PostgreSQL Transaction
+├── telemetry_events
+└── outbox_events
+↓
+COMMIT
+↓
+Relay / CDC
+↓
+Kafka Topic
+↓
+├── projection-group
+├── alert-group
+├── warehouse-group
+└── anomaly-group
+~~~
+
+这里：
+
+~~~text
+Transactional Outbox
+负责
+Database → Kafka 的可靠交接
+
+Kafka
+负责
+Event Log → 多 Consumer Group 的持久分发
+~~~
+
+这样可以避免：
+
+~~~text
+INSERT telemetry_events 成功
+↓
+Process Crash
+↓
+Publish Kafka 失败
+~~~
+
+重新产生 Dual Write Problem。
+
+需要强调：**以上 Kafka 链路是当前未实现的演进方案，不是 Browser Monitor 当前源码事实。**
+
+### 【面试与答辩要能够区分“数据库能实现”与“当前为什么没必要实现”】
+
+可以沿下面四个追问回答：
+
+**1. 当前 Worker 是数据库主动推任务吗？**
+
+不是。Worker 通过 run() 循环主动 claim()；无任务时按 WORKER_POLL_INTERVAL_MS 等待后再继续 Poll，是典型 Pull。
+
+**2. 多 Worker 怎么知道谁空闲？**
+
+没有中央 Scheduler 精确维护“谁最空闲”。处理快的 Worker 更早回到 Claim，自然领取更多；SKIP LOCKED 负责避免多个 Worker 在同一候选任务上互相等待。
+
+**3. 数据库能不能实现 Consumer Group、Offset、Replay？**
+
+理论上可以，通过 Event Log Table + Consumer Offset Table 等结构继续构建。但随着 Partition、Rebalance、Retention、Replication、多 Group 和高吞吐需求出现，相当于逐步自己实现专业消息基础设施。
+
+**4. 为什么当前不用 Kafka？**
+
+因为当前主要是“一条 Telemetry → 一次 Projection”的 Task Processing，PostgreSQL Outbox 已经同时满足本地事务、Durable Task、Claim、Retry 和 Dead Letter。只有多独立下游、Replay、高吞吐 Event Stream 或数据库 Queue 成为真实瓶颈时，Kafka 的复杂度才更有收益。
+
+
+## 9. 项目知识最终收敛为“可靠产生 → 安全消费 → 正确重复 → 失败恢复 → 运行治理”
 
 ### 【把源码重新映射到一张完整知识图】
 
@@ -1422,7 +1716,7 @@ Redis analytics version 更新失败
 
 这类内容应该作为当前实现真实边界 + 后续演进候选，而不是直接修改成一个“理论上最完美”的方案。项目答辩的价值来自能够解释当前为什么这样做、问题在哪里、什么时候才值得继续复杂化。
 
-## 9. 源码索引与参考资料
+## 10. 源码索引与参考资料
 
 ### 【项目源码】
 
@@ -1447,3 +1741,13 @@ Redis analytics version 更新失败
 [2] Amazon Web Services. Transactional outbox pattern. AWS Prescriptive Guidance. https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
 
 [3] RabbitMQ. Consumer Acknowledgements and Publisher Confirms. https://www.rabbitmq.com/docs/confirms
+
+[4] Apache Kafka. Documentation - Topics, Partitions, Producers and Consumers. https://kafka.apache.org/documentation/
+
+[5] KafkaJS. Producing Messages. https://kafka.js.org/docs/producing
+
+[6] KafkaJS. Consuming Messages. https://kafka.js.org/docs/consuming
+
+[7] Amazon Web Services. ReceiveMessage - Amazon SQS API Reference. https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ReceiveMessage.html
+
+[8] RabbitMQ. Consumer Prefetch. https://www.rabbitmq.com/docs/consumer-prefetch
