@@ -4,7 +4,7 @@
 >
 > **分析范围**：项目事实以 browser-monitor/platform 当前源码为准；Redis 通用知识以 Redis 官方文档为主要依据；Node.js 客户端部分结合 ioredis 当前实现。每一节都按照“项目原文 → 源码执行链路 → 抽象通用知识 → 回到项目判断”的顺序展开。
 >
-> **与已有文档的关系**：[服务端数据管理源码学习.md](./服务端数据管理源码学习.md) 已经建立 PostgreSQL、Redis 在服务端数据体系中的总体位置。本文专门把 Redis 从“高速状态服务”继续展开成完整体系。
+> **与已有文档的关系**：[服务端数据管理源码学习.md](./服务端数据管理源码学习.md) 已经建立 PostgreSQL、Redis 在服务端数据体系中的总体位置。本文专门把 Redis 从“高速状态服务”继续展开成项目源码体系；脱离 Browser Monitor 后可迁移的通用定义、状态模型与生产治理统一参考 [Full-Stack-AI-NOTES · Redis 完整知识体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/R-Redis%E5%AE%8C%E6%95%B4%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB.md)。
 
 Redis 后续学习不按一串平铺知识点组织，而按下面的依赖关系展开：
 
@@ -5967,6 +5967,308 @@ Promise.all(
 ~~~
 
 是否需要组合原子性，取决于产品想要的限流语义。
+
+### 【Token Bucket 把 Redis 状态、Lua 原子执行和采集限流连接成一条完整链】
+
+前面的“Redis 数据类型”“Lua 原子执行”“Rate Limit State Model”实际上不是三个互相独立的知识点。放回当前项目，它们组成一条连续链：
+
+~~~text
+采集请求
+↓
+header.data.events.length
+↓
+cost = Event Count
+↓
+IngestionRateLimiter.consume()
+↓
+Project Bucket + Project/IP Bucket
+↓
+Redis Hash
+tokens + updated
+↓
+EVAL Lua
+Read
+→ Refill
+→ Check
+→ Deduct
+→ Write
+↓
+return 1 / 0
+↓
+Allow
+或
+HTTP 429
+~~~
+
+这条链应该从三个“为什么”理解。
+
+#### <u>1. 为什么状态放 Redis：限流预算必须跨 API Instance 共享</u>
+
+如果把 Bucket 写成 Node.js Map：
+
+~~~text
+API A
+tokens = 100
+
+API B
+tokens = 100
+
+API C
+tokens = 100
+~~~
+
+请求经过 Load Balancer 分散到不同实例后，每个实例都认为自己还有完整预算，限流上限会随着实例数被放大。
+
+当前 Redis 模型：
+
+~~~text
+API A ─┐
+API B ─┼── Redis Server
+API C ─┘
+          ↓
+ingest:project:<projectId>
+          ↓
+tokens / updated
+~~~
+
+所有实例修改的是同一个共享 State。
+
+为什么不把这类状态直接放 PostgreSQL？因为 Token Bucket 的特征是：
+
+~~~text
+高频
+状态很小
+生命周期短
+TTL 可回收
+故障后可重新初始化
+~~~
+
+它属于 Runtime Control State，而 telemetry_events、outbox_tasks 属于需要长期可靠保存的业务 / 遥测事实。
+
+所以这里不是简单的：
+
+~~~text
+Redis 更快
+PostgreSQL 更慢
+~~~
+
+而是：
+
+~~~text
+Redis
+负责共享运行时预算
+
+PostgreSQL
+负责可靠事实和任务
+~~~
+
+#### <u>2. 为什么 Bucket 使用 Hash：tokens 与 updated 属于同一个状态对象</u>
+
+当前 Key：
+
+~~~text
+ingest:project:<projectId>
+~~~
+
+内部：
+
+~~~text
+tokens
+updated
+~~~
+
+两者拥有相同 Scope、相同 TTL，也需要在一次算法中一起读取和更新，因此 Hash 很自然：
+
+~~~text
+Key
+↓
+Hash
+├── tokens
+└── updated
+~~~
+
+下一次请求并不依赖后台 Timer，而是执行 Lazy Refill：
+
+~~~text
+elapsed
+=
+now - updated
+
+tokens
+=
+min(
+  burst,
+  oldTokens + elapsed × rate
+)
+~~~
+
+所以：
+
+~~~text
+rate
+控制长期恢复速度
+
+burst
+控制最多能提前积累多少预算
+~~~
+
+这就是 Token Bucket 能同时支持“长期限速 + 短时突发”的原因。
+
+#### <u>3. 为什么必须 Lua：这不是一条简单 DECR，而是 Read-Compute-Conditional-Write</u>
+
+如果 Node.js 自己执行：
+
+~~~text
+HMGET
+↓
+Compute
+↓
+if
+↓
+HSET
+~~~
+
+两个并发请求可能都读到：
+
+~~~text
+tokens = 10
+~~~
+
+然后都认为：
+
+~~~text
+cost = 10
+可以通过
+~~~
+
+最终虽然 Redis 里只剩 0，但实际上已经放行了 20 Token 的流量。
+
+Lua 把它变成：
+
+~~~text
+Redis Server
+
+┌──────────────────────────┐
+│ HMGET                    │
+│ elapsed / refill         │
+│ tokens >= cost ?         │
+│ deduct                   │
+│ HSET                     │
+│ EXPIRE                   │
+│ return                   │
+└──────────────────────────┘
+~~~
+
+一个 Script 完整结束以后，下一个 Client 才能看到并修改这份状态。
+
+所以：
+
+> **项目使用 Lua 的核心理由是 Correctness（并发正确性），减少 Network Round Trip 是额外收益。**
+
+#### <u>4. EXPIRE 60 表达 Bucket State 生命周期，而不是 60 秒固定窗口</u>
+
+当前脚本：
+
+~~~lua
+redis.call('EXPIRE', key, 60)
+~~~
+
+它的作用是：
+
+~~~text
+60 秒没有再次访问
+↓
+Bucket Key 自动删除
+~~~
+
+这并不意味着当前算法是“60 秒窗口限流”。
+
+真正限流仍由：
+
+~~~text
+elapsed × rate
++
+burst
++
+cost
+~~~
+
+决定。
+
+TTL 只负责回收已经不再活跃的 Bucket State。
+
+#### <u>5. 当前双 Bucket 只有单 Bucket 原子性，没有组合事务原子性</u>
+
+当前：
+
+~~~ts
+Promise.all([
+  consumeKey(projectKey),
+  consumeKey(ipKey),
+])
+~~~
+
+表示：
+
+~~~text
+Project Bucket
+EVAL 原子
+
+IP Bucket
+EVAL 原子
+
+但两次 EVAL 之间
+没有一个统一的 All-or-Nothing 边界
+~~~
+
+因此可能：
+
+~~~text
+Project Bucket
+已扣 Token
+
+IP Bucket
+拒绝
+
+最终 Request
+仍然 429
+~~~
+
+这与单个 Lua Script 的原子性并不矛盾：**原子边界只覆盖每一次 EVAL，不会自动跨两次 EVAL 合并。**
+
+当前设计偏向保护服务容量。如果未来要求：
+
+~~~text
+两个 Bucket 都够
+↓
+才同时扣除
+
+任何一个不够
+↓
+两个都不扣
+~~~
+
+就需要重新设计成多 Key 的统一原子逻辑，并检查 Redis Cluster 下 Hash Slot 约束。
+
+#### <u>6. 这一条项目链应该回到通用 Redis 体系理解</u>
+
+当前实现可以映射到通用知识：
+
+| 项目实现 | 通用 Redis 知识 |
+| --- | --- |
+| Redis Server | 多实例共享状态服务 |
+| ingest:project / ingest:ip | Key Scope Design |
+| tokens + updated | Hash State Model |
+| EXPIRE 60 | TTL / Lifecycle |
+| EVAL Lua | Server-side Atomic Read-Modify-Write |
+| return 1 / 0 | Rate Limit Decision |
+| 双 Bucket | Multi-scope Rate Limiting |
+| Project Hot Key 风险 | Hot Key / Scale Governance |
+
+完整通用定义与其他场景统一参考：
+
+- [Full-Stack-AI-NOTES · Redis 完整知识体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/R-Redis%E5%AE%8C%E6%95%B4%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB.md)
+- [浏览器监控平台 · 服务端全链路](./浏览器监控平台-服务端全链路.md)：查看 Token Bucket 在 publicKey / Origin 校验和逐 Event 校验之间的真实请求位置。
 
 ### 【Recent Time Window 保存“最近发生了什么”，不是长期历史】
 
