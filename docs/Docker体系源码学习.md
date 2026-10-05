@@ -1,5 +1,7 @@
 # Docker 体系源码学习
 
+> **知识边界调整**：本文继续负责 Image、Container、Network、Volume、Compose 和运行生命周期；Health、Restart、启动依赖与 Graceful Shutdown 在服务端完整故障恢复体系中的位置统一参考 [服务端可靠性体系源码学习](./服务端可靠性体系源码学习.md)。
+
 > **学习目标**：先建立 Docker 的完整对象模型，再学习 Dockerfile、Image、Container、Network、Volume 和 Compose，最后回到 Browser Monitor 的真实配置做逐层映射。本文不默认读者已经了解当前项目；所有项目内容都先给出目录、文件和运行关系，再作为通用知识的工程案例。
 >
 > **事实边界**：Docker 通用机制以 Docker 官方文档为依据；项目事实以当前 browser-monitor/platform/infra、各应用 package.json 和 .env.example 为准。项目没有实现的能力会明确标记为“主流方案 / 演进方向”，不把理想设计写成当前实现。
