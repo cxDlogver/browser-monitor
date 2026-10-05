@@ -1,5 +1,7 @@
 # Redis 体系源码学习
 
+> **知识边界调整**：本文继续负责 Redis 的状态模型、原子执行、Cache、TTL、AOF、Failure 与扩展治理；Redis 在 Request、Worker、Analytics 和 Health 中承担的依赖可靠性边界统一由 [服务端可靠性体系源码学习](./服务端可靠性体系源码学习.md) 串联。
+
 > **学习目标**：以当前 Browser Monitor 的真实源码为入口，逐步建立能够脱离项目独立使用的 Redis 知识体系。学习顺序不是先背 GET / SET 命令，而是按照“Redis 在系统中的位置 → 数据模型 → 命令执行与原子性 → 典型状态模型 → 缓存一致性 → 持久化与可靠性 → 高可用与性能治理”逐层深入。
 >
 > **分析范围**：项目事实以 browser-monitor/platform 当前源码为准；Redis 通用知识以 Redis 官方文档为主要依据；Node.js 客户端部分结合 ioredis 当前实现。每一节都按照“项目原文 → 源码执行链路 → 抽象通用知识 → 回到项目判断”的顺序展开。
