@@ -143,6 +143,7 @@ docker compose --env-file platform/.env --profile dev -f platform/infra/docker-c
 
 - [Platform 使用与部署说明](platform/README.md)
 - [浏览器监控平台 · 服务端全链路](docs/浏览器监控平台-服务端全链路.md)
+- [服务端可靠性体系源码学习](docs/服务端可靠性体系源码学习.md)
 - [Redis 体系源码学习](docs/Redis体系源码学习.md)
 - [异步任务与 Worker 可靠消费体系源码学习](docs/异步任务与Worker可靠消费体系源码学习.md)
 - [反向代理与 Caddy 源码学习](docs/反向代理与Caddy源码学习.md)
