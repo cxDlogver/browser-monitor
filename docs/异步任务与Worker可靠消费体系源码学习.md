@@ -1,5 +1,7 @@
 # 异步任务与 Worker 可靠消费体系源码学习
 
+> **知识边界调整**：本文定位为 [服务端可靠性体系源码学习](./服务端可靠性体系源码学习.md) 中“后台任务可靠性”专项，继续深入 Async Boundary、Transactional Outbox、Claim / Lease、At-least-once、Idempotency、Retry、Dead Letter 与 Queue Observability；Request、Dependency、Capacity、Health、Restart 等服务端整体可靠性问题由父级文档统一组织。
+
 > **专题定位**：本篇以 Browser Monitor 当前源码为事实基础，完整梳理 Ingestion API 接收数据以后，任务怎样通过 Transactional Outbox（事务性发件箱）可靠地产生，再由独立 Worker 安全领取、投影、重试、进入死信并最终被监控和恢复。
 >
 > **通用知识入口**：[Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)。通用文档负责解释 Async Boundary、Durable Task、Outbox、ACK / Lease、At-least-once、Idempotency、Retry、Dead Letter、Backpressure 等概念；本文只回答这些机制在 Browser Monitor 当前版本中如何真实落地。
