@@ -1839,6 +1839,9 @@ PostgreSQL Transaction
 
 通用定义与设计边界继续阅读：
 
+- [Full-Stack-AI-NOTES · 服务端可靠性体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%BD%93%E7%B3%BB.md)：服务端 Reliability 通用总入口；本文只映射其中后台任务可靠性分支。
+
+
 - [Full-Stack-AI-NOTES · 服务端异步任务与消息处理体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)
 - [服务端数据管理源码学习-2](./服务端数据管理源码学习-2.md)：继续理解 Transaction、Concurrency Control、Advisory Lock 与 Outbox 的数据库基础。
 - [Redis 体系源码学习](./Redis体系源码学习.md)：继续理解 Analytics Version Cache 与 Worker / Redis 的边界。
