@@ -11130,6 +11130,63 @@ RTO
 
 > **Redis 的可靠性不是“开 AOF”一个配置能够解决的。RDB/AOF 解决数据能否恢复，maxmemory/eviction 解决内存是否可控，Replication/Sentinel 解决节点故障时服务能否继续，而 Backup、RPO、RTO 决定系统最终接受什么样的数据损失和恢复时间。**
 
+
+### 【当前项目 Redis 持久化不等于监控任务保存在 Redis】
+
+从 [docker-compose.yml](../platform/infra/docker-compose.yml) 能直接核验当前项目配置：
+
+~~~yaml
+redis:
+  image: redis:7.4-alpine
+  command: ["redis-server", "--appendonly", "yes"]
+  volumes:
+    - monitor-redis-data:/data
+~~~
+
+这表明本地 Compose 明确启用了 AOF，并将 Redis 数据目录映射到命名持久卷。Redis Server 进程退出或容器以保留卷的方式重建时，有机会通过持久化文件恢复 Dataset。**但源码未在该命令中显式指定 appendfsync 策略、maxmemory-policy，也没有在 Compose 中建立 Redis 自动主从故障切换和独立离线备份**；这些不能仅凭 appendonly yes 推断为完整生产级零数据丢失。Redis 官方说明 RDB 备份、AOF 刷盘间隔和复制都有各自的失败窗口。[Redis Persistence](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)
+
+尤其要避免把三个事实混在一起：
+
+1. 本项目使用 Redis；SessionGuard 的在线鉴权、Cache、Token Bucket、运行统计和 Worker Analytics Version 都会依赖 Redis。
+2. 这份 Redis 配置启用了 AOF；配置数据卷提供文件保留位置，但不能保证任何情况下磁盘都无损。
+3. **采集后的待投影任务并未存储在 Redis。** 该任务在 PostgreSQL 的 outbox_tasks 中，由 OutboxWorker 的 SQL Claim/状态字段领取、重试和死信。Redis 服务是否重启并不直接擦除已成功提交的 PostgreSQL Outbox Row。
+
+对照 BullMQ 默认 Redis Backend：
+
+~~~text
+BullMQ / Redis Backend：
+Queue.add → Redis Queue Structures → BullMQ Worker
+
+Browser Monitor 当前：
+Ingestion Transaction → PostgreSQL outbox_tasks → 自行实现的 OutboxWorker
+                                               ↓
+                                              业务投影成功
+                                               ↓
+                                        Redis INCR analytics:version
+~~~
+
+如果采用 BullMQ Redis Backend，Job 存活会受到 Redis RDB/AOF、Key Eviction、持久卷和重启行为的直接影响；当前 DB Outbox 的权威数据由 PostgreSQL 管理，Redis 更多承担可重建查询缓存与在线共享状态。但其中 Session 是认证的直接判据，不应因为它也在 Redis 就概括成“全部可丢”。另见 [项目 Outbox 任务专题](./异步任务与Worker可靠消费体系源码学习.md) 与 [认证 Session 专题](./账号认证Session与CSRF源码实战分析.md)。
+
+### 【Outbox 完成后再 Redis INCR 的失败揭示缓存一致性与业务完成边界不同】
+
+当前 [OutboxWorker.handle()](../platform/apps/worker/src/outbox-worker.ts) 的实际执行顺序是：
+
+~~~text
+EventProcessor.process()：
+  PostgreSQL Projection + telemetry_events.processed_at COMMIT
+      ↓
+PostgreSQL UPDATE outbox_tasks SET status='completed'
+      ↓
+Redis INCR analytics:version:<projectId>
+~~~
+
+这些动作**并非同一个跨存储事务**。例如已写入投影且已标记 completed，随后 Redis INCR 失败，当前 handle() 的 catch 仍调用 fail()，可能将原本完成的 Outbox 重新变为 pending，产生后续重复执行。另一方面，Redis 版本没递增时，之前缓存的 Analytics 查询结果在 TTL 内也可能未及时失效。因此要把业务投影提交、Job 终态提交、查询缓存失效三个边界分别描述。
+
+对于这种派生查询缓存，不必因为跨库双写就机械套一套 Outbox；可以考虑把缓存失效作为非关键 Best-effort，使用有限 TTL / Version 重建 / 周期对账等缓冲，或针对关键缓存更新另建可靠待办。选择之前要回答“缓存短时陈旧是否可接受、已完成业务任务能否因缓存更新失败而再执行、故障下是否允许旧统计被展示”。这里属于改造建议，当前源码尚未实施。
+
+而 Session 失效有不同的完成语义：Redis DEL 失败可能导致已撤销的旧 Token 仍被 SessionGuard 接受，不能用“缓存总会过期”代替即时安全要求。这正是同一个 Redis 同时承载多类数据时，必须按 Key 的业务职责分别定义持久化与一致性机制的原因。
+
+
 ## 7. Redis 的规模化运行需要同时治理 Key 分布、命令成本、节点容量与可观测性
 
 前六节已经把 Redis 从应用使用一路推进到了可靠运行：
