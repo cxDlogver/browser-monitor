@@ -1344,6 +1344,80 @@ Compensation
 
 ---
 
+
+### 【两个 Store 都写 Session，不意味着必须建立 Session Outbox】
+
+判断是否需要 Outbox，先确定哪个系统决定当前 Credential 是否有效。当前实现登录与鉴权的真实路径为：
+
+~~~text
+AuthService.login()
+  ↓ 验证密码和邮箱
+  ↓ 生成随机 Session Token / tokenHash / csrfToken / expiresAt
+  ↓ INSERT user_sessions ... RETURNING id
+  ↓ Redis SET session:<tokenHash> userContext EX SESSION_TTL_SECONDS
+  ↓ 返回 Token，Controller 设置 Cookie
+
+SessionGuard.canActivate()
+  ↓ Cookie bm_session → tokenHash
+  ↓ Redis GET session:<tokenHash>
+     ├─ 命中 → request.auth = JSON.parse(redisValue)，允许通过该 Session 检查
+     └─ 未命中 → 401 session_expired
+~~~
+
+源码：[auth.service.ts](../platform/apps/api/src/auth/auth.service.ts)、[session.guard.ts](../platform/apps/api/src/auth/session.guard.ts)。**这里 Redis 是在线认证的直接决定依据，并不是 Redis Miss 后自动从 PostgreSQL user_sessions 回源的标准 Cache-Aside。** PostgreSQL 保存持久会话记录，用于 Session ID、Password Reset 批量撤销、按账户查找和清理等。因此两份 Store 有不同实际职责。
+
+登录时先写 PostgreSQL 再写 Redis，没有跨存储共同 Transaction。如果 PostgreSQL 插入成功但 Redis SET 失败，登录请求会抛错，Token 尚未正常返回给客户端，可能留下一条不能用于当前在线授权的孤立记录。这主要是可用性、补偿和清理问题；不必默认增加 SessionCreated Outbox 让登录在不确定的时刻才生效。可以评估失败补偿删除、孤立行周期清理和监控告警。
+
+| 登录/使用故障 | PostgreSQL | Redis | 真实影响 |
+| --- | --- | --- | --- |
+| DB INSERT 失败 | 无新 Session | 无新 Key | 登录请求失败 |
+| DB INSERT 成功、Redis SET 失败 | 新行存在 | 没有对应 Key | 登录失败，孤立 DB 记录待清理 |
+| Redis 写入成功、HTTP 响应丢失 | 新行存在 | 在线 Key 存在 | 客户端可能没拿到 Token，应考虑重试造成多个 Session |
+| Redis Key 提前消失 | 行可能还在 | 无 Key | 当前 Guard 仍返回 401 |
+| DB Session 被删，Redis Key 仍存在 | 无行 | Key 尚有效 | 当前 Guard 可能继续接受旧 Token |
+
+### 【Logout 和 Password Reset 的双写失败需要按即时安全撤销分析】
+
+当前 Logout：
+
+~~~ts
+await Promise.all([
+  this.redis.del("session:" + tokenHash),
+  this.database.pool.query(
+    "DELETE FROM user_sessions WHERE token_hash = $1", [tokenHash],
+  ),
+]);
+~~~
+
+Promise.all 只是在同一个 JavaScript 层等待两个操作，**不构成 Redis + PostgreSQL 原子事务，也不能回滚已经成功的一方**。如果 PostgreSQL DELETE 已成功、Redis DEL 失败，旧 Token 在 Redis TTL 结束前仍可能通过只查询 Redis 的 SessionGuard；反过来若 Redis 已删除、DB 删除失败，在线请求被拒绝，但 DB 会话记录留下了待清理状态。
+
+Password Reset 更需要注意：源码先在 PostgreSQL 的一个事务里重置密码、DELETE 对应用户全部 user_sessions，COMMIT 以后才批量 Redis DEL 这些 Session Key。若 Redis 删除失败，旧 Key 仍可能存在并通过在线认证。这不是前端 Cookie 删除问题，而是服务端撤销语义问题。
+
+**Outbox 能保证将来继续重试 Redis DEL，却不能保证 Logout 当前立即生效。** 其因果链是：
+
+~~~text
+DB 已成功撤销会话
+    ↓
+Outbox 提交成功
+    ↓
+后台等待或重试 Redis DEL
+    ↓
+Redis DEL 真正成功前，旧 Session Key 仍可能可用
+~~~
+
+因此不能把“最终一致的事件通知”误用成“即时认证撤销”。架构完善应优先解决五个问题：
+
+1. **在线权威在哪？** 继续以 Redis 为授权依据时，撤销要在这个边界明确生效；如切换为 DB 权威，则必须确保 Redis 命中不能绕过已撤销状态的校验。
+2. **撤销成功如何定义？** 不应在旧 Token 仍可能通过核心认证检查时无条件声称服务器已完成撤销。对已经进入业务逻辑的并发请求，需要另行规定是否中止。
+3. **存储故障时如何拒绝？** Redis 故障不应让敏感请求按默认允许执行；需要有明确 Fail-closed 与降级策略。
+4. **哪些补偿是异步的？** 孤立 DB 记录清理、审计事件和跨服务通知可由后台修复；是否允许延迟失效取决于安全要求，而不是是否采用队列。
+5. **Redis Miss 后回源是否安全？** 如果 PostgreSQL 还保留未标记撤销的旧行，盲目从 DB 重建 Redis 可能让旧 Session 复活；回源必须按权威过期与撤销规则检查。
+
+当前项目没有实现以上全部补救路径，本文讨论的是**源码中的风险窗口和可演进设计**，不能当作已上线功能。与监控数据链路对照：Raw Event + Outbox 同事务后可返回 HTTP 202，让后台稍后投影；对即时 Session Revocation 则不能直接用同样的“稍后处理”承诺替代安全边界。
+
+关联：[通用会话与访问控制](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/W-Web%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E4%BC%9A%E8%AF%9D%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E4%BD%93%E7%B3%BB.md)、[Redis 一致性](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/R-Redis完整知识体系.md)、[OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)、[AWS Outbox Pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)。
+
+
 ## 14. 源码结论
 
 当前项目认证生命周期可以压缩成：
