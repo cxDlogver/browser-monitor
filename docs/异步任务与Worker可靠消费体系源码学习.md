@@ -1752,6 +1752,161 @@ Publish Kafka 失败
 因为当前主要是“一条 Telemetry → 一次 Projection”的 Task Processing，PostgreSQL Outbox 已经同时满足本地事务、Durable Task、Claim、Retry 和 Dead Letter。只有多独立下游、Replay、高吞吐 Event Stream 或数据库 Queue 成为真实瓶颈时，Kafka 的复杂度才更有收益。
 
 
+
+### 【为什么当前项目的 PostgreSQL 任务队列已经覆盖 BullMQ 的核心场景】
+
+**先确认事实：当前源码并没有使用 BullMQ 管理采集异步任务。** API 用 PostgreSQL Transaction 创建 telemetry_events 与 outbox_tasks；独立 Worker 主动 Pull、Claim、投影、Retry、Dead Letter。Redis 在此链路用于运行统计、版本失效和 Session / Cache 等共享状态，不是 Job 的后端存储。不能因为 docker-compose 包含 Redis，就推断它在消费队列。
+
+对照实际实现：
+
+| 任务问题 | 当前代码如何解决 | 若采用 BullMQ 默认 Redis Backend |
+| --- | --- | --- |
+| Producer 提交任务 | ingestion.service.ts 同事务插入 telemetry_events 和 outbox_tasks | API Queue.add()，写 Redis 队列 |
+| 等待任务在哪里 | outbox_tasks.status=pending、available_at | Redis Job 等待 / 延迟结构 |
+| 多 Worker Claim | FOR UPDATE SKIP LOCKED + UPDATE locked_by / locked_at | BullMQ 内置消费协调和锁 |
+| 并发度 | WORKER_BATCH_SIZE 领取，单次按 10 条分组并发 | Worker concurrency + 实例数量 |
+| Worker 崩溃 | processing 锁定超过 5 分钟可重新领取 | Job 锁续租 / stalled 检测和重派 |
+| 失败重试 | attempts，min(300, 2^attempts) 秒后重排 | attempts + backoff 配置 |
+| 终止故障 | 第 8 次进入 failed + dead_letter_tasks | failed Job + 应用/运维死信处理 |
+| 结果幂等 | 业务表 unique key、ON CONFLICT、Advisory Lock、sequence | 业务幂等仍需自行实现 |
+| 任务持久化 | PostgreSQL WAL、业务库恢复 | Redis AOF/RDB 等，依赖部署策略 |
+
+相关源码入口：
+
+- [IngestionService](../platform/apps/api/src/ingestion/ingestion.service.ts)：把原始事件与任务写进同一个 Transaction。
+- [OutboxWorker](../platform/apps/worker/src/outbox-worker.ts)：run/claim/handle/fail 完整生命周期。
+- [EventProcessor](../platform/apps/worker/src/processor.ts)：领域投影的数据库事务与 processed_at。
+- [Task Schema](../platform/packages/database/src/schema.ts)：status、attempts、available_at、locked_at、locked_by 等字段。
+
+为什么此时选择数据库任务表而不是再增加 BullMQ？当前 Raw Event 和待加工工作需要一起产生，使用 PostgreSQL 本地事务就能保证同步提交。若写完 telemetry_events 后再 Queue.add() 到 Redis，一旦 API 在两次写之间崩溃，就会出现数据库已有 Raw Event，但 Redis 不存在 Job 的双写问题。要保留相同保证，往往仍须在数据库里留下 Outbox，由 Relay 再推送 BullMQ，这会多出新的投递与消费状态机。当前由 Worker 直接领取 Outbox，减少了中间搬运步骤。
+
+不过，这并不意味着 BullMQ 一定不适合：如果业务后来增加更多异构任务、复杂调度、分布式限流、独立扩容等要求，它可能节省自研 Job Queue 的维护成本。BullMQ 官方目前还提供可选 PostgreSQL backend，应核对版本与功能后再选型。这里没有测试证明当前架构性能优于 BullMQ，不能给出无依据的吞吐结论。
+
+参考：[BullMQ Workers](https://docs.bullmq.io/guide/workers)、[PostgreSQL backend](https://docs.bullmq.io/guide/postgresql)、[AWS Transactional Outbox](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)。
+
+### 【Raw Event 与 Outbox 两表存储同一份 JSON，是职责独立带来的可评估冗余】
+
+当前接收代码：
+
+~~~sql
+WITH inserted_events AS (
+  INSERT INTO telemetry_events(...)
+  SELECT ...
+  ON CONFLICT DO NOTHING
+  RETURNING event_id, occurred_at, event
+)
+INSERT INTO outbox_tasks(project_id, event_id, occurred_at, event)
+SELECT $1, event_id, occurred_at, event
+FROM inserted_events;
+~~~
+
+确实同时保存完整 Event Payload。要判断能否“只留任务表，处理后再写业务投影”，必须先读取这个 Raw 表还有哪些独立消费者：
+
+1. [AnalyticsService.rawEvents()](../platform/apps/api/src/analytics/analytics.service.ts) 对 telemetry_events 做时间范围、eventId、sessionId、viewId、type、name 等明细过滤和游标分页；[RawEventsPage](../platform/apps/web/src/pages/RawEventsPage.tsx) 是对应的实际 UI。直接删除 Raw 表会让原始事件页的数据源消失。
+2. AnalyticsService.overview() 直接对 telemetry_events 计数，不只读取已经加工的 performance_samples / view_records。
+3. [0001_platform.sql](../platform/packages/database/migrations/0001_platform.sql) 定义 telemetry_rollup_1m，直接按 event type、name、environment、route 等维度从 telemetry_events 做连续聚合。
+4. 原始事件的 TimescaleDB Retention 为 30 天，telemetry_rollup_1m 为 180 天；Worker.housekeeping() 清理 7 天前已经完成的 Outbox。因此 **Raw Event 和已完成 Job 本来就不是同一保留周期**。
+5. EventProcessor.process() 在自己的数据库事务中更新 telemetry_events.processed_at，允许将“已接收但尚未投影”与“已投影”区分开；完成 Outbox 的更新发生在后续另一条提交边界。
+
+因此，不能将“写两份 JSON”直接等价为“无用重复”。它有真实的生命周期与访问负载隔离价值。
+
+但在业务需要较简单时，单表仍然是可行选择：
+
+~~~text
+telemetry_jobs
+  Raw Event JSONB + occurred_at + project_id
+  status + attempts + available_at + locked_at + locked_by
+       ↓
+Worker Claim / Process
+       ↓
+投影成功后标记同一行 completed
+       ↓
+原始事件查询继续从这张表读取
+~~~
+
+单表减少一次同事务 INSERT 和 JSON 副本，简化基础模型；但若仍需要 Timescale 按时间压缩/保留，以及频繁更新 Job 状态，就要检查同一张时序表上 UPDATE、行锁与分区物理布局的性能和可维护性。尤其是原始事件 30 天清理若碰上长期失败任务，可能直接删除尚未完成的 Job。选择单表不能免除任务重试、幂等和定期清理设计。
+
+还有一个折中：保留两表，但 Outbox 只保存 project_id + event_id + occurred_at + 任务状态，不复制 Event Payload：
+
+~~~text
+telemetry_events（存完整原始事件）
+       ↑ 根据稳定复合键读取
+outbox_tasks（只存任务引用和运行状态）
+       ↓ Worker Claim 后回源读取
+EventProcessor
+~~~
+
+这样降低重复存储，但每次 Claim 需要额外读取 Raw Event，并须确保 Raw 数据保留到相关任务处理结束、人工回放结束或明确废弃后，且能按分区时间准确定位。对于 Timescale Hypertable，occurred_at 属于重要的分区定位键；不同维度业务幂等可能仍需要独立锁/约束。这是**可评估的改造**，不是当前源码已经实现的行为。
+
+### 【当前 Worker 的崩溃恢复与 BullMQ 的锁续租机制不能混为一谈】
+
+OutboxWorker.claim() 通过以下条件重新领取旧任务：
+
+~~~sql
+status = 'processing'
+AND locked_at < now() - INTERVAL '5 minutes'
+~~~
+
+但 outbox-worker.ts 的普通 handle() 并没有在事件处理期间持续刷新 locked_at，而是只在领取时写一次。对当前通常较短的事件投影可能已经足够，但严格说不是会自动续期的分布式 Lease。若处理耗时超过五分钟，其他 Worker 再次 Claim 可能开始并发处理同一业务事件；locked_by 可以防止旧持有者覆盖新的 outbox completed，但无法取消已经产生的外部副作用。正确性仍需依赖 EventProcessor 的独立幂等与业务锁。
+
+进一步还要看到三段提交不是一体的：
+
+~~~text
+1. EventProcessor.process()
+   投影 SQL + telemetry_events.processed_at 同事务 COMMIT
+          ↓
+2. UPDATE outbox_tasks status=completed
+          ↓
+3. Redis INCR analytics:version:projectId
+~~~
+
+**故障窗口一**：步骤 1 已提交，步骤 2 失败；后续重试会再次尝试投影。已有业务幂等逻辑防止关键记录重复写入。
+
+**故障窗口二**：步骤 2 已成功，步骤 3 的 Redis INCR 失败；当前 catch 仍进入 fail()，代码可能把 completed 任务重新改回 pending，造成为了缓存版本失败而重做投影。它说明缓存可用性与业务任务成功状态没有完全隔离，是值得后续优化的可靠性边界。不能把“Outbox 完成 + Redis 缓存更新”描述成一个原子事务。
+
+**故障窗口三**：任务已经过五分钟超时，但原 Worker 实际仍运行。新的 Worker 领取后，项目只能依赖业务幂等与已验证的 owner 条件防止错误提交；若演进到长任务，应考虑续租、乐观版本（Fencing Token）或更短批次，并以故障注入验证。
+
+BullMQ 的 stalled / locking 也不保证所有外部 Side Effect 的 exactly-once，只是内置了另一种消费者拥有权管理能力。参考：[BullMQ Stalled Jobs](https://docs.bullmq.io/guide/workers/stalled-jobs)。
+
+### 【如果未来接入 Kafka，Topic Offset 不会代替业务投影状态】
+
+Kafka 与当前 Outbox Worker 不同：Kafka 保存的是由 Broker 管理的有序 Partition Log；Consumer Group 把每个 Topic Partition 的 Committed Offset 持久化在 Kafka 的内部 Offset 状态中。多个 Consumer Group 可分别订阅同一事件流：
+
+~~~text
+Ingestion API
+   ↓ Kafka Topic telemetry-events（Broker 的磁盘日志）
+   ├─ Group performance → Performance Projection
+   ├─ Group errors      → Error Analysis
+   └─ Group archive     → Archival
+~~~
+
+这不是当前项目已部署的链路，而是当存在多个独立消费方、高吞吐和回放需求时的一种演进路线。若 API 仍然要同步写 telemetry_events，则 Kafka 交接还会存在 PostgreSQL 与 Kafka 的双写问题，需要 Outbox Relay/CDC 或明确让 Kafka 成为可靠接收边界。不能把 Kafka 的消息保留误认为替代了原始事件的 SQL 多条件查询、索引或时序连续聚合。
+
+对于经典 Consumer Group，Committed Offset 逻辑键是（Group，Topic，Partition），其数据被写入 Kafka 自己的内部 Compact Topic __consumer_offsets；同组新 Consumer 接管分区后从已提交位置恢复，不是从旧实例的进程内存恢复。Offset 100 属于某个分区上待处理的消息位置，不会说“该事件的 performance/view/custom signal 已经投影到哪一个阶段”。
+
+例如 Kafka 的 offset 100 对应事件 E：
+
+~~~text
+Consumer 读取 E
+  ↓
+EventProcessor 已把结果持久化 PostgreSQL
+  ↓
+Consumer 崩溃，尚未提交 Offset 101
+  ↓
+恢复后重新读取 E
+  ↓
+业务唯一键/事务状态检查
+  ↓
+发现 E 已处理：跳过副作用，再确认 Offset 101
+~~~
+
+如果提前提交 101 而数据库投影没成功，崩溃后则可能丢失这一条处理工作。因此恢复策略要结合 Postgres 唯一键/processed_at/Inbox 以及消费位点的提交顺序。Kafka 事务性 Producer 的 Exactly-once 范围不自动覆盖当前的 PostgreSQL 表更新。
+
+另外，如果一条 Kafka 消息承载的是多分钟 AI Workflow，Kafka 只记录消费位点，不知道“文档解析完成、提取已完成、LLM 还在执行”。需在业务库保存每一步 Checkpoint 与可复用产物，重新收到同一任务时对账；Kafka Consumer 还需维护分区连续完成水位，不能因为 offset 101 已完成就跳过尚未完成的 100。长任务可以先可靠转入 DB Job Store，再确认消费位点，由专用 Worker 异步推进。详见 [异步任务通用文档](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/F-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86%E4%BD%93%E7%B3%BB.md)。
+
+参考：[Kafka Consumer Offset Tracking](https://kafka.apache.org/41/implementation/distribution/)、[Kafka Delivery Semantics](https://kafka.apache.org/41/design/design/)。
+
+
 ## 9. 项目知识最终收敛为“可靠产生 → 安全消费 → 正确重复 → 失败恢复 → 运行治理”
 
 ### 【把源码重新映射到一张完整知识图】
