@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、时间窗口聚合和 Continuous Aggregate、历史 Chunk 压缩，以及 Retention 按 Chunk 淘汰与分层保留。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、索引、分区主键与业务幂等、时间窗口聚合及 Continuous Aggregate、历史 Chunk 压缩、Retention 分层保留，以及迟到与乱序事件对存储和统计的影响。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -44,8 +44,8 @@
 7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（已讨论；水位、历史修改与实时查询已追问）
 8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？（已讨论）
 9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（已讨论）
-10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。（下一轮）
-11. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？
+10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。（已讨论）
+11. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？（下一轮）
 
 ### 【必要的项目背景：一条原始事件从哪里来】
 
@@ -1451,7 +1451,238 @@ Retention：按时间清理完整过期 Chunk，不依赖逐行 DELETE
 权威来源：[Timescale Data Retention](https://docs.timescale.com/use-timescale/latest/data-retention/about-data-retention/)、[Retention Policy](https://docs.timescale.com/api/latest/data-retention/add_retention_policy/)、[连续聚合与历史清理](https://docs.timescale.com/use-timescale/latest/data-retention/data-retention-with-continuous-aggregates/)、[原始数据清理后聚合刷新风险](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/drop-data/)。
 
 
-## 13. 当前知识进度与后续讨论
+## 13. 通用问题：迟到与乱序事件如何影响分区、连续聚合、压缩和保留
+
+### 【先说明事件为什么不按发生时间顺序入库】
+
+浏览器监控、设备监测、日志采集等系统，事件先在客户端产生，再经过批量发送、网络传输和服务端接入写进数据库。网络失败、重试、设备离线或时钟偏差，都会使“事件发生顺序”和“事件入库顺序”不同。
+
+教学示例：
+
+| 事件 | 发生时间 Event Time | 服务端接收时间 |
+| --- | --- | --- |
+| A | 10:00:10 | 10:00:11 |
+| B | 10:01:20 | 10:05:00 |
+| C | 10:02:30 | 10:02:31 |
+
+事件发生顺序是 A → B → C；接收顺序是 A → C → B。B 相对其他事件发生了乱序接入。
+
+- **Event Time（事件时间）**：业务事实实际发生的时间。
+- **Ingestion / Received Time（接入/接收时间）**：服务端接收或数据库记录收到事实的时间。
+- **Processing Time（处理时间）**：真正执行某个数据处理操作时的时间。
+- **Out-of-Order（乱序）**：到达顺序不符合发生顺序。
+- **Late Arrival（迟到）**：到达时间显著晚于事件时间；是否对历史物化结果造成影响，还取决于是否已经跨过物化边界。
+
+**问题：一条发生在历史时间段、现在才到达的事件，存储位置、历史压缩、聚合统计和 Retention 会怎样处理？** 本轮复用前面已经建立的四个机制，不引入新的异步系统。
+
+### 【第一层：按 Event Time 路由到旧 Chunk，不按收到时刻写入最新 Chunk】
+
+假设 Hypertable 以 `occurred_at` 分区，每个 Chunk 覆盖一小时（教学假设）：
+
+~~~text
+Chunk A：[09:00, 10:00)
+Chunk B：[10:00, 11:00)
+Chunk C：[11:00, 12:00)
+
+11:10 收到一条发生于 09:30 的事件
+           ↓
+检查记录的 occurred_at = 09:30
+           ↓
+路由到 Chunk A（09:00～10:00）
+           ↓
+与是否在 11:10 收到无关
+~~~
+
+SQL 写入仍面向逻辑 Hypertable：
+
+~~~sql
+-- 教学示例；不是本项目真实 Schema 的完整 INSERT。
+INSERT INTO events (event_id, occurred_at, type)
+VALUES ('evt-001', '2026-10-12 09:30:00+00', 'error');
+~~~
+
+因此乱序本身不会让数据库按服务器当前时间错误归档。数据库根据分区键决定 Chunk；一批不同发生时间的事件也可以分发到不同 Chunk。
+
+但“正确路由”不能推出“后续聚合、压缩、生命周期无需特殊考虑”。接下来需要分别判断旧 Chunk 的状态和聚合物化边界。
+
+### 【第二层：新近未物化数据与已物化历史的数据处理方式不同】
+
+设当前 10:05，`telemetry_rollup_1m` 的**假设**物化水位在 10:04。
+
+| 事件的发生时间 | 相对物化水位 | 对实时查询的处理 |
+| --- | --- | --- |
+| 10:04:30 | 水位之后，尚未物化 | SELECT 连续聚合时，可读取最新原始事件并临时 GROUP BY |
+| 10:02:30 | 水位之前，已物化历史 | 先记录历史变更 Invalidation，后续刷新对应时间桶 |
+
+**情况 A——水位之后的新事件**：
+
+~~~text
+INSERT occurred_at=10:04:30
+          ↓
+原始表拥有这条事实
+          ↓
+materialized_only=false 的实时聚合 SELECT
+          ↓
+对未物化较新原始数据临时分桶计算
+          ↓
+后台 Refresh 覆盖完整时间桶
+          ↓
+物化结果被保存；水位可向前推进
+~~~
+
+查询时临时聚合**不会**因 SELECT 自动持久化、不会自行推进水位。
+
+**情况 B——水位之前的历史事件**：
+
+~~~text
+已物化的 10:02 桶 event_count=100
+          ↓
+INSERT occurred_at=10:02:30
+          ↓
+已物化历史范围发生变化
+          ↓
+记录受影响范围（Invalidation）
+          ↓
+Refresh 覆盖 10:02 桶时重新聚合
+          ↓
+已保存的 event_count 更新为 101
+~~~
+
+这里水位可以依旧停留在 10:04，因为修改的是旧桶，而不是首次物化新的时间桶。
+
+**关键边界**：实时聚合不意味着水位之前的历史变动立即可见。如果尚未完成有效刷新，读取历史物化结果仍可能暂时是旧值；如果超出自动刷新策略窗口，则需另外刷新或补算。
+
+### 【第三层：写入已压缩 Chunk 时的成本】
+
+Compression 已将符合条件的旧 Chunk 从行式布局转换为压缩批次。后续一条旧事件仍会根据发生时间定位到相关旧 Chunk，但其物理写入方式取决于是否压缩以及 TimescaleDB 版本支持。
+
+对于支持插入压缩数据的传统压缩版本，正常 INSERT 可以面向已压缩 Hypertable 工作；数据库需要处理压缩存储的维护，成本可能高于对普通活跃 Chunk 的追加写入。对于大量历史批次回填，可能更适合评估先解压相关 Chunk、批量写入、再次压缩；不能假定所有版本都有相同行为或同样 DML 成本。
+
+要注意“24 小时压缩阈值”是**完整 Chunk 的年龄条件**，而非事件发生满 24 小时就立即压缩。因此迟到 2 小时的事件，不意味着一定命中压缩 Chunk；迟到数天也不能仅靠事件年龄断言 Chunk 已压缩，必须核对实际分块范围和后台 Job 状态。
+
+### 【第四层：超出 Retention 的历史写入不能依赖数据库自动拦截】
+
+Retention 采用按时间范围淘汰整个旧 Chunk 的策略。如果客户端上报一条很早以前的事件，数据库可能面向已被清理的历史时间范围执行写入或重新建立旧 Chunk，之后该 Chunk 又可能被下一轮保留任务移除；精确行为取决于运行版本、策略与并发状态。
+
+**Retention 不是接入层的事件时间校验器。** 业务必须明确允许补录的时间范围、超过范围的拒绝方式，以及是否有特别的人工历史回填流程。
+
+### 【实际项目的五个时间配置】
+
+`browser-monitor` 将网页产生的性能、访问、异常、自定义事件经接入 API 校验、脱敏和去重后写入 `telemetry_events`。分区列是 `occurred_at`（浏览器事件发生时间），另有 `received_at`（记录接收时间）。数据库以发生时间选择 Chunk。
+
+实际策略如下：
+
+| 控制点 | 项目配置 | 意义 |
+| --- | --- | --- |
+| 接入层事件时间准入 | 过去 30 天 ～ 未来 5 分钟 | 过旧/过未来事件拒绝 |
+| `telemetry_events` Compression | 24 小时阈值 | 旧 Chunk 达到压缩条件可由后台执行 |
+| `telemetry_events` Retention | 30 天 | 完整过期 Chunk 由后台删除 |
+| `telemetry_rollup_1m` 刷新窗口 | 29 天前 ～ 最近 10 秒之前 | 周期性刷新该区间的完整分钟桶 |
+| 分钟/小时聚合的 Retention | 180 天 | 按各层聚合自身的时间范围清理 |
+
+接入时间校验的真实代码：
+
+~~~ts
+if (
+  parsed.data.occurredAt > now + 5 * 60_000 ||
+  parsed.data.occurredAt < now - 30 * 24 * 60 * 60_000
+) {
+  rejections.push({ index, code: "event_time_out_of_range" });
+  return;
+}
+~~~
+
+分钟级物化刷新策略：
+
+~~~sql
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1m',
+  start_offset => INTERVAL '29 days',
+  end_offset => INTERVAL '10 seconds',
+  schedule_interval => INTERVAL '10 seconds',
+  if_not_exists => TRUE
+);
+~~~
+
+源码：[IngestionService](../../platform/apps/api/src/ingestion/ingestion.service.ts)、[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)、[0002_hourly_aggregates.sql](../../platform/packages/database/migrations/0002_hourly_aggregates.sql)。
+
+### 【重点边界：29 天 12 小时前的事件现在才到达】
+
+假设服务端现在收到一条发生在 **29 天 12 小时前** 的事件。
+
+1. **接入校验**：未超过过去 30 天范围，可以通过本项时间校验；仍须通过协议、项目等其他检查。
+2. **Chunk 路由**：按照旧 `occurred_at` 找对应 Chunk。它是否仍存在、是否已压缩、能否高效写入，要结合当前真实状态。
+3. **压缩状态**：项目的 24 小时阈值可能让相应历史 Chunk 已压缩，但必须通过实际 Chunk 状态确认。
+4. **聚合刷新**：分钟级自动刷新只向前覆盖约 29 天；该事件对应时间桶位于窗口之外。若旧桶已经物化，则新插入可能使它变旧；若尚未物化，常规自动刷新也不会补全这段结果。
+5. **数据保留**：30 天原始明细 Retention 按 Chunk 淘汰，因此这条事件可能被接受入库，但其剩余存活时间受所属 Chunk 时间边界及后台清理时刻影响。
+
+**结论不是断言线上已有统计错误，而是配置暴露了一个可验证的边界：接入层允许的最大迟到时间大于分钟连续聚合自动回溯的刷新范围。**
+
+可以考虑从业务角度明确策略：缩小迟到准入窗口、拓宽安全的聚合刷新窗口，或者对极迟到事件触发有控制的历史补算。但不能只把刷新窗口无条件扩大到早于 Retention 的已删除上游数据范围，否则可能覆盖或抹掉应保留的历史统计。
+
+### 【针对具体场景验证，而不是只看 SQL 配置】
+
+建议在测试项目中验证三类样本：
+
+| 迟到时间 | 主要验证目标 |
+| --- | --- |
+| 约 30 秒 | 是否成功入库，实时聚合什么时候能看到最新分钟桶 |
+| 约 2 小时 | 对应历史桶是否已物化、Invalidation/Refresh 是否使统计增加 |
+| 约 29 天 12 小时 | 旧 Chunk 是否压缩、记录能否入库、是否位于自动刷新窗口外 |
+
+按事件 ID 检查原始事件是否写入：
+
+~~~sql
+-- 示例参数应使用测试项目真实 ID 和 event ID。
+SELECT event_id, occurred_at, received_at, type
+FROM telemetry_events
+WHERE project_id = $1 AND event_id = $2;
+~~~
+
+检查与事件发生时间对应的一分钟统计：
+
+~~~sql
+SELECT bucket, type, SUM(event_count) AS total
+FROM telemetry_rollup_1m
+WHERE project_id = $1
+  AND bucket = time_bucket(
+    INTERVAL '1 minute', $2::timestamptz
+  )
+GROUP BY bucket, type;
+~~~
+
+上述聚合 SQL 为了观察方便按类型汇总；真实视图还有 name、environment、app_version、route_name 等分组维度。如果仅验证某一特定事件类型/名称，应补充相应过滤条件，不能误把全项目的事件数当作某一事件的统计值。
+
+还应核验 `timescaledb_information.chunks` 的真实状态、连续聚合物化水位和后台 Job 的成功情况。项目源码不能代替生产实例测试。
+
+### 【本轮完整结论】
+
+~~~text
+迟到或乱序事件进入服务端
+          ↓
+校验 Event Time 是否允许进入数据库
+          ↓
+按 occurred_at 路由至时间对应的旧 Chunk
+          ↓
+根据 Chunk 是否压缩，使用可用写入路径
+          ↓
+根据事件时间与物化边界：
+    ├─ 水位之后 → 实时查询临时聚合 → 后续首次物化
+    └─ 水位之前 → 历史 Invalidation → 覆盖范围内重新刷新
+          ↓
+若早于自动刷新窗口 → 需额外历史补算或明确定义不补算
+          ↓
+Retention 独立淘汰过期 Chunk，可能限制历史可追溯窗口
+~~~
+
+**时序数据库保证数据可按 Event Time 进行正确的分区组织，不等于自动保证所有历史统计实时准确或无限期保留。** 写入正确性、统计一致性和生命周期规则需要分别设计与验证。
+
+下一轮应继续通过真实数据库观测验证这些机制：EXPLAIN 查询计划、Chunk 与压缩率、Continuous Aggregate 水位与刷新结果、后台 Job 状态，形成基于证据的数据库运行与容量检查方法。
+
+资料：[Timescale Continuous Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[Real-Time Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)、[Compression](https://docs.timescale.com/use-timescale/latest/compression/about-compression/)、[Data Retention](https://docs.timescale.com/use-timescale/latest/data-retention/about-data-retention/)。
+
+
+## 14. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -1464,16 +1695,16 @@ Retention：按时间清理完整过期 Chunk，不依赖逐行 DELETE
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【下一轮只讨论一个问题：迟到与乱序写入对正常时序链路有什么影响】
+### 【下一轮只讨论一个问题：如何验证时序数据库运行与数据正确性】
 
-**通用问题：** 时序事件在设备或浏览器中先发生、再异步接入数据库。因此发生时间并不总是按照写入顺序增加。当旧时间范围新增原始事件时，已学的 Chunk 分区、压缩批次、连续聚合物化结果和 Retention 如何协作，哪里会出现代价或一致性边界？
+**通用问题：** 通过 Schema、Migration 和策略配置，我们知道数据库“应该怎样工作”；怎样从实际运行数据判断 Chunk、索引、压缩、Continuous Aggregate、Retention 与后台任务是否真的实现目标，并区分性能问题和数据正确性问题？
 
-下一轮按正常机制的因果顺序逐项推导：
-- Event Time、接收时间、数据库写入时间与乱序/迟到的区别；
-- 用事件时间定位旧 Chunk，写入未压缩与已压缩旧 Chunk 的差异；
-- 落在未物化范围的新近历史数据如何被实时聚合查询、之后怎样首次物化；
-- 落在已物化历史范围的迟到事件如何触发 Invalidation，并等待刷新；
-- 迟到事件超过刷新窗口、原始数据压缩阈值或 Retention 保留窗口的不同结果；
-- 核对项目 `[-30 天,+5 分钟]` 事件准入、24 小时压缩、30 天明细保留、29 天分钟刷新与 180 天聚合保留，判断实际边界并提出可测量的验证方案。
+下一轮按证据链推进：
+- 用 `timescaledb_information.dimensions`、`chunks` 等元数据检查真实 Chunk Interval、时间范围、压缩状态与存储大小；
+- 用 `EXPLAIN (ANALYZE, BUFFERS)` 验证典型查询的 Chunk Pruning、索引选择和资源消耗；
+- 用压缩统计及执行计划核实压缩率及压缩后查询的性能取舍；
+- 检查 Continuous Aggregate 物化水位、自动刷新范围和与源数据对照的统计结果；
+- 检查 retention/compression/refresh Job 是否确实成功执行，而不是仅创建成功；
+- 建立最小化、可复现的容量和迟到事件校验步骤，区分“源码能证明的配置”“SQL 可验证的运行状态”“必须通过实测得到的结论”。
 
-暂不引入新的异步消息中间件或 Outbox/Worker 内部细节。
+保留完整理论—运行—源码衔接，暂不引入与本题无关的中间件机制。
