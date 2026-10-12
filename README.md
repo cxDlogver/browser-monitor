@@ -137,6 +137,7 @@ docker compose --env-file platform/.env --profile dev -f platform/infra/docker-c
 
 - [SDK 使用说明](sdk/README.md)
 - [SDK 项目知识梳理](sdk/docs/Browser-Monitor-SDK-项目知识梳理.md)
+- [业务插桩、Trace/Span 与批量上报源码分析](docs/监控SDK业务插桩与TraceSpan执行链路源码分析.md)
 - [协议包说明](protocol/README.md)
 
 ### 【服务端与可视化】
