@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、普通时间窗口聚合。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、普通时间窗口聚合，以及连续聚合的物化水位、实时查询、失效与刷新。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -41,7 +41,7 @@
 4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？（已讨论：分区与复合 B-Tree；JSONB 索引为延伸专题）
 5. 事务、主键和唯一性在时间分区表中怎么设计？（已讨论）
 6. 时间窗口聚合如何从原始事件得出趋势结果？先理解 GROUP BY 和 time_bucket。（已讨论）
-7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（下一轮）
+7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（已讨论；水位、历史修改与实时查询已追问）
 8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？
 9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？
 10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。
@@ -832,7 +832,264 @@ GROUP BY bucket, project_id, type, name,
 本轮小结：\`time_bucket\` 是时间归桶函数，\`GROUP BY\` 是分组规则，\`COUNT\` 等是统计计算；物理 Chunk 是存储粒度，时间桶是统计粒度，两者既可共存也不可混淆。
 
 
-## 9. 当前知识进度与后续讨论
+## 9. 通用问题：Continuous Aggregate 为什么要保存聚合结果并持续刷新
+
+### 【从反复计算历史事件统计的成本出发】
+
+前一节已经解释了，原始事件通过 time_bucket + GROUP BY + COUNT 可以变成按分钟汇总的统计结果。但是 SELECT 本身不会自动保存聚合输出；如果每次请求历史图表都重新读取大量相同事件并分组，就会重复计算。
+
+因此产生一个通用问题：**能否保存已经算好的历史时间桶，同时在原始事件继续进入数据库后，只刷新需要更新的桶？**
+
+要先区分三种机制：
+
+| 机制 | 统计结果是否保存 | 原始事件变化后如何维护 |
+| --- | --- | --- |
+| 普通 GROUP BY 查询 | 不会因 SELECT 自动持久化结果 | 下一次查询重新执行聚合 |
+| PostgreSQL Materialized View | 将查询结果物化保存 | 需要 REFRESH MATERIALIZED VIEW；常规刷新重新执行定义查询 |
+| TimescaleDB Continuous Aggregate | 保存分桶统计结果 | 根据物化范围、数据变更以及刷新窗口增量更新受影响的时间桶 |
+
+**物化（Materialization）**的意思不是缓存到应用进程的内存里，而是将按时间桶及其他分组维度得到的统计结果，保存在数据库管理的物化结构中。原始事件仍存储于源 Hypertable。
+
+### 【什么是增量物化，而不只是给计数器加一】
+
+假设某一分钟已物化 COUNT=100，之后该分钟又产生了两条事件：
+
+~~~text
+已物化时间桶：10:00 → 100
+新的原始事件：10:00:20、10:00:40
+        ↓
+该分钟历史统计不再对应原始事实
+        ↓
+记录相关原始时间范围发生了变化
+        ↓
+下次刷新覆盖这个分钟桶
+        ↓
+重新聚合这个时间桶 → 102
+~~~
+
+这里的增量是**识别并重算受影响的时间桶，而不是每次新 INSERT 都直接 UPDATE event_count = event_count + 1**。当历史修改超出自动刷新窗口时，还需要额外刷新或补算。
+
+TimescaleDB 通过物化范围及 invalidation（失效）机制降低重复扫描全部历史的必要性。失效范围用于指出可能受原始数据变化影响的时间桶，刷新操作按当前原始数据计算更新后的聚合结果。
+
+### 【刷新策略管理何时计算以及刷新哪段时间】
+
+通用示例：
+
+~~~sql
+SELECT add_continuous_aggregate_policy(
+  'event_stats_1m',
+  start_offset => INTERVAL '7 days',
+  end_offset => INTERVAL '1 minute',
+  schedule_interval => INTERVAL '1 minute'
+);
+~~~
+
+- start_offset：从执行时刻向历史回溯，确定本轮候选刷新窗口的较早边界；
+- end_offset：当前时间之前留出的较新边界，避免频繁物化还在持续变化的最新桶；
+- schedule_interval：后台任务的目标调度周期，**不表示每一周期必然成功刷新或推进水位**。
+
+后台刷新针对**完整位于指定刷新区间的时间桶**执行；对已物化区域可结合失效信息更新受影响的时间桶，对尚未物化且符合范围的时间桶执行首次物化。SQL WHERE 能查询原始数据与否，不自动保证所有历史桶都处于这轮刷新范围。
+
+### 【项目：分钟级原始事件统计具体建立在哪里】
+
+监控平台中，一次页面访问或自定义事件经过入库校验后保存在原始表 telemetry_events。项目希望查看每分钟的事件量，因此另外建立名为 telemetry_rollup_1m 的连续聚合。
+
+~~~sql
+CREATE MATERIALIZED VIEW telemetry_rollup_1m
+WITH (timescaledb.continuous) AS
+SELECT
+  time_bucket(INTERVAL '1 minute', occurred_at) AS bucket,
+  project_id, type, name, environment, app_version, route_name,
+  count(*)::bigint AS event_count
+FROM telemetry_events
+GROUP BY bucket, project_id, type, name, environment, app_version, route_name
+WITH NO DATA;
+~~~
+
+- timescaledb.continuous：声明使用 TimescaleDB 的连续聚合维护机制；
+- FROM telemetry_events：源头是原始事件，而不是预先统计的结果；
+- GROUP BY：按分钟和项目/事件类型/环境等组合分别保存统计；
+- WITH NO DATA：建视图时不立即把全部历史源数据物化；自动策略通常覆盖有限时间窗口，早于该窗口的历史需要考虑手动回填。
+
+项目刷新策略：
+
+~~~sql
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1m',
+  start_offset => INTERVAL '29 days',
+  end_offset => INTERVAL '10 seconds',
+  schedule_interval => INTERVAL '10 seconds',
+  if_not_exists => TRUE
+);
+~~~
+
+这里的 10 秒是刷新任务的调度间隔，**并不是 time_bucket 的统计粒度**，也不等于每 10 秒就把过去 29 天完全重算一遍。统计仍按一分钟分桶，任务对窗口中的完整桶进行相关计算。
+
+源码：[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)。
+
+### 【实时聚合为什么有必要】
+
+如果最新的一分钟尚未完成物化，只查询已经保存的历史统计，就可能看不到最近收到的事件。为此可启用：
+
+~~~sql
+ALTER MATERIALIZED VIEW telemetry_rollup_1m
+SET (timescaledb.materialized_only = false);
+~~~
+
+此配置表示 Continuous Aggregate 查询**不局限于已物化结果**，可把物化水位之后、尚未物化的原始事件在查询时临时分桶聚合后纳入结果。此行为是数据库 SELECT 的查询方式，**不意味着更新了物化存储、不意味着有 WebSocket 推送，也不承诺已经物化的历史改变会即时更新**。
+
+项目源码：[0003_realtime_aggregates.sql](../../platform/packages/database/migrations/0003_realtime_aggregates.sql)。
+
+资料：[Timescale 连续聚合的运行机制](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[刷新策略与窗口](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/refresh-policies/)、[实时聚合](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)。
+
+## 10. 追问：物化水位什么时候推进，已物化历史与未物化数据怎样分别处理
+
+### 【原始讨论问题】
+
+> 什么时候水位推进？什么时候判断当前的物化水位可以推进？对于物化以后的历史区间，直接读取物化的统计结果。那对于新近历史数据，还会进行处理吗？如果要处理，应该怎么处理？对于未物化的数据，直接读取原始数据，去统计它的聚合数据。
+
+**讨论重点：理解三个对象的边界，而不是只记“实时聚合=两部分结果相加”**：
+
+1. Materialization Watermark：实时聚合查询以哪个时间点分开物化历史与未物化近期数据。
+2. Refresh Policy / Materialization：后台什么时候真正把时间桶统计写进物化存储。
+3. Invalidation：已物化时间范围内的原始事件发生变化后，怎样通知刷新机制重新计算历史桶。
+
+### 【首先区分：数据已入库，不等于统计已物化】
+
+假设当前 10:05:25，物化水位为 10:04:00，聚合粒度为一分钟：
+
+| 事件发生时间所在桶 | 当前状态 | 实时聚合 SELECT 的数据来源 |
+| --- | --- | --- |
+| [10:02, 10:03) | 已物化 | 已保存的聚合结果 |
+| [10:03, 10:04) | 已物化 | 已保存的聚合结果 |
+| [10:04, 10:05) | 尚未物化，但原始事件已写入 | 临时读取原始事件进行 GROUP BY |
+| [10:05, 10:06) | 当前未完成的桶 | 临时按已收到的原始事件聚合；查询值可能继续变化 |
+
+**“未物化”只意味着该桶结果尚未由刷新操作保存**，不是原始事件未入库。
+
+### 【水位推进：依据已经完成的刷新范围，而不是判断数据未来不再变化】
+
+TimescaleDB 的物化水位表示已物化历史与实时查询所读的最新原始数据之间的边界。它与后台物化刷新的进度有关，而不是按照墙上时钟每隔 10 秒机械自增。
+
+仍以当前时刻 10:05:25、end_offset=10 seconds 举例：
+
+~~~text
+刷新最近端：10:05:25 - 10s = 10:05:15
+
+一分钟的完整桶：
+[10:03,10:04) 完整
+[10:04,10:05) 完整
+[10:05,10:06) 尚不完整，不能在本轮作为完整桶物化
+~~~
+
+如果系统以前物化到 10:04，本次成功刷新新增的完整 [10:04,10:05) 桶，已物化范围向前延展，水位就可能推进到 10:05。
+
+这里并非判断“以后永远不会再来发生在 10:04 的事件”。系统只判断**本次刷新范围内的完整时间桶可被物化**，然后执行计算、保存；晚到历史变化可以在后续刷新中重算。
+
+须区分：
+- **schedule_interval 到点**：触发运行尝试，不能直接断言完成刷新。
+- **时间桶完整处于可刷新区间**：使该桶具备参与本轮物化的时间条件，但不是水位已经改变的证明。
+- **刷新操作实际完成并延展已物化范围**：才构成水位推进的基础。
+- **已物化旧桶重新刷新**：数据被更新，但物化水位不一定变化，因为没有扩展历史的最近边界。
+
+TimescaleDB 内部还会使用与变更追踪相关的 materialization/invalidation threshold。讨论时应区分**面向实时查询的 watermark**与**面向失效日志的 threshold**，虽然二者都与物化边界有关，但不能未经版本与具体机制核对就宣称是同一个数据库字段。
+
+### 【状态 A：水位之后的新数据如何被查询与后续物化】
+
+例如水位 10:04，一条发生时间 10:04:30 的事件写入原始表：
+
+~~~text
+INSERT 原始事件
+  ↓ occurred_at 属于 [10:04,10:05)
+目前尚未物化
+  ├─ 用户现在 SELECT 实时聚合
+  │     └─ 查原始表并临时 GROUP BY，不写入物化结果
+  └─ 后台刷新覆盖这一个完整时间桶
+        └─ 计算并保存物化结果，可能推进水位
+~~~
+
+**实时聚合的临时计算，不会自行推进物化水位**。只有实际执行刷新并完成物化，才会改变已物化范围。
+
+### 【状态 B：已经物化的旧时间桶，又有新事件写入怎么办】
+
+例如水位已到 10:04，10:02 时间桶物化值为 100，后来收到一条发生在 10:02:30 的事件。
+
+~~~text
+已物化：10:02 → event_count=100
+        ↓
+原始表新增 occurred_at=10:02:30
+        ↓
+标记已物化区域发生变化（Invalidation）
+        ↓
+后续 Refresh 覆盖该桶所在窗口
+        ↓
+重新读取该时间桶相关原始数据进行聚合
+        ↓
+更新保存的结果：10:02 → 101
+~~~
+
+此时只是**刷新历史统计**，并没有必然将物化水位从 10:04 推进到 10:05。
+
+因此用户所说“物化以后的历史区间直接读取物化结果”要加上重要前提：**已物化历史发生修改后，在对应桶重新刷新之前，读取的结果可能暂时滞后**。
+
+启用 Real-Time Aggregate 也不会自动让水位之前的历史修改立即在查询中体现。若修改的时间位于自动刷新策略窗口之外，需要额外安排手动刷新或历史补算。
+
+### 【状态 C：已物化历史未发生变化时】
+
+不需要每次查图表都重新聚合所有历史事件。读取已经保存的时间窗口结果即可。这是 Continuous Aggregate 降低历史重复计算的主要收益。
+
+### 【把后台维护和前台查询严格分成两条链】
+
+~~~text
+后台维护链（有持久化写入）：
+原始事件写入
+  ↓
+新近完整时间桶进入刷新范围 → 首次物化 → 水位可推进
+已物化历史桶发生变化 → Invalidation → 历史重新刷新
+  ↓
+保存或更新物化统计结果
+
+查询链（不必更新物化存储）：
+SELECT Continuous Aggregate（materialized_only=false）
+  ├─ 水位之前：读取已经物化的统计结果
+  └─ 水位之后：查询时从原始数据临时聚合
+           ↓
+将两段查询结果统一呈现
+~~~
+
+**一句话结论**：水位决定“实时查询中物化数据和近期原始数据的分界”；刷新负责“持久化或更新统计结果”；Invalidation 负责“让已物化历史的变化在后续刷新中得到处理”。
+
+### 【对照原始事件项目配置并记录待验证边界】
+
+`telemetry_rollup_1m` 是由 `telemetry_events` 的 `occurred_at` 构建的一分钟连续聚合，项目迁移中的配置是：
+
+~~~sql
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1m',
+  start_offset => INTERVAL '29 days',
+  end_offset => INTERVAL '10 seconds',
+  schedule_interval => INTERVAL '10 seconds',
+  if_not_exists => TRUE
+);
+
+ALTER MATERIALIZED VIEW telemetry_rollup_1m
+SET (timescaledb.materialized_only = false);
+~~~
+
+第一个配置控制后台刷新窗口与调度频率，第二个配置控制 SELECT 是否纳入未物化原始数据；不能把它们误解为相同功能。
+
+目前仅核对代码配置，没有读取运行中数据库的物化水位、Job 执行历史和真实统计结果，因此**不能确认水位实际推进到了哪里、历史刷新是否发生或真实实时查询是否存在延迟**。
+
+### 【延伸问题留到下一轮，不直接进入压缩与 Retention】
+
+下一步如果继续深入 Continuous Aggregate 内部机制，应该先讨论：**Invalidation 如何把原始数据变化的最小/最大时间范围转换成需要刷新的一组完整时间桶？为什么刷新不是在每次 INSERT 时简单执行 COUNT + 1？**
+
+这属于当前连续聚合主题内部的进阶讨论。完成其边界与刷新代价后，再进入历史数据压缩机制；然后研究 Retention；最后再讨论乱序迟到数据对整条链路的影响。
+
+官方参考：[连续聚合物化引擎与失效追踪](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[物化水位与历史修改限制](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/troubleshooting/)、[实时聚合](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)、[连续聚合刷新策略](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/refresh-policies/)。
+
+
+## 11. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -845,17 +1102,14 @@ GROUP BY bucket, project_id, type, name,
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【下一轮只讨论一个问题：Continuous Aggregate 如何保存并刷新历史统计】
+### 【当前追问衔接：先深化连续聚合，再进入压缩与 Retention】
 
-**通用问题：** 一个按时间窗口计算的历史统计查询，如果每次都读取大量原始事件并执行 GROUP BY，会造成重复计算。能否把聚合结果保存下来，又在原始数据不断新增时保持结果更新？
+目前已完整记录：
 
-下一轮按照以下依赖顺序讨论：
+- GROUP BY 与 time_bucket 怎样形成时间桶；
+- 普通聚合、物化视图与 Continuous Aggregate 的区别；
+- 保存物化结果、后台刷新与实时查询为何是不同动作；
+- Watermark 什么时候推进、旧时间桶如何借助 Invalidation 重新刷新；
+- 最新尚未物化的数据怎样在 SELECT 时临时聚合。
 
-- 普通 SELECT 聚合、PostgreSQL MATERIALIZED VIEW 与 TimescaleDB Continuous Aggregate 的存储和查询区别；
-- 什么是“物化”（Materialization），为什么要把时间桶维度的统计结果单独保存；
-- 为什么持续写入时需要记录改变的数据区间，如何将“失效区间”转换为要刷新的一批时间桶；
-- 什么是刷新策略的起止时间和调度周期，为什么不是每来一条数据都同步更新所有统计；
-- 当前尚未被物化的最近时间段如何通过实时聚合选项参与查询，以及可能的短暂一致性边界；
-- 回到 `telemetry_rollup_1m` 的定义与后台刷新配置，逐行理解而不预设数据库函数名的语义。
-
-再下一轮才深入讨论历史数据压缩和 Retention，最后才分析迟到乱序对这些机制的影响。
+后续优先补充失效时间范围到刷新桶的内部机制，再依照学习计划讨论历史 Chunk 压缩、Retention，最后回到迟到与乱序事件对数据库的影响。
