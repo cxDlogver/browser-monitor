@@ -33,20 +33,20 @@
 
 这是一条**学习因果主线**，不是声称每次插入事件后才依次建立分区、索引与保留策略。建表和策略配置通常提前由 Migration 完成；实际运行时，数据库在同一组存储对象上持续执行写入、查询、后台维护。
 
-接下来逐轮回答这些问题：
+本文沿以下问题逐步建立机制与工程实例：
 
-1. 为什么不断增长的时间数据会引出专门存储管理需求？（已讨论）
-2. Hypertable 与 Chunk 是什么；数据真正写进哪里？（已讨论）
-3. Chunk 的时间跨度怎样选，过大或过小会造成什么影响？（已讨论）
-4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？（已讨论：分区与复合 B-Tree；JSONB 索引为延伸专题）
-5. 事务、主键和唯一性在时间分区表中怎么设计？（已讨论）
-6. 时间窗口聚合如何从原始事件得出趋势结果？先理解 GROUP BY 和 time_bucket。（已讨论）
-7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（已讨论；水位、历史修改与实时查询已追问）
-8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？（已讨论）
-9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（已讨论）
-10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。（已讨论）
-11. 项目原始事件如何从接入、入库、分钟/小时事件计数，最终被 API 和 Web 消费？（已讨论）
-12. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？（下一轮）
+1. 为什么不断增长的时间数据会引出专门存储管理需求？
+2. Hypertable 与 Chunk 是什么；数据真正写进哪里？
+3. Chunk 的时间跨度怎样选，过大或过小会造成什么影响？
+4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？
+5. 事务、主键和唯一性在时间分区表中怎么设计？
+6. 时间窗口聚合如何从原始事件得出趋势结果？先理解 GROUP BY 和 time_bucket。
+7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？
+8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？
+9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？
+10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。
+11. 项目原始事件如何从接入、入库、分钟/小时事件计数，最终被 API 和 Web 消费？
+12. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？
 
 ### 【必要的项目背景：一条原始事件从哪里来】
 
@@ -1201,7 +1201,7 @@ SELECT create_hypertable(
 按照时间维度组织
 ~~~
 
-这里下一节才深入：
+下文将进一步深入：
 
 ~~~text
 Hypertable
@@ -3183,7 +3183,7 @@ Compression / Retention / Historical Lifecycle
 
 ### 【问题背景：不是按时间分块就意味着分区越细越快】
 
-上一轮建立了 Hypertable（应用统一访问的逻辑时序表）与 Chunk（数据库按时间管理的实际数据块）的关系。这一轮进一步讨论：**每个 Chunk 应该覆盖一天、一周还是更长时间，应该依据什么做决定？**
+前文已经建立了 Hypertable（应用统一访问的逻辑时序表）与 Chunk（数据库按时间管理的实际数据块）的关系。这里进一步讨论：**每个 Chunk 应该覆盖一天、一周还是更长时间，应该依据什么做决定？**
 
 先采用一个独立于项目的示例：一个时序服务每天产生 100 万条事件。如果定义每个 Chunk 覆盖一天，七天可能形成约七个有数据的 Chunk；如果每个 Chunk 覆盖七天，七天可能只需要一个 Chunk。精确数量还取决于分区边界对齐及是否有数据写入。
 
@@ -3343,13 +3343,13 @@ SELECT add_retention_policy('telemetry_events', INTERVAL '30 days', if_not_exist
 
 源码：[原始事件表及时间分区配置](../platform/packages/database/migrations/0001_platform.sql)。当前没有连接运行数据库进行查询，故不能假造实际 Chunk 数量、大小及压缩执行日期。
 
-### 【本轮结论与下一轮衔接】
+### 【Chunk Interval 与查询优化的衔接】
 
 **Chunk Interval 不是单纯的“时间精度”参数，而是同时影响活跃索引工作集、分区数量、查询裁剪、数据压缩和历史淘汰粒度的物理设计。**
 
 选取方法是先测写入速度和索引大小，再结合可用内存、典型查询范围以及历史保留要求确定初始候选，最后用真实数据库计划与数据规模核验。不能推断“越小必然越快”或“越大必然越省资源”。
 
-下一轮只推进一个通用问题：**时间分区（Chunk Pruning）与 B-Tree 索引为什么需要同时存在，二者分别在哪个范围解决查询问题？** 仍使用经过业务说明的原始事件表和查询 SQL 作为验证案例，不预设已有项目知识。
+在查询优化中进一步需要回答：**时间分区（Chunk Pruning）与 B-Tree 索引为什么需要同时存在，二者分别在哪个范围解决查询问题？** 仍使用经过业务说明的原始事件表和查询 SQL 作为验证案例，不预设已有项目知识。
 
 
 
@@ -3702,11 +3702,11 @@ LIMIT 50;
 
 `EXPLAIN ANALYZE` 使用真实行数与真实耗时，`BUFFERS` 记录缓冲读写信息；为了说明机制，可以使用教学 SQL，但要验证项目现状必须运行在有代表性数据的实际实例。
 
-### 【当前讨论结论与下一轮的因果衔接】
+### 【时间分区与主键约束的衔接】
 
 **时间分区回答“哪些时间块可能有目标记录”，B-Tree 索引回答“如何在可访问的块中高效定位某些键对应的行”，二者可以同时参与同一条 SQL 的执行。**
 
-下一轮进入与物理分区直接相关的数据正确性问题：**既然一张 Hypertable 的行分散在不同 Chunk 中，数据库如何在写入时保证主键和唯一约束？为什么时序分区表上的 UNIQUE/PRIMARY KEY 必须包含分区时间字段？**
+在数据正确性方面进一步需要回答：**既然一张 Hypertable 的行分散在不同 Chunk 中，数据库如何在写入时保证主键和唯一约束？为什么时序分区表上的 UNIQUE/PRIMARY KEY 必须包含分区时间字段？**
 
 实践会继续使用 `telemetry_events`，但先解释事件 ID 在业务上表示什么、主键与唯一约束在 PostgreSQL 中是什么意思，再看项目的实际复合主键与幂等去重策略。
 
@@ -4727,7 +4727,7 @@ Insert
 
 ### 【PostgreSQL GROUP BY 与聚合函数各自负责什么】
 
-\`GROUP BY\` 根据分组键将多条记录归为一组；\`COUNT\`、\`SUM\`、\`AVG\`、\`MIN\`、\`MAX\` 等函数计算该组的统计值。完整事件时间戳通常精确到毫秒，如果直接按照完整时间戳分组，很多事件各自属于不同组，不能直接得出每分钟的访问量。
+`GROUP BY` 根据分组键将多条记录归为一组；`COUNT`、`SUM`、`AVG`、`MIN`、`MAX` 等函数计算该组的统计值。完整事件时间戳通常精确到毫秒，如果直接按照完整时间戳分组，很多事件各自属于不同组，不能直接得出每分钟的访问量。
 
 所以先要**把不同的事件时间映射到相同的时间窗口起点**，然后按照这个起点进行 GROUP BY。
 
@@ -4744,29 +4744,29 @@ GROUP BY bucket
 ORDER BY bucket;
 ~~~
 
-- \`occurred_at\`：事件真实发生时间。
-- \`INTERVAL '1 minute'\`：聚合分桶的时间跨度。
-- \`time_bucket\`：按约定的时间对齐规则，返回某条事件所属时间桶的**起始时间**。
-- \`GROUP BY bucket\`：同一分钟的记录合并成组。
-- \`COUNT(*)\`：得到组内的事件条数。
-- \`ORDER BY bucket\`：按时间显示趋势。
+- `occurred_at`：事件真实发生时间。
+- `INTERVAL '1 minute'`：聚合分桶的时间跨度。
+- `time_bucket`：按约定的时间对齐规则，返回某条事件所属时间桶的**起始时间**。
+- `GROUP BY bucket`：同一分钟的记录合并成组。
+- `COUNT(*)`：得到组内的事件条数。
+- `ORDER BY bucket`：按时间显示趋势。
 
-例如 10:00:10、10:00:35、10:00:52 均映射到 10:00:00。通常可以用半开区间来描述窗口：\`[10:00:00, 10:01:00)\`，避免边界上的记录重复落入两个相邻窗口。要考虑时区、桶原点与夏令时等语义，不能简单认为所有时间分桶均必然按用户本地时区自然日对齐。
+例如 10:00:10、10:00:35、10:00:52 均映射到 10:00:00。通常可以用半开区间来描述窗口：`[10:00:00, 10:01:00)`，避免边界上的记录重复落入两个相邻窗口。要考虑时区、桶原点与夏令时等语义，不能简单认为所有时间分桶均必然按用户本地时区自然日对齐。
 
 ### 【time_bucket 的统计窗口不等于 Chunk Interval】
 
 | 概念 | 决定什么 | 所属层次 |
 | --- | --- | --- |
 | Chunk Interval（物理时间分区间隔） | 每块物理存储覆盖的时间区间 | 数据物理组织 |
-| time_bucket 的 \`1 minute\` | 相隔一分钟的时间戳如何统计到同一个桶 | 查询与聚合计算 |
+| time_bucket 的 `1 minute` | 相隔一分钟的时间戳如何统计到同一个桶 | 查询与聚合计算 |
 
 例如一个 Hypertable 可以每七天形成一个 Chunk（仅作教学假设），但可以在它上面运行分钟级、小时级或天级统计。**聚合分桶不会因为被查询就重新物理切分原始事件表**；它给 SQL 提供了分组键。
 
 ### 【项目的原始事件一分钟统计是怎样计算的】
 
-在 browser-monitor 中，网站产生的监控事件会安全处理后写入 \`telemetry_events\`。时间字段 \`occurred_at\` 是事件在网页上实际发生的时间，\`project_id\` 区分项目，\`type\`、\`name\` 区分事件类别与事件名称。
+在 browser-monitor 中，网站产生的监控事件会安全处理后写入 `telemetry_events`。时间字段 `occurred_at` 是事件在网页上实际发生的时间，`project_id` 区分项目，`type`、`name` 区分事件类别与事件名称。
 
-数据库迁移中定义了 \`telemetry_rollup_1m\`，意为“按一分钟汇总的原始遥测统计”。其中统计查询的核心部分为：
+数据库迁移中定义了 `telemetry_rollup_1m`，意为“按一分钟汇总的原始遥测统计”。其中统计查询的核心部分为：
 
 ~~~sql
 SELECT
@@ -4787,17 +4787,17 @@ GROUP BY bucket, project_id, type, name,
 
 源码：[0001_platform.sql](../platform/packages/database/migrations/0001_platform.sql)。
 
-**当前这段真实 SQL 实际出现在 Continuous Aggregate 的 CREATE MATERIALIZED VIEW 定义中。** 在本轮只解释其中 \`time_bucket / GROUP BY / count\` 的基础聚合语义；物化结果及刷新机制留给下一轮，避免一次抛出太多前置知识。
+**当前这段真实 SQL 实际出现在 Continuous Aggregate 的 CREATE MATERIALIZED VIEW 定义中。** 这里先解释其中 `time_bucket / GROUP BY / count` 的基础聚合语义；物化结果及刷新机制放在后文的连续聚合章节进一步解释。
 
 ### 【为什么基础聚合还不足以应对重复历史查询】
 
-普通的 \`SELECT ... GROUP BY\` 定义了如何计算一次统计结果，但它**不会仅因为执行过一次 SELECT 就自动持久化结果，供下次按同样条件直接复用**。
+普通的 `SELECT ... GROUP BY` 定义了如何计算一次统计结果，但它**不会仅因为执行过一次 SELECT 就自动持久化结果，供下次按同样条件直接复用**。
 
 如果原始事件表规模很大，历史看板频繁请求相同时间范围，每次重读并重新聚合原始行可能浪费资源。PostgreSQL 的普通物化视图可以保存查询结果，却需要管理刷新，而不是默认自动按时序变化精细维护。
 
 因此自然引出下一轮：**Continuous Aggregate 如何保存时间窗口结果，增量发现变更并刷新，而不是每次完整重新聚合所有历史？**
 
-本轮小结：\`time_bucket\` 是时间归桶函数，\`GROUP BY\` 是分组规则，\`COUNT\` 等是统计计算；物理 Chunk 是存储粒度，时间桶是统计粒度，两者既可共存也不可混淆。
+本轮小结：`time_bucket` 是时间归桶函数，`GROUP BY` 是分组规则，`COUNT` 等是统计计算；物理 Chunk 是存储粒度，时间桶是统计粒度，两者既可共存也不可混淆。
 
 
 
@@ -7508,7 +7508,7 @@ Higher-level Aggregate
 可以解决 Rollup
 ~~~
 
-留到下一节单独展开。
+在本文后面的 Two-step Aggregation 部分展开。
 
 这样形成：
 
@@ -7825,7 +7825,7 @@ Dependent Refresh Requirement
 
 ### 【第六节的 Policy Dependency 在这里变成真实数据依赖】
 
-上一节已经建立：
+前面已经建立：
 
 ~~~text
 Policy Design
@@ -8013,7 +8013,7 @@ Hierarchical CAGG
 
 > **Hierarchical Continuous Aggregate 不是简单把 1m 改成 1h，而是让 Lower-level Continuous Aggregate 成为 Higher-level Continuous Aggregate 的数据源；从这一刻开始，Bucket、Aggregate State、Refresh、Retention 与 Freshness 都进入跨层依赖设计。**
 
-下一节再继续回答：
+在可组合统计状态专题中进一步回答：
 
 ~~~text
 为什么 Average
@@ -8928,7 +8928,7 @@ Time-weighted Average
 
 ## 8. 物化水位、Invalidation 与实时聚合共同维护统计结果
 
-### 【原始讨论问题】
+### 【物化水位推进与历史重新刷新的核心问题】
 
 > 什么时候水位推进？什么时候判断当前的物化水位可以推进？对于物化以后的历史区间，直接读取物化的统计结果。那对于新近历史数据，还会进行处理吗？如果要处理，应该怎么处理？对于未物化的数据，直接读取原始数据，去统计它的聚合数据。
 
@@ -9170,23 +9170,23 @@ ALTER TABLE metrics SET (
 );
 ~~~
 
-\`segmentby\` 指定共同形成压缩批次的业务维度。按 device_id 分组后，设备 A 的记录不会随意与设备 B 记录混到同一组批次。适合与常用查询的过滤字段协调；但若所选维度基数太高、每组数据量很小，可能导致批次数过多、压缩效率下降。
+`segmentby` 指定共同形成压缩批次的业务维度。按 device_id 分组后，设备 A 的记录不会随意与设备 B 记录混到同一组批次。适合与常用查询的过滤字段协调；但若所选维度基数太高、每组数据量很小，可能导致批次数过多、压缩效率下降。
 
 **segmentby 不会额外创建一组 Hypertable 时间分区**；它属于既有 Chunk 内部压缩布局的组织规则。
 
 ### 【orderby 决定压缩批次内的排列与时间范围定位】
 
-\`orderby = 'time DESC'\` 使同组数据按时间排序。时序数据的相邻时间值常有规律，适合进行时间相关的压缩编码；排序列的辅助范围信息还有助于在查询时间窗口时跳过无关压缩批次。
+`orderby = 'time DESC'` 使同组数据按时间排序。时序数据的相邻时间值常有规律，适合进行时间相关的压缩编码；排序列的辅助范围信息还有助于在查询时间窗口时跳过无关压缩批次。
 
-\`orderby\` 并不是保证 \`SELECT\` 返回顺序的 SQL ORDER BY，应用如果要求稳定输出顺序，仍应在查询中显式 ORDER BY。
+`orderby` 并不是保证 `SELECT` 返回顺序的 SQL ORDER BY，应用如果要求稳定输出顺序，仍应在查询中显式 ORDER BY。
 
 ### 【当前原始事件的真实压缩配置】
 
-browser-monitor 中，浏览器 SDK 产生的访问、性能、异常、自定义业务事件经服务端验证、脱敏并去重后进入 \`telemetry_events\`。主要公共字段有：
-- \`project_id\`：网站/应用所属项目；
-- \`type\`：事件类型；
-- \`occurred_at\`：事件实际发生时间，也是 Hypertable 时间分区列；
-- \`event\`：安全处理后的完整遥测 JSONB。
+browser-monitor 中，浏览器 SDK 产生的访问、性能、异常、自定义业务事件经服务端验证、脱敏并去重后进入 `telemetry_events`。主要公共字段有：
+- `project_id`：网站/应用所属项目；
+- `type`：事件类型；
+- `occurred_at`：事件实际发生时间，也是 Hypertable 时间分区列；
+- `event`：安全处理后的完整遥测 JSONB。
 
 项目实际迁移：
 
@@ -9221,7 +9221,7 @@ SELECT add_compression_policy(
 
 假设一个 Chunk 覆盖 10 月 1 日至 10 月 8 日零时；10 月 1 日的事件不会在 10 月 2 日就被这一策略单独压缩。该 Chunk 的结束时间满足“早于当前 24 小时”后，下一次符合条件的后台任务才可能执行压缩。
 
-因此 \`Chunk Interval\` 与 \`compress_after\` 有联系：Chunk 时间跨度越长，最早进入 Chunk 的记录距离实际压缩可能越久。本项目在建表迁移中没有显式指定 Chunk Interval，**不能仅凭 24 小时阈值得到真实压缩日期**。
+因此 `Chunk Interval` 与 `compress_after` 有联系：Chunk 时间跨度越长，最早进入 Chunk 的记录距离实际压缩可能越久。本项目在建表迁移中没有显式指定 Chunk Interval，**不能仅凭 24 小时阈值得到真实压缩日期**。
 
 ### 【压缩后的读取机制与 B-Tree 的边界】
 
@@ -9238,7 +9238,7 @@ WHERE project_id = $1
 
 数据库可针对已压缩 Chunk 选择对应的压缩数据查询路径。传统压缩的批次存储与普通行式 Chunk 上的 B-Tree 访问方式不同；可利用 segmentby、orderby 及压缩数据元信息减少不必要的批次扫描和解压。
 
-**不能声称配置 segmentby/排序以后，所有点查、任意 JSONB 属性查找都比未压缩快**。性能仍应通过真实数据、执行计划、查询延迟和压缩率验证。项目这里采用传统 \`timescaledb.compress\` / \`compress_segmentby\` / \`compress_orderby\` API，新版本 Hypercore/Columnstore API 在存储和 DML 行为上有所发展，应针对部署版本区分。
+**不能声称配置 segmentby/排序以后，所有点查、任意 JSONB 属性查找都比未压缩快**。性能仍应通过真实数据、执行计划、查询延迟和压缩率验证。项目这里采用传统 `timescaledb.compress` / `compress_segmentby` / `compress_orderby` API，新版本 Hypercore/Columnstore API 在存储和 DML 行为上有所发展，应针对部署版本区分。
 
 ### 【如何验证真实压缩效果，而不是只读 Migration】
 
@@ -9261,7 +9261,7 @@ FROM hypertable_compression_stats('telemetry_events');
 
 需核对实际 TimescaleDB 版本、权限和统计口径；除了压缩空间占用变化，还应比较常用原始事件时间查询的延迟与执行计划。
 
-### 【本轮结论与后续问题的依赖关系】
+### 【压缩机制与数据生命周期的关系】
 
 ~~~text
 近期事件持续写入 → 行式 Chunk
@@ -10631,7 +10631,7 @@ Hypertable：events
 
 这里重要的是**Chunk 的结束时间是否越过过期边界**，而不是块里是否已有部分行变旧。
 
-因此 \`INTERVAL '30 days'\` 不是精确到每条 Row 的自动 TTL。真正的删除时间还受到 Chunk Interval、区间边界和后台调度影响。块跨度越长，过期淘汰粒度一般越粗。
+因此 `INTERVAL '30 days'` 不是精确到每条 Row 的自动 TTL。真正的删除时间还受到 Chunk Interval、区间边界和后台调度影响。块跨度越长，过期淘汰粒度一般越粗。
 
 ### 【Retention Policy 怎样自动运行】
 
@@ -10663,15 +10663,15 @@ Job 按调度规则尝试运行
 ~~~
 
 要区分：
-- \`drop_after\`：定义分区时间范围相对当前时间的过期条件。
-- \`schedule_interval\`：定义后台任务的调度间隔；不是每条记录的到期精确时刻。
-- \`drop_created_before\`：较新 API 还有按 Chunk 创建时间淘汰的独立选项，**不能与当前按事件时间的 drop_after 混为一谈**。
+- `drop_after`：定义分区时间范围相对当前时间的过期条件。
+- `schedule_interval`：定义后台任务的调度间隔；不是每条记录的到期精确时刻。
+- `drop_created_before`：较新 API 还有按 Chunk 创建时间淘汰的独立选项，**不能与当前按事件时间的 drop_after 混为一谈**。
 
-当前迁移采用 \`INTERVAL\` 形式的 drop_after，针对的是 \`occurred_at\` 所在的时序维度，不是 \`received_at\` 或 Chunk 的创建时间。
+当前迁移采用 `INTERVAL` 形式的 drop_after，针对的是 `occurred_at` 所在的时序维度，不是 `received_at` 或 Chunk 的创建时间。
 
 ### 【真实项目：原始数据 30 天与历史统计 180 天】
 
-本案例中，监控平台接收多种浏览器原始事件，先在接入服务校验、去重、脱敏后保存在 \`telemetry_events\`；为了查看历史趋势，数据库另外物化一分钟统计 \`telemetry_rollup_1m\`，再基于分钟数据形成小时统计 \`telemetry_rollup_1h\`。
+本案例中，监控平台接收多种浏览器原始事件，先在接入服务校验、去重、脱敏后保存在 `telemetry_events`；为了查看历史趋势，数据库另外物化一分钟统计 `telemetry_rollup_1m`，再基于分钟数据形成小时统计 `telemetry_rollup_1h`。
 
 原始事件及分钟统计的真实配置：
 
@@ -10714,7 +10714,7 @@ SELECT add_retention_policy(
 
 虽然连续聚合物化存储与上游原始数据分别管理，**它并不是被永久冻结、与原始数据清理完全无关的历史快照**。
 
-假设某一分钟此前保存 \`event_count=100\`；后来包含这些事件的原始 Chunk 被 Retention 删除。如果再对这段已丢失原始事实的时间窗口执行刷新，连续聚合将根据当前可见源数据重新计算，原统计行可能消失或变为无数据，历史统计就被破坏。
+假设某一分钟此前保存 `event_count=100`；后来包含这些事件的原始 Chunk 被 Retention 删除。如果再对这段已丢失原始事实的时间窗口执行刷新，连续聚合将根据当前可见源数据重新计算，原统计行可能消失或变为无数据，历史统计就被破坏。
 
 因此，如果业务希望“原始事件只留 30 天，但历史趋势保存 180 天”，原则上需要**让自动刷新窗口不覆盖已经被原始 Retention 删除的数据范围**，并避免不合适的手动历史刷新。
 
@@ -10740,9 +10740,9 @@ SELECT add_continuous_aggregate_policy(
 );
 ~~~
 
-分钟级上游 \`telemetry_events\` 保留 30 天，刷新从 29 天前开始；小时级上游 \`telemetry_rollup_1m\` 保留 180 天，刷新从 179 天前开始。这体现了**每一层的刷新回溯范围与它直接读取的上一层保留窗口相协调**。
+分钟级上游 `telemetry_events` 保留 30 天，刷新从 29 天前开始；小时级上游 `telemetry_rollup_1m` 保留 180 天，刷新从 179 天前开始。这体现了**每一层的刷新回溯范围与它直接读取的上一层保留窗口相协调**。
 
-这一设计降低了重新刷新已删除上游数据的风险，但不能单凭配置保证 180 天统计总是完整：初始 \`WITH NO DATA\` 回填、任务成功率、运行版本、数据过期边界、人工刷新和历史补写都需验证。
+这一设计降低了重新刷新已删除上游数据的风险，但不能单凭配置保证 180 天统计总是完整：初始 `WITH NO DATA` 回填、任务成功率、运行版本、数据过期边界、人工刷新和历史补写都需验证。
 
 ### 【如何在运行实例中验证，而非停留在代码配置】
 
@@ -10758,9 +10758,9 @@ SELECT job_id, last_run_status, last_successful_finish,
 FROM timescaledb_information.job_stats;
 ~~~
 
-另需查询 \`timescaledb_information.chunks\` 中实际 Chunk 的时间边界，并核对被删除的原始范围是否还存在合理的连续聚合物化数据。以上是待执行的验证方法，不能据此声称线上已经按预期清理。
+另需查询 `timescaledb_information.chunks` 中实际 Chunk 的时间边界，并核对被删除的原始范围是否还存在合理的连续聚合物化数据。以上是待执行的验证方法，不能据此声称线上已经按预期清理。
 
-### 【本轮结论与下一轮的衔接】
+### 【Retention 与历史迟到数据的衔接】
 
 ~~~text
 原始事件持续增长
@@ -11496,7 +11496,7 @@ Retention 独立淘汰过期 Chunk，可能限制历史可追溯窗口
 
 **时序数据库保证数据可按 Event Time 进行正确的分区组织，不等于自动保证所有历史统计实时准确或无限期保留。** 写入正确性、统计一致性和生命周期规则需要分别设计与验证。
 
-下一轮应继续通过真实数据库观测验证这些机制：EXPLAIN 查询计划、Chunk 与压缩率、Continuous Aggregate 水位与刷新结果、后台 Job 状态，形成基于证据的数据库运行与容量检查方法。
+运行验证应继续使用真实数据库观测检查这些机制：EXPLAIN 查询计划、Chunk 与压缩率、Continuous Aggregate 水位与刷新结果、后台 Job 状态，形成基于证据的数据库运行与容量检查方法。
 
 资料：[Timescale Continuous Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[Real-Time Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)、[Compression](https://docs.timescale.com/use-timescale/latest/compression/about-compression/)、[Data Retention](https://docs.timescale.com/use-timescale/latest/data-retention/about-data-retention/)。
 
@@ -14295,7 +14295,7 @@ Refresh Lag Alert
 
 **通用问题：** 通过 Schema、Migration 和策略配置，我们知道数据库“应该怎样工作”；怎样从实际运行数据判断 Chunk、索引、压缩、Continuous Aggregate、Retention 与后台任务是否真的实现目标，并区分性能问题和数据正确性问题？
 
-下一轮按证据链推进：
+运行验证按以下证据链推进：
 - 用 `timescaledb_information.dimensions`、`chunks` 等元数据检查真实 Chunk Interval、时间范围、压缩状态与存储大小；
 - 用 `EXPLAIN (ANALYZE, BUFFERS)` 验证典型查询的 Chunk Pruning、索引选择和资源消耗；
 - 用压缩统计及执行计划核实压缩率及压缩后查询的性能取舍；
