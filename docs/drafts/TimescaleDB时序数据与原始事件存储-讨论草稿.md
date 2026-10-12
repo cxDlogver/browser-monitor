@@ -39,8 +39,8 @@
 2. Hypertable 与 Chunk 是什么；数据真正写进哪里？（已讨论）
 3. Chunk 的时间跨度怎样选，过大或过小会造成什么影响？（已讨论）
 4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？（已讨论：分区与复合 B-Tree；JSONB 索引为延伸专题）
-5. 事务、主键和唯一性在时间分区表中怎么设计？（下一轮）
-6. 乱序事件、迟到写入会带来什么存储与聚合影响？
+5. 事务、主键和唯一性在时间分区表中怎么设计？（已讨论）
+6. 乱序事件、迟到写入会带来什么存储与聚合影响？（下一轮）
 7. 时间聚合与 Continuous Aggregate 解决什么问题？
 8. 压缩、Retention 和后台 Job 怎样管理旧数据？
 9. 如何用真实 SQL 与执行计划验证数据存储和查询效率？
@@ -398,7 +398,7 @@ Chunk 大还会影响“时间范围裁剪”的粒度：如果一个 Chunk 覆�
 用真实负载和 EXPLAIN (ANALYZE, BUFFERS) 验证
 ~~~
 
-这一流程并非 TimescaleDB 内置自动推导算法，而是一般工程调优方法。要注意 \`EXPLAIN ANALYZE\` 会真正执行查询，线上验证要控制查询负荷。
+这一流程并非 TimescaleDB 内置自动推导算法，而是一般工程调优方法。要注意 `EXPLAIN ANALYZE` 会真正执行查询，线上验证要控制查询负荷。
 
 ### 【压缩与 Retention 作用于 Chunk，不是逐行精确倒计时】
 
@@ -428,7 +428,7 @@ Chunk Interval
 
 ### 【项目验证：原始事件的 Chunk 时间跨度到底是多少】
 
-本案例中，浏览器 SDK 产生监控事件，接入服务检验后将单次事实保存到名为 \`telemetry_events\` 的表。数据库按 \`occurred_at\`（事件发生时间）组织 Chunk。
+本案例中，浏览器 SDK 产生监控事件，接入服务检验后将单次事实保存到名为 `telemetry_events` 的表。数据库按 `occurred_at`（事件发生时间）组织 Chunk。
 
 实际迁移写法：
 
@@ -440,7 +440,7 @@ SELECT create_hypertable(
 );
 ~~~
 
-**关键事实：当前这段迁移没有显式设置 Chunk Interval。** 对经典按时间分区、且时间列使用 \`timestamptz\` 的 Hypertable，部分 TimescaleDB 版本传统默认区间为七天；但这不能代替对运行实例的版本和真实配置检查。更不能据此断言数据库中每个 Chunk 都已覆盖七天或系统当前有多少块。
+**关键事实：当前这段迁移没有显式设置 Chunk Interval。** 对经典按时间分区、且时间列使用 `timestamptz` 的 Hypertable，部分 TimescaleDB 版本传统默认区间为七天；但这不能代替对运行实例的版本和真实配置检查。更不能据此断言数据库中每个 Chunk 都已覆盖七天或系统当前有多少块。
 
 要实际核验，可在运行数据库中执行：
 
@@ -553,12 +553,12 @@ project_id → type → occurred_at
       等值       等值         范围
 ~~~
 
-若查询同时指定 \`project_id = A\`、\`type = error\` 和一个时间范围，索引可以较好地缩小键空间。如果没有 \`type\` 条件，索引虽然仍可能被使用，但通常不能像第一种索引那样直接对该项目所有类型按时间形成统一有序的结果。实际规划也受到 PostgreSQL 版本、跳跃扫描、数据分布和统计信息影响，不能把“左前缀”误写成绝对禁止后列被使用。
+若查询同时指定 `project_id = A`、`type = error` 和一个时间范围，索引可以较好地缩小键空间。如果没有 `type` 条件，索引虽然仍可能被使用，但通常不能像第一种索引那样直接对该项目所有类型按时间形成统一有序的结果。实际规划也受到 PostgreSQL 版本、跳跃扫描、数据分布和统计信息影响，不能把“左前缀”误写成绝对禁止后列被使用。
 
 | 查询需求 | 更匹配的方向 | 应注意的问题 |
 | --- | --- | --- |
-| 某项目最近的全部事件 | \`(project_id, occurred_at)\` | 若查询返回大部分数据，顺序扫描也可能更优 |
-| 某项目最近的特定类型 | \`(project_id, type, occurred_at)\` | 类型等值过滤要有意义，选择性可能很低 |
+| 某项目最近的全部事件 | `(project_id, occurred_at)` | 若查询返回大部分数据，顺序扫描也可能更优 |
+| 某项目最近的特定类型 | `(project_id, type, occurred_at)` | 类型等值过滤要有意义，选择性可能很低 |
 | 只有时间范围、所有项目 | 时间分区和可用的时间路径 | 两种复合索引均以 project_id 开头，是否利用取决于规划器 |
 | JSONB 内某个属性 | 按字段查询模式评估 GIN 或表达式索引 | 普通项目/时间索引并不自动覆盖所有 JSONB 内部属性 |
 
@@ -566,7 +566,7 @@ project_id → type → occurred_at
 
 ### 【回到项目：原始事件的真实索引与查询】
 
-当前监控平台使用 \`telemetry_events\` 保存通过校验和安全处理后的单次遥测事件，\`project_id\` 表示所属项目，\`occurred_at\` 表示事件实际发生时间，\`type\` 表示事件类型。TimescaleDB 按 \`occurred_at\` 划分 Chunk。
+当前监控平台使用 `telemetry_events` 保存通过校验和安全处理后的单次遥测事件，`project_id` 表示所属项目，`occurred_at` 表示事件实际发生时间，`type` 表示事件类型。TimescaleDB 按 `occurred_at` 划分 Chunk。
 
 迁移文件中真实存在：
 
@@ -598,10 +598,10 @@ LIMIT 50;
 ~~~
 
 这个查询中：
-- \`occurred_at\` 既能触发时间范围的 Chunk 裁剪，也可能参与 B-Tree 范围查找。
-- \`project_id\` 和 \`type\` 为 B-Tree 复合索引提供等值过滤条件。
-- \`ORDER BY occurred_at DESC, event_id DESC\` **没有被上述两个索引中的任何一个明确完整覆盖**：实际是否需要额外排序，取决于执行计划、候选行数等。
-- \`event JSONB\` 会返回单次事件的完整属性，但筛选 JSONB 内部任意字段并不自动获得上面两个索引的加速。
+- `occurred_at` 既能触发时间范围的 Chunk 裁剪，也可能参与 B-Tree 范围查找。
+- `project_id` 和 `type` 为 B-Tree 复合索引提供等值过滤条件。
+- `ORDER BY occurred_at DESC, event_id DESC` **没有被上述两个索引中的任何一个明确完整覆盖**：实际是否需要额外排序，取决于执行计划、候选行数等。
+- `event JSONB` 会返回单次事件的完整属性，但筛选 JSONB 内部任意字段并不自动获得上面两个索引的加速。
 
 **事实边界**：从迁移可以核实“创建了这些索引”，从代码可核实“查询具有这些过滤条件”；不能未经运行数据验证就声称某次查询必然使用某个索引，或已经达到具体的毫秒延迟。
 
@@ -629,7 +629,7 @@ LIMIT 50;
 2. **扫描方式**：在相关 Chunk 内究竟执行 Index Scan、Bitmap Scan 还是 Seq Scan；有没有使用预期的索引。
 3. **执行代价**：Planning/Execution Time、实际返回行数、Blocks 命中及读取、必要时的排序开销。
 
-\`EXPLAIN ANALYZE\` 使用真实行数与真实耗时，\`BUFFERS\` 记录缓冲读写信息；为了说明机制，可以使用教学 SQL，但要验证项目现状必须运行在有代表性数据的实际实例。
+`EXPLAIN ANALYZE` 使用真实行数与真实耗时，`BUFFERS` 记录缓冲读写信息；为了说明机制，可以使用教学 SQL，但要验证项目现状必须运行在有代表性数据的实际实例。
 
 ### 【当前讨论结论与下一轮的因果衔接】
 
@@ -637,11 +637,100 @@ LIMIT 50;
 
 下一轮进入与物理分区直接相关的数据正确性问题：**既然一张 Hypertable 的行分散在不同 Chunk 中，数据库如何在写入时保证主键和唯一约束？为什么时序分区表上的 UNIQUE/PRIMARY KEY 必须包含分区时间字段？**
 
-实践会继续使用 \`telemetry_events\`，但先解释事件 ID 在业务上表示什么、主键与唯一约束在 PostgreSQL 中是什么意思，再看项目的实际复合主键与幂等去重策略。
+实践会继续使用 `telemetry_events`，但先解释事件 ID 在业务上表示什么、主键与唯一约束在 PostgreSQL 中是什么意思，再看项目的实际复合主键与幂等去重策略。
 
 权威参考：[PostgreSQL 分区裁剪](https://www.postgresql.org/docs/current/ddl-partitioning.html)、[PostgreSQL 多列 B-Tree 索引](https://www.postgresql.org/docs/current/indexes-multicolumn.html)、[PostgreSQL EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)、[TimescaleDB Hypertable](https://docs.timescale.com/use-timescale/latest/hypertables/)。
 
-## 7. 当前知识进度与后续讨论
+## 7. 通用问题：时间分区主键为什么包含时间字段
+
+### 【从重复事件进入数据库的业务问题出发】
+
+时序系统持续接收设备采样、用户行为和错误事件。网络失败后同一事件可能重试，数据库需要避免重复记录。但时间分区把不同时间的行存入不同 Chunk：如果仅依赖各 Chunk 的本地唯一索引，能否保证整个表的事件 ID 都不重复？
+
+首先区分三种规则：PRIMARY KEY 要求键唯一且非空；UNIQUE 约束指定的字段组合必须满足唯一性；业务幂等键定义哪两个请求代表同一业务事实。三者可以有关联，但不必一致。
+
+### 【分区边界为何决定唯一约束的组成】
+
+假设事件按 occurred_at 分到不同 Chunk。事件 evt-001 可以在 10 月 3 日落到 Chunk A，在 10 月 10 日落到 Chunk B。若唯一键仅含 event_id，两个块的本地唯一索引无法直接知道另一块已有同一个 ID。
+
+因此，TimescaleDB 要求 Hypertable 的 PRIMARY KEY 和 UNIQUE 包含所有分区列；PostgreSQL 原生分区有类似约束。这使得违反同一复合键唯一性的记录落在能够共同检查它们的分区范围内。若同时有时间和空间分区字段，均需包含在唯一键中。
+
+~~~sql
+-- 同一项目、事件 ID 和发生时间组合不得重复
+PRIMARY KEY (project_id, event_id, occurred_at)
+~~~
+
+上面的约束允许：同项目、同事件 ID、但发生时间不同的两条记录。因此**数据库复合主键唯一，不等于业务要求的 event_id 唯一**。
+
+权威资料：[TimescaleDB 的唯一索引约束](https://docs.timescale.com/use-timescale/latest/hypertables/hypertables-and-unique-indexes/)、[PostgreSQL 分区限制](https://www.postgresql.org/docs/current/ddl-partitioning.html)。
+
+### 【原始事件表的实际数据模型】
+
+监控平台会接收不同网站的浏览器事件：project_id 代表所属项目，event_id 代表本次事件标识，occurred_at 表示事件发生时间，数据库据此按时间分 Chunk。
+
+项目数据库迁移真实定义：
+
+~~~sql
+PRIMARY KEY (project_id, event_id, occurred_at);
+~~~
+
+源码：[原始事件表结构](../../platform/packages/database/migrations/0001_platform.sql)。
+
+该主键既满足按 occurred_at 分区时的约束限制，也让不同项目能使用相同事件 ID；但它并不能单独阻止同一项目使用两个不同时间戳写入相同 event_id。
+
+### 【项目如何补足业务幂等】
+
+接入 API 的真实流程如下：
+
+~~~text
+一批通过校验的事件
+  ↓ 请求内 Set 去重，保留每个 event_id 第一次出现的记录
+开始 PostgreSQL 事务
+  ↓ 为同一项目、相同 event_id 获取事务级咨询锁
+  ↓ 查询 telemetry_events 中已存在的 event_id
+  ↓ 排除数据库已保存的事件
+  ↓ INSERT ... ON CONFLICT DO NOTHING
+成功 COMMIT，错误 ROLLBACK
+~~~
+
+请求内去重：
+
+~~~ts
+const seenEventIds = new Set<string>();
+const uniqueValid = valid.filter((event) => {
+  if (seenEventIds.has(event.eventId)) return false;
+  seenEventIds.add(event.eventId);
+  return true;
+});
+~~~
+
+事务级咨询锁：服务端按项目和事件 ID 生成锁键，使用 PostgreSQL 的 pg_advisory_xact_lock，在事务内协调多个遵循相同锁规则的并发写入操作；按事件 ID 排序取锁降低死锁风险。它不是数据库 UNIQUE 约束，事务结束自动释放。
+
+存在性查询：
+
+~~~sql
+SELECT event_id FROM telemetry_events
+WHERE project_id = $1 AND event_id = ANY($2::text[])
+GROUP BY event_id;
+~~~
+
+此处没有按照 occurred_at 限定时间，是因为业务要识别同项目同 ID 的重复事件，即使发生时间不同。因此该查询不一定可以通过时间范围裁剪排除大量旧 Chunk，存在需要以执行计划评估的性能取舍。
+
+最后使用 ON CONFLICT DO NOTHING 处理数据库约束冲突，但它只兜底复合主键冲突，不能替代上述业务去重。
+
+源码：[接入服务的完整事务逻辑](../../platform/apps/api/src/ingestion/ingestion.service.ts)。
+
+### 【实现边界与结论】
+
+- 咨询锁只协调遵循同样锁约定的业务写入者。绕开服务直接 INSERT 时，同事件 ID 不同时间仍可能进入表。
+- 原始事件表有 30 天保留策略，历史记录被清除后，单靠当前 telemetry_events 无法判断更早是否出现过某个 ID。若业务需要永久幂等，应考虑单独且有匹配保留期限的事件唯一登记机制。
+- 不附带分区时间条件的全历史 event_id 去重查询可能扫描更多 Chunk；是否形成瓶颈必须通过实际数据和 EXPLAIN 判断。
+
+**结论：数据库主键确保明确定义的键组合唯一，业务幂等根据“同一次事实”的身份定义。时序分区下两者通常需要协同设计。**
+
+下一轮讨论事件发生时间与接收时间不同，为什么会产生迟到数据、历史 Chunk 写入和统计更新问题。
+
+## 8. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -654,15 +743,8 @@ LIMIT 50;
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【下一轮只讨论一个问题：主键、唯一约束和分区键怎样同时成立】
+### 【下一轮只讨论一个问题：迟到事件与乱序写入】
 
-**通用讨论问题：** 表已经按时间划为许多 Chunk，为什么主键和 UNIQUE 约束需要包含所有分区列？这和业务方希望“一个事件 ID 只存一次”是否是同一个保证？
+**通用讨论问题：** 时序数据按发生时间分区，但到达数据库的时间可能晚于发生时间甚至乱序。它会如何影响时间分块、已压缩历史数据、过期删除和历史统计？
 
-下一轮围绕：
-- 什么是主键、UNIQUE、业务幂等键，各自承诺什么；
-- 为什么不同 Chunk 的唯一索引无法自然证明不带时间的跨块唯一性；
-- 复合主键 \`(project_id, event_id, occurred_at)\` 能防住哪些重复，防不住哪些重复；
-- 项目同一请求内去重、数据库事务级咨询锁、检查已有 eventId、ON CONFLICT DO NOTHING 怎样共同维护业务幂等；
-- 这些策略在数据保留超过 30 天、并发请求以及异常/重试条件下还有什么边界。
-
-继续先讲通用约束，再以项目入库逻辑核验；不展开后续异步任务的实现。
+下一轮结合原始事件的发生时间 occurred_at、接收时间 received_at、服务端允许的时间窗口，以及数据库 24 小时压缩、30 天保留和连续聚合的实际策略，区分已有代码保证、时序数据库通用机制和待运行验证的问题。
