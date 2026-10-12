@@ -12,7 +12,7 @@
 
 ## 1. 时序数据管理从持续增长的历史数据需求开始
 
-> **通用知识衔接**：[时序工作负载与 TimescaleDB 的架构定位](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#1-时序工作负载与-timescaledb-的架构定位)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[时序工作负载与 TimescaleDB 的架构定位](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#1-时序数据管理从持续增长的历史数据需求开始)；以下保留当前项目的完整实现分析。
 
 
 ### 【沿一条原始事件的生命周期建立问题顺序】
@@ -1873,7 +1873,7 @@ Time-Series Data Management Capability
 
 ## 2. Hypertable 与 Chunk 实现时序数据的分区存储
 
-> **通用知识衔接**：[Hypertable 与 Chunk 的物理数据组织](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#2-hypertable-与-chunk-的物理数据组织)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[Hypertable 与 Chunk 的物理数据组织](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#2-hypertable-与-chunk-实现时序数据的分区存储)；以下保留当前项目的完整实现分析。
 
 
 ### 【Hypertable 是统一表入口，Chunk 是物理时间分区】
@@ -3189,7 +3189,7 @@ Compression / Retention / Historical Lifecycle
 
 ## 3. Chunk Interval 决定时间分区的规模和管理成本
 
-> **通用知识衔接**：[Hypertable 与 Chunk 的物理数据组织](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#2-hypertable-与-chunk-的物理数据组织)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[Chunk Interval 与分区规模](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#3-chunk-interval-决定时间分区的规模和管理成本)；以下保留当前项目的完整实现分析。
 
 
 ### 【问题背景：不是按时间分块就意味着分区越细越快】
@@ -3578,7 +3578,7 @@ Index Size
 
 ## 4. 时间分区与 B-Tree 索引共同优化原始事件查询
 
-> **通用知识衔接**：[时间范围查询、Chunk 裁剪与索引访问](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#3-时间范围查询chunk-裁剪与索引访问)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[时间范围查询、Chunk 裁剪与索引访问](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#4-时间分区与-b-tree-索引共同优化查询)；以下保留当前项目的完整实现分析。
 
 
 ### 【先建立业务背景与具体查询目标】
@@ -4490,7 +4490,7 @@ Newest Chunk 对应的索引
 
 ## 5. 时间分区表的主键、唯一约束与业务幂等
 
-> **通用知识衔接**：[分区唯一约束、幂等与并发正确性](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#4-分区唯一约束幂等与并发正确性)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[分区唯一约束、幂等与并发正确性](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#5-时间分区表的主键唯一约束与业务幂等)；以下保留当前项目的完整实现分析。
 
 
 ### 【从重复事件进入数据库的业务问题出发】
@@ -4719,7 +4719,7 @@ Insert
 
 ## 6. GROUP BY 与 time_bucket 将原始事件转换为时间窗口统计
 
-> **通用知识衔接**：[time_bucket 与时间窗口聚合](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#5-time_bucket-与时间窗口聚合)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[time_bucket 与时间窗口聚合](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#6-group-by-与-time_bucket-将记录转换为时间窗口统计)；以下保留当前项目的完整实现分析。
 
 
 ### 【先从事实明细与分析目标的差异理解需求】
@@ -5771,7 +5771,7 @@ Aggregate Query
 
 ## 7. Continuous Aggregate 通过物化结果减少历史重复计算
 
-> **通用知识衔接**：[Continuous Aggregate 的物化、刷新和查询](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#6-continuous-aggregate-的物化刷新和查询)、[层级连续聚合与统计中间状态](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#8-层级连续聚合与统计中间状态)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[Continuous Aggregate 的物化、刷新和查询](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#7-continuous-aggregate-的物化刷新与层级统计)、[层级连续聚合与统计中间状态](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#7-continuous-aggregate-的物化刷新与层级统计)；以下保留当前项目的完整实现分析。
 
 
 ### 【从反复计算历史事件统计的成本出发】
@@ -8951,7 +8951,7 @@ Time-weighted Average
 
 ## 8. 物化水位、Invalidation 与实时聚合共同维护统计结果
 
-> **通用知识衔接**：[物化水位、实时聚合与 Invalidation](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#7-物化水位实时聚合与-invalidation)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[物化水位、实时聚合与 Invalidation](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#8-物化水位invalidation-与实时聚合的查询行为)；以下保留当前项目的完整实现分析。
 
 
 ### 【物化水位推进与历史重新刷新的核心问题】
@@ -9109,7 +9109,7 @@ SET (timescaledb.materialized_only = false);
 
 ## 9. Compression 将历史 Chunk 转换为压缩存储
 
-> **通用知识衔接**：[热数据行存储、Hypercore 与历史压缩](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#9-热数据行存储hypercore-与历史压缩)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[热数据行存储、Hypercore 与历史压缩](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#9-compression-和-hypercore-如何存储历史-chunk)；以下保留当前项目的完整实现分析。
 
 
 ### 【压缩仍然保存事实，Retention 才移除过期历史】
@@ -10613,7 +10613,7 @@ Lifecycle
 
 ## 10. Retention 通过淘汰完整 Chunk 管理数据保留期限
 
-> **通用知识衔接**：[Retention 与历史数据分层保留](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#10-retention-与历史数据分层保留)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[Retention 与历史数据分层保留](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#10-retention-按-chunk-清理过期数据并保留历史统计)；以下保留当前项目的完整实现分析。
 
 
 ### 【问题背景：Compression 和 Continuous Aggregate 都不等于删除】
@@ -11304,7 +11304,7 @@ distinct state
 
 ## 11. 迟到与乱序数据对时序存储和统计一致性的影响
 
-> **通用知识衔接**：[迟到、乱序、回填与跨层一致性](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#12-迟到乱序回填与跨层一致性)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[迟到、乱序、回填与跨层一致性](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#11-迟到与乱序事件对历史存储与统计的影响)；以下保留当前项目的完整实现分析。
 
 
 ### 【先说明事件为什么不按发生时间顺序入库】
@@ -11539,7 +11539,7 @@ Retention 独立淘汰过期 Chunk，可能限制历史可追溯窗口
 
 ## 12. Browser Monitor 原始事件的 TimescaleDB 实践
 
-> **通用知识衔接**：[与 PostgreSQL、其他时序架构及项目实践的关系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#14-与-postgresql其他时序架构及项目实践的关系)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[时序数据查询接口与结果口径](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#12-时序数据库的数据查询接口与结果口径)；以下保留当前项目的完整实现分析。
 
 
 ### 【问题与范围：为什么要从其他投影指标中单独抽出原始事件】
@@ -12494,7 +12494,7 @@ materialized_only = false
 
 ## 13. TimescaleDB 的运行验证与工程优化
 
-> **通用知识衔接**：[选型、容量规划与运行验证](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#13-选型容量规划与运行验证)；以下保留当前项目的完整实现分析。
+> **通用知识衔接**：[选型、容量规划与运行验证](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/S-时序数据库与TimescaleDB完整知识体系.md#13-数据库后台调度运行验证与选型评估)；以下保留当前项目的完整实现分析。
 
 
 ### 【面向 telemetry_events 的最小可执行检查清单】
