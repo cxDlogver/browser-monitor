@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、普通时间窗口聚合、连续聚合的物化水位和刷新，以及历史 Chunk 压缩机制。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、时间窗口聚合和 Continuous Aggregate、历史 Chunk 压缩，以及 Retention 按 Chunk 淘汰与分层保留。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -43,8 +43,8 @@
 6. 时间窗口聚合如何从原始事件得出趋势结果？先理解 GROUP BY 和 time_bucket。（已讨论）
 7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（已讨论；水位、历史修改与实时查询已追问）
 8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？（已讨论）
-9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（下一轮）
-10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。
+9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（已讨论）
+10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。（下一轮）
 11. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？
 
 ### 【必要的项目背景：一条原始事件从哪里来】
@@ -1252,7 +1252,206 @@ Chunk 逐渐成为历史数据
 官方参考：[TimescaleDB Compression](https://docs.timescale.com/use-timescale/latest/compression/about-compression/)、[选择 segmentby 和 orderby](https://docs.timescale.com/use-timescale/latest/compression/about-compression/#configure-time-series-compression)、[压缩策略](https://docs.timescale.com/use-timescale/latest/compression/compression-policy/)。
 
 
-## 12. 当前知识进度与后续讨论
+## 12. 通用问题：Retention 为什么按 Chunk 淘汰历史数据，而不是逐行 DELETE
+
+### 【问题背景：Compression 和 Continuous Aggregate 都不等于删除】
+
+设备监控、日志、浏览器遥测等系统持续产生事件。Compression 将旧 Chunk 转为更紧凑的布局，但仍保存原始事件；Continuous Aggregate 将原始事实转换为单分钟或单小时的统计，却不意味着自动删除原始明细。
+
+如果每天产生 100 万条事件，一年约新增 3.65 亿条，压缩之后仍要支付磁盘、备份、索引及管理成本。业务可能仅需最近 30 天的事件明细，却要保留过去 180 天的趋势统计。
+
+因此产生本轮问题：**既然历史事件具有明确的时间范围，为什么不能每天批量 DELETE 全部过期行，而要使用 TimescaleDB Retention 按物理 Chunk 删除？**
+
+### 【为什么逐行 DELETE 可能造成高维护成本】
+
+PostgreSQL 使用 MVCC（多版本并发控制），DELETE 通常标记原有记录对后续事务不再可见，并留下等待后续清理的死元组；为了维护事务持久性还会写 WAL（预写日志）。大量行级删除还涉及索引、页可复用空间及 VACUUM 等后续工作。
+
+~~~sql
+DELETE FROM events
+WHERE occurred_at < NOW() - INTERVAL '30 days';
+~~~
+
+如果上述 SQL 一次匹配数百万条记录，数据库需为这些行完成删除逻辑，而普通 VACUUM 通常只是使空间可以复用，不能保证表文件立即缩小。因此持续批量淘汰整段时序数据时，DELETE 可能产生显著 I/O、WAL、锁与清理成本；不是说少量 DELETE 一概不应该使用。
+
+### 【为什么按 Chunk DROP 可以避免大量逐行处理】
+
+Hypertable 是逻辑表，其历史数据被组织在多个具有确定时间范围的物理 Chunk 中。Retention 可以选择**时间范围整体符合淘汰条件**的旧 Chunk，将整个数据块及其相关存储对象移除。
+
+~~~text
+Hypertable：events
+    ├─ 历史 Chunk A：完整过期 → 删除整个 Chunk
+    ├─ 历史 Chunk B：跨越截止时间 → 整块保留
+    ├─ Chunk C：尚未过期 → 保留
+    └─ 当前 Chunk D：仍接收新事件 → 保留
+~~~
+
+该方法不必逐行制造大量死元组、再依靠逐行清理回收空间。即使某 Chunk 已经压缩，符合生命周期条件后也可以作为完整数据块删除，无需先把所有行解压再逐行删除。
+
+但 DROP Chunk 仍需要元数据更新、取得相应锁和执行后台任务，不是零开销，也可能因为有其他会话访问而等待或失败。
+
+### 【Retention 的时间阈值作用于整个 Chunk 范围】
+
+假设现在是 10 月 12 日零时，保留 30 天，截止时间为 9 月 12 日零时：
+
+| Chunk 覆盖区间 | 与截止点的关系 | Retention 结果 |
+| --- | --- | --- |
+| 9 月 1 日～9 月 8 日 | 时间范围全部早于截止 | 可以删除 |
+| 9 月 8 日～9 月 15 日 | 部分早于、部分晚于截止 | 暂时保留整个 Chunk |
+| 9 月 15 日～9 月 22 日 | 尚未过期 | 保留 |
+
+这里重要的是**Chunk 的结束时间是否越过过期边界**，而不是块里是否已有部分行变旧。
+
+因此 \`INTERVAL '30 days'\` 不是精确到每条 Row 的自动 TTL。真正的删除时间还受到 Chunk Interval、区间边界和后台调度影响。块跨度越长，过期淘汰粒度一般越粗。
+
+### 【Retention Policy 怎样自动运行】
+
+项目和通用时序表都可以使用：
+
+~~~sql
+SELECT add_retention_policy(
+  'events',
+  INTERVAL '30 days'
+);
+~~~
+
+这会注册一个后台 Job。其逻辑为：
+
+~~~text
+配置 add_retention_policy
+    ↓
+注册后台调度任务
+    ↓
+Job 按调度规则尝试运行
+    ↓
+计算当前时间 - drop_after
+    ↓
+检查 Chunk 完整时间范围是否过期
+    ↓
+删除符合条件的整个 Chunk
+    ↓
+等待下一次任务
+~~~
+
+要区分：
+- \`drop_after\`：定义分区时间范围相对当前时间的过期条件。
+- \`schedule_interval\`：定义后台任务的调度间隔；不是每条记录的到期精确时刻。
+- \`drop_created_before\`：较新 API 还有按 Chunk 创建时间淘汰的独立选项，**不能与当前按事件时间的 drop_after 混为一谈**。
+
+当前迁移采用 \`INTERVAL\` 形式的 drop_after，针对的是 \`occurred_at\` 所在的时序维度，不是 \`received_at\` 或 Chunk 的创建时间。
+
+### 【真实项目：原始数据 30 天与历史统计 180 天】
+
+本案例中，监控平台接收多种浏览器原始事件，先在接入服务校验、去重、脱敏后保存在 \`telemetry_events\`；为了查看历史趋势，数据库另外物化一分钟统计 \`telemetry_rollup_1m\`，再基于分钟数据形成小时统计 \`telemetry_rollup_1h\`。
+
+原始事件及分钟统计的真实配置：
+
+~~~sql
+-- 原始事件明细
+SELECT add_retention_policy(
+  'telemetry_events',
+  INTERVAL '30 days',
+  if_not_exists => TRUE
+);
+
+-- 一分钟连续聚合
+SELECT add_retention_policy(
+  'telemetry_rollup_1m',
+  INTERVAL '180 days',
+  if_not_exists => TRUE
+);
+~~~
+
+小时连续聚合另有：
+
+~~~sql
+SELECT add_retention_policy(
+  'telemetry_rollup_1h',
+  INTERVAL '180 days',
+  if_not_exists => TRUE
+);
+~~~
+
+由此形成分层生命周期：
+1. **近期原始明细 30 天**：支持追查某一条事件的 JSONB、时间、类型、页面上下文。
+2. **分钟聚合 180 天**：保留分钟级趋势，失去还原单次事件的能力。
+3. **小时聚合 180 天**：以分钟聚合为来源，支持跨度更长、粒度更粗的统计查询。
+
+注意这不是“删除时把原始事件移动到分钟聚合表”：聚合结果在持续刷新时单独形成，Retention 独立地淘汰上游旧 Chunk。
+
+源码：[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)、[0002_hourly_aggregates.sql](../../platform/packages/database/migrations/0002_hourly_aggregates.sql)。
+
+### 【关键耦合：为什么不能在已删除原始事件的时间段重新刷新连续聚合】
+
+虽然连续聚合物化存储与上游原始数据分别管理，**它并不是被永久冻结、与原始数据清理完全无关的历史快照**。
+
+假设某一分钟此前保存 \`event_count=100\`；后来包含这些事件的原始 Chunk 被 Retention 删除。如果再对这段已丢失原始事实的时间窗口执行刷新，连续聚合将根据当前可见源数据重新计算，原统计行可能消失或变为无数据，历史统计就被破坏。
+
+因此，如果业务希望“原始事件只留 30 天，但历史趋势保存 180 天”，原则上需要**让自动刷新窗口不覆盖已经被原始 Retention 删除的数据范围**，并避免不合适的手动历史刷新。
+
+项目相关刷新策略：
+
+~~~sql
+-- 分钟聚合：只自动刷新向前约 29 天的窗口
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1m',
+  start_offset => INTERVAL '29 days',
+  end_offset => INTERVAL '10 seconds',
+  schedule_interval => INTERVAL '10 seconds',
+  if_not_exists => TRUE
+);
+
+-- 小时聚合：以分钟聚合为源，刷新到约 179 天前
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1h',
+  start_offset => INTERVAL '179 days',
+  end_offset => INTERVAL '1 hour',
+  schedule_interval => INTERVAL '5 minutes',
+  if_not_exists => TRUE
+);
+~~~
+
+分钟级上游 \`telemetry_events\` 保留 30 天，刷新从 29 天前开始；小时级上游 \`telemetry_rollup_1m\` 保留 180 天，刷新从 179 天前开始。这体现了**每一层的刷新回溯范围与它直接读取的上一层保留窗口相协调**。
+
+这一设计降低了重新刷新已删除上游数据的风险，但不能单凭配置保证 180 天统计总是完整：初始 \`WITH NO DATA\` 回填、任务成功率、运行版本、数据过期边界、人工刷新和历史补写都需验证。
+
+### 【如何在运行实例中验证，而非停留在代码配置】
+
+检查保留任务和运行状态（不同 TimescaleDB 版本所暴露的信息视图字段可能略有区别）：
+
+~~~sql
+SELECT job_id, hypertable_name, proc_name, schedule_interval
+FROM timescaledb_information.jobs
+WHERE proc_name = 'policy_retention';
+
+SELECT job_id, last_run_status, last_successful_finish,
+       next_start, total_runs, total_failures
+FROM timescaledb_information.job_stats;
+~~~
+
+另需查询 \`timescaledb_information.chunks\` 中实际 Chunk 的时间边界，并核对被删除的原始范围是否还存在合理的连续聚合物化数据。以上是待执行的验证方法，不能据此声称线上已经按预期清理。
+
+### 【本轮结论与下一轮的衔接】
+
+~~~text
+原始事件持续增长
+     ↓
+Compression：旧 Chunk 变成更紧凑的存储布局，但仍保存原始事件
+     ↓
+Continuous Aggregate：另存分钟/小时统计
+     ↓
+Retention：按时间清理完整过期 Chunk，不依赖逐行 DELETE
+     ↓
+原始明细 30 天 + 分钟/小时统计 180 天（不同保留层次）
+     ↓
+刷新窗口须避开已经被淘汰的上游原始数据
+~~~
+
+**Aggregation = 汇总，Compression = 调整历史存储布局，Retention = 淘汰已不需要的历史数据。** 三者在正常时序链路中协作，不能互相替代。
+
+权威来源：[Timescale Data Retention](https://docs.timescale.com/use-timescale/latest/data-retention/about-data-retention/)、[Retention Policy](https://docs.timescale.com/api/latest/data-retention/add_retention_policy/)、[连续聚合与历史清理](https://docs.timescale.com/use-timescale/latest/data-retention/data-retention-with-continuous-aggregates/)、[原始数据清理后聚合刷新风险](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/drop-data/)。
+
+
+## 13. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -1265,16 +1464,16 @@ Chunk 逐渐成为历史数据
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【下一轮只讨论一个问题：Retention 为什么按 Chunk 清理历史数据】
+### 【下一轮只讨论一个问题：迟到与乱序写入对正常时序链路有什么影响】
 
-**通用讨论问题：** 一张 Hypertable 可能积累几千万条历史事件。为什么 TimescaleDB 倾向于根据保留窗口删除完整的旧 Chunk，而不是每天对所有过期 Row 执行一条巨大的 DELETE？
+**通用问题：** 时序事件在设备或浏览器中先发生、再异步接入数据库。因此发生时间并不总是按照写入顺序增加。当旧时间范围新增原始事件时，已学的 Chunk 分区、压缩批次、连续聚合物化结果和 Retention 如何协作，哪里会出现代价或一致性边界？
 
-下一轮依次讨论：
-- DELETE 的 MVCC 死元组、WAL、索引维护与 VACUUM 成本；
-- DROP 旧 Chunk 与逐行删除的本质差异；
-- drop_after 与 Chunk 结束时间、调度执行时刻怎样决定实际清理；
-- 压缩过的 Chunk 如何参与同样的生命周期；
-- 原始事件 30 天、分钟与小时聚合 180 天的配置关系；
-- 连续聚合不能因源数据清理而无条件假定历史统计始终保留，什么时候需要协调 Refresh 和 Retention。
+下一轮按正常机制的因果顺序逐项推导：
+- Event Time、接收时间、数据库写入时间与乱序/迟到的区别；
+- 用事件时间定位旧 Chunk，写入未压缩与已压缩旧 Chunk 的差异；
+- 落在未物化范围的新近历史数据如何被实时聚合查询、之后怎样首次物化；
+- 落在已物化历史范围的迟到事件如何触发 Invalidation，并等待刷新；
+- 迟到事件超过刷新窗口、原始数据压缩阈值或 Retention 保留窗口的不同结果；
+- 核对项目 `[-30 天,+5 分钟]` 事件准入、24 小时压缩、30 天明细保留、29 天分钟刷新与 180 天聚合保留，判断实际边界并提出可测量的验证方案。
 
-之后再讨论迟到事件、历史修改对这些已学机制的影响，不提前展开未讲的异常情形。
+暂不引入新的异步消息中间件或 Outbox/Worker 内部细节。
