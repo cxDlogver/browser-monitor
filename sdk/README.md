@@ -96,19 +96,22 @@ createMonitor({
 
 ## 公开 API
 
-| API                      | 作用                                             |
-| ------------------------ | ------------------------------------------------ |
-| `createMonitor(options)` | 校验配置并创建统一 Monitor                       |
-| `start()`                | 安装并启动已启用的监控模块，重复调用不会重复监听 |
-| `stop()`                 | 暂停数据生产并执行受控 Flush，可以再次启动       |
-| `destroy()`              | 永久销毁实例，恢复 SDK 包装的全局 API            |
-| `track(name, data)`      | 记录带属性和数值指标的自定义事件                 |
-| `startTrace(name, data)` | 开始自定义 Trace 并返回可结束句柄                |
-| `trace(name, fn, data)`  | 包装同步或异步业务流程并自动结束 Trace           |
-| `setUser(user)`          | 更新白名单用户上下文                             |
-| `setViewName(name)`      | 显式覆盖当前 View 的稳定业务路由名               |
-| `flush()`                | 主动发送队列中的安全数据                         |
-| `getCapabilities()`      | 查询浏览器实际支持的监控能力                     |
+| API                           | 作用                                             |
+| ----------------------------- | ------------------------------------------------ |
+| `createMonitor(options)`      | 校验配置并创建统一 Monitor                       |
+| `start()`                     | 安装并启动已启用的监控模块，重复调用不会重复监听 |
+| `stop()`                      | 暂停数据生产并执行受控 Flush，可以再次启动       |
+| `destroy()`                   | 永久销毁实例，恢复 SDK 包装的全局 API            |
+| `track(name, data)`           | 记录带属性和数值指标的自定义事件                 |
+| `startTrace(name, data)`      | 开始自定义 Trace 并返回可结束句柄                |
+| `withTrace(name, fn, data)`   | 包装同步或异步业务流程并自动结束业务根 Span      |
+| `trace(name, fn, data)`       | `withTrace` 的同义入口                           |
+| `startSpan(name, options)`    | 创建独立或有父级的 Span，手动结束                |
+| `withSpan(name, fn, options)` | 包装操作，自动结束 Span                          |
+| `setUser(user)`               | 更新白名单用户上下文                             |
+| `setViewName(name)`           | 显式覆盖当前 View 的稳定业务路由名               |
+| `flush()`                     | 主动发送队列中的安全数据                         |
+| `getCapabilities()`           | 查询浏览器实际支持的监控能力                     |
 
 缺少 App 信息、采集端点无效或数值配置非法时，`createMonitor()` 会立即抛出配置错误。浏览器不支持某项能力时，对应模块静默降级，不伪造零值。
 
@@ -153,15 +156,16 @@ Transport 使用有界内存队列，按照数量、字节数和时间组成批�
 | `core`            | 配置、生命周期、模块注册、Signal Hub 和链路编排      |
 | `instrumentation` | 管理浏览器 API、监听器、Observer、RAF 与 Timer       |
 | `collectors`      | 将 Raw Signal 转换为 Performance、View 和 Event 语义 |
+| `tracing`         | 计时对象、父级作用域、回调包装和关联身份             |
 | `context`         | 管理 App、User、Session、View 和 Runtime 快照        |
 | `signals`         | 定义只在 SDK 内部流动的浏览器 Raw Signal             |
 | `processing`      | 执行数据质量、安全和流量治理                         |
 | `transport`       | 队列、批处理、发送、重试和 Flush                     |
-| `shared`          | 无监控领域语义的基础能力                             |
+| `shared`          | 基础能力及自定义信号共用的数据归一化                 |
 
 跨 SDK、API 和 Worker 的协议 3.0 类型直接来自 workspace 中的 `@browser-monitor/protocol`。SDK 不保留 `src/protocol` 转发目录，避免本地包装类型与共享 Schema 形成两个协议来源。
 
-自定义事件、页面停留与跨路由链路示例见 [自定义 Trace 与 Span](./docs/07-自定义Trace与Span.md)。`track()` 的第二个参数已改为 `{ attributes, metrics }`。
+Trace/Span 的对象、父子关系、同步与异步上下文、发送、落库及瀑布图见 [完整链路文档](./docs/07-自定义Trace与Span.md)。`track()` 使用 `{ attributes, metrics }`；父节点 `end()` 只结束自身，手动句柄由业务生命周期负责结束。
 
 更完整的目标、设计思想和目录说明见 [Browser Monitor SDK 项目知识梳理](./docs/Browser-Monitor-SDK-项目知识梳理.md)。
 
