@@ -1,5 +1,7 @@
 # Trace、Span 与 Event 完整链路：对象、上下文、上报和展示
 
+通用模型可参考[监控 SDK 插桩与 Trace/Span 工程体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/J-监控SDK插桩与TraceSpan工程体系.md)；实际 SDK 的父子对象、Processing、Transport 和失败批次行为见[监控 SDK 业务插桩与 Trace/Span 执行链路源码分析](../../docs/监控SDK业务插桩与TraceSpan执行链路源码分析.md)。
+
 本文从业务调用出发，沿着实际代码追踪一条链路如何建立、结束、发送、落库和展示。示例中的业务函数由应用提供，SDK 入口为 `cx-browser-monitor-sdk`。
 
 ## 1. 先看一条完整链路
