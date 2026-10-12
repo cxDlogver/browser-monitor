@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、索引、分区主键与业务幂等、时间窗口聚合及 Continuous Aggregate、历史 Chunk 压缩、Retention 分层保留，以及迟到与乱序事件对存储和统计的影响。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、索引、分区主键与业务幂等、时间窗口聚合及 Continuous Aggregate、历史 Chunk 压缩、Retention 分层保留、迟到与乱序事件，以及原始事件从接入到 API/Web 消费的源码专项。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -45,7 +45,8 @@
 8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？（已讨论）
 9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（已讨论）
 10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。（已讨论）
-11. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？（下一轮）
+11. 项目原始事件如何从接入、入库、分钟/小时事件计数，最终被 API 和 Web 消费？（已讨论）
+12. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？（下一轮）
 
 ### 【必要的项目背景：一条原始事件从哪里来】
 
@@ -1682,7 +1683,340 @@ Retention 独立淘汰过期 Chunk，可能限制历史可追溯窗口
 资料：[Timescale Continuous Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[Real-Time Aggregates](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)、[Compression](https://docs.timescale.com/use-timescale/latest/compression/about-compression/)、[Data Retention](https://docs.timescale.com/use-timescale/latest/data-retention/about-data-retention/)。
 
 
-## 14. 当前知识进度与后续讨论
+## 14. 项目专项：仅追踪原始事件从入库到 Web/API 消费
+
+### 【问题与范围：为什么要从其他投影指标中单独抽出原始事件】
+
+**提问：** 回到当前 browser-monitor 项目：只看原子/原始事件记录的完整链路，不讨论后续异步处理。原始事件经过怎样的预处理，实际存储在哪个数据库表中，压缩、保留、分钟/小时聚合分别如何执行，最终 Web 页面与 API 能取得哪些数据？
+
+**边界**：本节只讨论原始事件 `telemetry_events` 及它直接生成的 `telemetry_rollup_1m`、`telemetry_rollup_1h`。不将 `performance_samples`、`view_records`、`custom_signal_samples` 及其聚合结果混入原始事件链路。真实入库事务还会在同一事务中写入待处理任务，这是源码的存在事实，但其后续消费/投影不属于本节。
+
+**结论先行：原始事件自身当前主要提供两项对外能力——可检索的原始明细、指定时间范围内的原始事件总数。** 分钟/小时连续聚合只计算 `event_count`，暂未直接给 Web 提供按分钟展示的原始事件量曲线，更不能用该统计推导 LCP、INP、p75 或页面停留时长。
+
+### 【原始事件端到端主链】
+
+~~~text
+浏览器监控 SDK
+  └─ 生成 performance / view / event / trace / span 等协议事件
+          ↓ 批量上报
+POST /api/v3/ingest/:publicKey/envelopes
+          ↓
+IngestionService：同步接入
+  ① 解析 JSON 与协议版本、批次 Header 校验
+  ② 校验 publicKey 对应的项目、允许的 Origin、项目/IP 限流
+  ③ 每条事件 Schema、app.name 项目归属、发生时间范围校验
+  ④ URL 清理、用户 ID 哈希、敏感属性脱敏
+  ⑤ 同批重复 eventId 与已入库历史 ID 的幂等去重
+          ↓ 数据库事务
+PostgreSQL + TimescaleDB
+  └─ telemetry_events（按 occurred_at 分区的 Hypertable）
+       ├─ 公共查询列 + 脱敏完整事件 JSONB
+       ├─ 读取单次事实 → GET /analytics/raw-events
+       │                     → Web「原始事件」页
+       ├─ 每分钟事件计数 → telemetry_rollup_1m
+       │                    ↓ 按小时合并 event_count
+       │                  telemetry_rollup_1h
+       │                    ↓
+       │                  GET /analytics/overview 的 events
+       │                    → Web「运行总览」中的「采集事件」
+       └─ Chunk 生命周期
+             ├─ Compression：24 小时压缩阈值
+             └─ Retention：30 天明细淘汰阈值
+
+分钟/小时统计的独立保留策略：180 天
+~~~
+
+注意：这里的“24 小时压缩”和“30 天删除”都是按符合条件的 Chunk 执行，不是每条 Row 精确到龄自动转换/删除。实际发生时间取决于 Chunk 时间区间及后台任务执行。
+
+### 【接入 API 与原始事件预处理】
+
+接入端点：
+
+~~~http
+POST /api/v3/ingest/:publicKey/envelopes
+~~~
+
+`IngestionController` 仅提取入参并调用 `IngestionService.ingest()`；实际校验与脱敏发生在 Service：
+
+1. **解析与协议校验**：支持 JSON 对象，或由 `sendBeacon` 发出的 JSON 文本；校验 `protocolVersion`、整个 Batch Header 的 Schema。
+2. **准入校验**：`publicKey` 必须能定位启用状态、密钥有效的项目；校验 Origin 是否符合项目允许清单；按项目和 IP 做事件数限流。
+3. **逐事件校验**：`telemetryEventV3Schema.safeParse` 检查结构；要求 `event.app.name` 匹配项目；发生时间 `occurredAt` 必须位于相对当前时间的 **[-30 天, +5 分钟]** 内。
+4. **安全处理**：使用 `sanitizeUrl` 清理 URL 查询参数；对用户 ID 做含项目盐及服务端密钥的哈希处理；用 `redactProperties` 脱敏用户属性、event/trace/span 的 attributes。真正入库的完整 JSONB 是脱敏后的事件。
+5. **幂等去重**：先用 Set 过滤同请求重复 `eventId`；数据库事务内按事件 ID 排序获取咨询锁，检查同项目已入库的事件 ID，确保并发或不同 `occurred_at` 的同一业务事件不会因为分区键要求而重复进入。
+6. **批量落库与结果**：把协议对象的公共属性展开成 SQL 列，其余完整安全事件仍存入 JSONB `event`；事务提交后按本批成功/重复/拒绝数量作出响应。
+
+正常持久化接收的响应状态是 HTTP 202，例如：
+
+~~~json
+{
+  "accepted": 10,
+  "duplicate": 2,
+  "rejected": 1,
+  "requestId": "example-request-id",
+  "rejections": [
+    { "index": 3, "code": "event_time_out_of_range" }
+  ]
+}
+~~~
+
+这是**响应结构示例，不是线上数据**。`accepted` 表示原始记录持久化接收；不能推断后续异步环节已完成。校验拒绝的事件不会成为 `telemetry_events` 明细，重复事件也不会重复计入接收成功的原始行。
+
+源码：[IngestionController](../../platform/apps/api/src/ingestion/ingestion.controller.ts)、[IngestionService](../../platform/apps/api/src/ingestion/ingestion.service.ts)。
+
+### 【数据库落点：一张 Hypertable 保存可追溯的原始事实】
+
+核心建表与索引：
+
+~~~sql
+CREATE TABLE telemetry_events (
+  project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  event_id varchar(256) NOT NULL,
+  occurred_at timestamptz NOT NULL,
+  received_at timestamptz NOT NULL DEFAULT now(),
+  type varchar(32) NOT NULL,
+  name varchar(128) NOT NULL,
+  environment varchar(64) NOT NULL,
+  app_version varchar(64) NOT NULL,
+  session_id varchar(256) NOT NULL,
+  view_id varchar(256) NOT NULL,
+  route_name varchar(160) NOT NULL,
+  user_hash varchar(64),
+  event jsonb NOT NULL,
+  processed_at timestamptz,
+  PRIMARY KEY (project_id, event_id, occurred_at)
+);
+SELECT create_hypertable(
+  'telemetry_events',
+  'occurred_at',
+  if_not_exists => TRUE
+);
+CREATE INDEX telemetry_project_time_idx
+  ON telemetry_events(project_id, occurred_at DESC);
+CREATE INDEX telemetry_project_type_time_idx
+  ON telemetry_events(project_id, type, occurred_at DESC);
+~~~
+
+字段职责：
+- **`project_id`、`event_id`**：项目隔离及单事件身份；单纯数据库主键的范围是 `(project_id,event_id,occurred_at)`，业务 eventId 幂等需要接入侧额外配合。
+- **`occurred_at`**：浏览器端发生时间，作为事件时间范围查询和 Hypertable Chunk 路由依据。
+- **`received_at`**：数据库记录接收的时间，区别于客户端发生时间。
+- **`type`、`name`、`environment`、`app_version`、`route_name`**：常用检索、统计维度。
+- **`session_id`、`view_id`、`user_hash`**：追踪关联；用户标识为匿名化值。
+- **`event jsonb`**：保留脱敏后的完整协议事件，用于单事件排查；不是只保留部分聚合字段。
+- **`processed_at`**：数据库中存在该状态字段，但当前只分析接收与存储，不引入其异步更新逻辑。
+
+**为什么是公共字段 + JSONB，而不是把全部内容只保存在 JSONB？** 因为对项目、时间、类型、会话等条件检索时有明确的 SQL 列与索引路径，同时保留事件特有结构，避免为每一种浏览器事件扩展固定 Schema。
+
+源码：[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)。
+
+### 【分钟与小时连续聚合：唯一的原始事件指标是 event_count】
+
+分钟视图的完整核心 SQL：
+
+~~~sql
+CREATE MATERIALIZED VIEW telemetry_rollup_1m
+WITH (timescaledb.continuous) AS
+SELECT
+  time_bucket(INTERVAL '1 minute', occurred_at) AS bucket,
+  project_id, type, name, environment, app_version, route_name,
+  count(*)::bigint AS event_count
+FROM telemetry_events
+GROUP BY bucket, project_id, type, name,
+         environment, app_version, route_name
+WITH NO DATA;
+~~~
+
+`bucket`、`project_id`、`type`、`name`、`environment`、`app_version`、`route_name` 都是**分组维度**，而非不同的聚合指标。`event_count` 才是结果指标：某分钟、某一维度组合下发生多少条**原始事件**。
+
+例如（教学假设）：
+
+| bucket | type | name | route_name | event_count |
+| --- | --- | --- | --- | --- |
+| 10:00 | performance | LCP | /home | 120 |
+| 10:00 | view | view.start | /home | 80 |
+| 10:00 | event | purchase | /order | 12 |
+
+注意这些是 **LCP 上报事件次数**、**view.start 原始事件次数**与**purchase 原始事件次数**，不是 LCP 实测数值、已归并的页面 View 数、订单总金额或任意其他业务指标。
+
+小时视图建立在分钟视图之上，保留同一组维度，将 1m 桶的 count 汇总为 1h：
+
+~~~sql
+CREATE MATERIALIZED VIEW telemetry_rollup_1h
+WITH (timescaledb.continuous) AS
+SELECT
+  time_bucket(INTERVAL '1 hour', bucket) AS bucket,
+  project_id, type, name, environment, app_version, route_name,
+  sum(event_count)::bigint AS event_count
+FROM telemetry_rollup_1m
+GROUP BY 1, 2, 3, 4, 5, 6, 7
+WITH NO DATA;
+~~~
+
+例如某类事件在同一小时的 60 个分钟桶各出现 100 次，则对应小时总计 6000 次。**时间粒度由一分钟改为一小时，不会把 event_count 自动变成性能数值或独立访问人数。**
+
+源码：[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)、[0002_hourly_aggregates.sql](../../platform/packages/database/migrations/0002_hourly_aggregates.sql)。
+
+### 【原始事件自身的物化与保留时间策略】
+
+实际配置：
+
+~~~sql
+-- 分钟连续聚合
+SELECT add_continuous_aggregate_policy(
+  'telemetry_rollup_1m',
+  start_offset => INTERVAL '29 days',
+  end_offset => INTERVAL '10 seconds',
+  schedule_interval => INTERVAL '10 seconds',
+  if_not_exists => TRUE
+);
+
+-- 原始表：按 Chunk 年龄压缩及保留
+SELECT add_compression_policy(
+  'telemetry_events', INTERVAL '24 hours',
+  if_not_exists => TRUE
+);
+SELECT add_retention_policy(
+  'telemetry_events', INTERVAL '30 days',
+  if_not_exists => TRUE
+);
+
+-- 一分钟聚合统计保留 180 天
+SELECT add_retention_policy(
+  'telemetry_rollup_1m', INTERVAL '180 days',
+  if_not_exists => TRUE
+);
+~~~
+
+小时聚合有独立的刷新策略（约 179 天的刷新回溯、排除最近一小时、约 5 分钟调度）和 180 天保留策略。原始表压缩布局：
+
+~~~sql
+ALTER TABLE telemetry_events SET (
+  timescaledb.compress,
+  timescaledb.compress_segmentby = 'project_id,type',
+  timescaledb.compress_orderby = 'occurred_at DESC'
+);
+~~~
+
+原始表超过完整 Chunk 清理条件以后，该段明细 JSONB 不再可从该表恢复；但如果对应聚合结果在删除之前已正确形成、未被危险的历史刷新覆盖并且尚未超过其自身保留期，则长期事件数量依然可供查询。这是**原始明细 30 天、汇总统计 180 天**的意义。
+
+上述都是 Migration 中声明的策略；是否已成功运行必须核对实例中的后台 Job、Chunk 和物化结果。
+
+### 【API 一：原始明细查询 raw-events】
+
+~~~http
+GET /api/v1/projects/:projectId/analytics/raw-events
+~~~
+
+`AnalyticsService.rawEvents()` **直接从 telemetry_events 查询原始行**，不从分钟或小时统计反向恢复事件。API 依赖登录态与项目访问权限。
+
+支持时间范围及 `type`、`name`、`eventId`、`sessionId`、`viewId`、`environment`、`version`、`routeName` 筛选。结果按 `occurred_at DESC, event_id DESC` 排序，使用游标翻页；请求 `limit` 最多 100，默认 50。
+
+返回的结构是：
+
+~~~json
+{
+  "items": [
+    {
+      "eventId": "evt-001",
+      "occurredAt": "2026-10-12T10:00:00Z",
+      "receivedAt": "2026-10-12T10:00:02Z",
+      "type": "performance",
+      "name": "LCP",
+      "environment": "production",
+      "version": "1.0.0",
+      "sessionId": "session-001",
+      "viewId": "view-001",
+      "routeName": "/home",
+      "event": {}
+    }
+  ],
+  "nextCursor": null
+}
+~~~
+
+示例值并非真实线上返回，`event` 在真实请求中是已脱敏的完整事件 JSONB。API **并不**在该响应里返回 `processed_at` 或聚合的 `event_count`。
+
+Web [RawEventsPage](../../platform/apps/web/src/pages/RawEventsPage.tsx) 的使用：
+- 页面标题“原始事件”，支持事件类型（performance/view/event/trace/span）、名称、Event ID、Session ID、View ID、环境、版本、路由筛选；
+- 表格展示发生时间、事件类型、名称、页面、环境和版本；
+- 点击行打开 Drawer，可查看 Event ID、Session、View、Route 与完整事件 JSON；
+- 当前前端默认时间范围**固定最近 24 小时**（虽然 API 可接收其他 `from/to`），每次请求 `limit=100`，游标翻页，每 15 秒刷新。
+
+这解决“某条事件何时、在哪个页面、携带什么安全处理后的事实”的**明细追溯**问题。
+
+### 【API 二：总览事件数量 overview.events】
+
+~~~http
+GET /api/v1/projects/:projectId/analytics/overview
+~~~
+
+本节只分析该接口返回对象中的 **`events`**，不讨论同时返回的性能和页面统计指标。
+
+`AnalyticsService.useRollups()` 实际判断：
+
+~~~ts
+private useRollups(filters: AnalyticsFilters): boolean {
+  return filters.from.getTime()
+    < Date.now() - 29 * 24 * 60 * 60_000;
+}
+~~~
+
+也就是说，该项目按**查询起始时间**选择两种读法：
+
+**较近期范围**：直接对原始表计数。
+
+~~~sql
+SELECT count(*)::bigint AS events
+FROM telemetry_events e
+WHERE ...;
+~~~
+
+**查询起点早于约 29 天之前**：读取小时连续聚合，再根据项目和查询维度求和。
+
+~~~sql
+SELECT COALESCE(sum(event_count), 0)::bigint AS events
+FROM telemetry_rollup_1h c
+WHERE ...;
+~~~
+
+两条路径最后都归入响应的 `events: number`。例如 `{ "events": 12580 }` 表示示例查询范围内事件总数，不是分钟级曲线或某一个事件类型独立计数。
+
+Web [OverviewPage](../../platform/apps/web/src/pages/OverviewPage.tsx) 把该值展示为“**采集事件**”总量卡片；该页面虽然还有访问、性能与服务状态卡片，但它们的数据来源不属于本次原始事件专项。
+
+**当前没有独立 Web 事件数量趋势接口直接返回 telemetry_rollup_1m 各分钟的 event_count。** 该一分钟物化视图的实际用途是保存分钟统计，并作为 `telemetry_rollup_1h` 的上游；小时物化统计的 `event_count` 被 `/overview` 的历史查询消费。
+
+现有接口还存在两个值得明确记录的精度边界：
+1. `useRollups()` 只看 `from`，时间范围即使跨越 29 天门槛，查询也不会把两段自动拆成“旧数据读聚合、近期数据读明细”；
+2. 小时聚合使用 `bucket` 时间起点进行范围过滤，若传入的起止时间不对齐整点，其语义与精确到秒的原始事件时间过滤可能不同。不能宣称两类查询任何时间窗口下统计口径完全一致，需设计边界测试。
+
+源码：[AnalyticsService](../../platform/apps/api/src/analytics/analytics.service.ts)、[AnalyticsController](../../platform/apps/api/src/analytics/analytics.controller.ts)、[OverviewPage](../../platform/apps/web/src/pages/OverviewPage.tsx)。
+
+### 【补充边界：接入计数不是同一种来源】
+
+接入 Service 还会记录 `accepted`、`duplicate`、`rejected` 等接入结果到 Redis，并利用近期请求记录计算接入速率；`/analytics/service-status` 的相关状态数据由这些接入统计提供，**不依赖 telemetry_rollup_1m**。这是“本次 HTTP 接受/拒绝了多少条”的口径，区别于“指定 occurred_at 时间窗口内存在多少条原始事件”。此处只说明区别，不展开其他任务状态字段。
+
+### 【原始事件链路最终能力对照】
+
+| 业务问题 | 当前数据源 | API / Web 用途 |
+| --- | --- | --- |
+| 单次事件内容与上下文是什么？ | telemetry_events 的独立列 + event JSONB | raw-events → 原始事件页列表及 JSON 详情 |
+| 一分钟、某类型/名称/路由有多少原始事件？ | telemetry_rollup_1m 的 event_count | 已在数据库物化；目前没有单独事件量曲线 API/Web |
+| 一小时、某类型/名称/路由有多少原始事件？ | telemetry_rollup_1h 的 event_count | 数据库存储；overview 历史查询将各维度 event_count 汇总为 events |
+| 近期给定范围内原始事件总量？ | telemetry_events 的 COUNT(*) | overview.events → Web 采集事件卡片 |
+| 更长历史给定范围内原始事件总量？ | telemetry_rollup_1h 的 SUM(event_count) | overview.events → Web 采集事件卡片 |
+| 超过原始保留窗口还能查看具体 JSONB 吗？ | 原始 Chunk 到期被淘汰 | 不能通过聚合反推单次事实；历史事件量可在聚合保留期内使用 |
+| API 收到多少成功/重复/拒绝记录？ | 接入后的 Redis 计数 | service-status；不要误认为这是按事件发生时间聚合的 event_count |
+
+**最终回答**：这条原始事件链路将协议事件经过校验、安全处理和幂等去重后写入 `telemetry_events`，并按发生时间管理 Chunk；数据库另将它们归桶计数为分钟/小时 `event_count`。Web 目前主要提供**原始事件明细追溯**与**总览事件数量**两种直接消费场景。没有直接将原始事件聚合转化为性能分位数或其他业务指标，也没有把原始分钟级事件数量作为独立曲线展示。
+
+### 【后续可讨论的问题】
+
+是否应该开放按 `type/name/route` 维度的原始事件量趋势 API，直接使用 `telemetry_rollup_1m` / `telemetry_rollup_1h`？如果这样设计，如何按时间范围自动选择粒度、处理部分时间桶、保证最近数据的新鲜度，以及区分原始事件发生量与接入接受量？
+
+这是能力扩展方向，不属于已经完成的实现。后续仍沿原先学习计划，用实际 SQL、Chunk 状态、物化水位及 Job 执行结果验证数据库运行效果。
+
+
+## 15. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
