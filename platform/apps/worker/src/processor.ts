@@ -2,6 +2,7 @@
 // 并在成功后回填 telemetry_events.processed_at。性能样本与页面视图用事务级咨询锁串行化，
 // 避免多 Worker 并发对同一 sample/view 产生重复或乱序写入。
 import type { DatabaseHandle } from '@browser-monitor/database';
+import { WORKFLOW_ATTRIBUTE } from '@browser-monitor/protocol';
 import type {
   CustomSignalPayload,
   PerformanceMetricName,
@@ -72,6 +73,9 @@ export class EventProcessor {
   ): Promise<void> {
     // 只有 trace/span 才有 startedAt/endedAt/durationMs/status；event 类型为 undefined
     const timed = payload.type === 'trace' || payload.type === 'span' ? payload : undefined;
+    // Workflow roots retain their Span identity and project into the business Trace category.
+    const kind = payload.type === 'span' && payload.attributes?.[WORKFLOW_ATTRIBUTE] === true &&
+      !event.correlation.parentSpanId ? 'trace' : payload.type;
     // 写入信号主表：靠唯一键去重，重复执行命中冲突即忽略（幂等）
     await client.query(
       `INSERT INTO custom_signal_samples(
@@ -84,7 +88,7 @@ export class EventProcessor {
         projectId,
         event.eventId,
         new Date(event.occurredAt),
-        payload.type,
+        kind,
         event.name,
         timed?.status ?? null,
         timed ? new Date(timed.startedAt) : null,
@@ -121,7 +125,7 @@ export class EventProcessor {
           projectId,
           event.eventId,
           new Date(event.occurredAt),
-          payload.type,
+          kind,
           event.name,
           metric.name,
           metric.unit,

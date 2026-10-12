@@ -72,6 +72,23 @@ describe('custom signal pages', () => {
     expect(onSelect).toHaveBeenCalledWith(child);
   });
 
+  it.each(['trace', 'span'] as const)('renders a %s root, nested event and child finishing later than the root', (kind) => {
+    const base = { routeName: '/page', sessionId: 'session', viewId: 'view', environment: 'test', version: '1',
+      attributes: {}, metrics: {}, traceId: 'trace', occurredAt: '2026-01-01T00:00:00.100Z', status: 'ok' as const };
+    const root = { ...base, eventId: 'root', kind, name: kind + '.root', spanId: 'root-id', parentSpanId: null,
+      startedAt: '2026-01-01T00:00:00.000Z', endedAt: '2026-01-01T00:00:00.050Z', durationMs: 50 };
+    const child = { ...base, eventId: 'child', kind: 'span' as const, name: kind + '.child', spanId: 'child-id', parentSpanId: 'root-id',
+      startedAt: '2026-01-01T00:00:00.010Z', endedAt: '2026-01-01T00:00:00.100Z', durationMs: 90 };
+    const point = { ...base, eventId: 'point', kind: 'event' as const, name: kind + '.point', spanId: 'child-id', parentSpanId: 'root-id',
+      occurredAt: '2026-01-01T00:00:00.020Z', startedAt: null, endedAt: null, durationMs: null, status: null };
+    render(<TraceWaterfall data={{ traceId: 'trace', incomplete: false, records: [child, point, root] }} onSelect={vi.fn()} />);
+    expect(screen.getByTitle(kind + '.root')).toHaveStyle({ paddingLeft: '0px' });
+    expect(screen.getByTitle(kind + '.child')).toHaveStyle({ paddingLeft: '14px' });
+    expect(screen.getByTitle(kind + '.point')).toHaveStyle({ paddingLeft: '28px' });
+    expect(screen.getByTitle(kind + '.root · +0 ms')).toHaveStyle({ width: '50%' });
+    expect(screen.getByTitle(kind + '.child · +10 ms')).toHaveStyle({ width: '90%' });
+  });
+
   it('lists signals independently and navigates to one signal detail', async () => {
     apiMock.mockImplementation(async (path: string) => {
       if (path.includes('/custom-signals/detail')) return {

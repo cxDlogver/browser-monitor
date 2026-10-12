@@ -74,4 +74,25 @@ describe('custom signal analytics', () => {
     expect(trace.incomplete).toBe(true);
     expect(trace.records[0]).toMatchObject({ traceId: 'trace-1', parentSpanId: 'missing-parent' });
   });
+  it.each(['trace', 'span'])('accepts %s roots with real Span IDs regardless of arrival order', async (kind) => {
+    const root = { event_id: 'root', kind, span_id: 'root-id', parent_span_id: null };
+    const child = { event_id: 'child', kind: 'span', span_id: 'child-id', parent_span_id: 'root-id' };
+    const point = { event_id: 'point', kind: 'event', span_id: 'child-id', parent_span_id: 'root-id' };
+    const { service } = setup([child, point, root]);
+    const trace = await service.trace('user-1', 'project-1', 'trace-1', recent);
+    expect(trace.incomplete).toBe(false);
+    expect(trace.records).toHaveLength(3);
+  });
+
+  it('keeps legacy Trace summaries valid and flags missing event owners and truncation', async () => {
+    const root = { event_id: 'root', kind: 'trace', span_id: null, parent_span_id: null };
+    const { service, query } = setup([root]);
+    expect((await service.trace('user-1', 'project-1', 'trace-1', recent)).incomplete).toBe(false);
+    query.mockResolvedValueOnce({ rows: [root, { event_id: 'point', kind: 'event', span_id: 'missing' }] });
+    expect((await service.trace('user-1', 'project-1', 'trace-1', recent)).incomplete).toBe(true);
+    query.mockResolvedValueOnce({ rows: Array.from({ length: 1001 }, (_, index) => ({ ...root, event_id: 'id-' + index })) });
+    const result = await service.trace('user-1', 'project-1', 'trace-1', recent);
+    expect(result.incomplete).toBe(true);
+    expect(result.records).toHaveLength(1000);
+  });
 });

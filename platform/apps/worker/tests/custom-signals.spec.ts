@@ -1,3 +1,4 @@
+import { WORKFLOW_ATTRIBUTE } from '@browser-monitor/protocol';
 import { createPerformanceEventFixture } from '@browser-monitor/protocol/fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -33,5 +34,29 @@ describe('custom signal projection', () => {
       ['duration', 'ms', 150],
     ]);
     expect(query).toHaveBeenCalledWith('COMMIT');
+  });
+  it.each([
+    { marker: true, parent: undefined, kind: 'trace' },
+    { marker: undefined, parent: undefined, kind: 'span' },
+    { marker: 'true', parent: undefined, kind: 'span' },
+    { marker: true, parent: 'upstream', kind: 'span' },
+  ])('projects only workflow roots into the Trace category: $kind', async ({ marker, parent, kind }) => {
+    const query = vi.fn(async (_sql: string, _values?: unknown[]) => ({ rows: [], rowCount: 1 }));
+    const client = { query, release: vi.fn() };
+    const processor = new EventProcessor({ pool: { connect: vi.fn(async () => client) } } as never);
+    const base = createPerformanceEventFixture();
+    await processor.process('project-1', {
+      ...base, type: 'span', name: 'flow',
+      correlation: { traceId: 'trace-1', spanId: 'root-1', ...(parent ? { parentSpanId: parent } : {}) },
+      payload: { type: 'span', name: 'flow', source: 'custom', startedAt: 100, endedAt: 200,
+        durationMs: 100, status: 'ok', attributes: { [WORKFLOW_ATTRIBUTE]: marker } },
+    } as never);
+    const signal = query.mock.calls.find(([sql]) => sql.includes('INSERT INTO custom_signal_samples'));
+    const metric = query.mock.calls.find(([sql]) => sql.includes('INSERT INTO custom_metric_samples'));
+    expect(signal?.[1]?.[3]).toBe(kind);
+    expect(signal?.[1]?.slice(9, 12)).toEqual(['trace-1', 'root-1', parent ?? null]);
+    expect(metric?.[1]?.[3]).toBe(kind);
+    expect(metric?.[1]?.[5]).toBe('duration');
+    expect(query.mock.calls.filter(([sql]) => sql.includes('INSERT INTO custom_signal_samples'))).toHaveLength(1);
   });
 });

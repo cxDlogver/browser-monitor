@@ -1,8 +1,5 @@
-import {
-  CustomTelemetryManager,
-  type CustomSignalInput,
-  type TraceHandle,
-} from '../collectors/event/custom';
+import type { CustomSignalInput } from '../shared/custom-signal';
+import { Tracer, type SpanHandle, type StartSpanOptions, type TraceHandle } from '../tracing';
 import { FPSCollector, LoAFCollector, WebVitalsCollector } from '../collectors/performance';
 import { ViewCollector } from '../collectors/view';
 import { ContextManager } from '../context';
@@ -28,8 +25,8 @@ export interface MonitorCapabilities {
 
 /**
  * SDK 对外暴露的最小 API 契约。
- * 所有方法都被设计成幂等且可在非法状态下安全调用（退化为空操作），
- * 避免宿主在 React StrictMode、路由重挂载等场景下重复调用时报错。
+ * 生命周期操作幂等；停用期间采集入口不提交数据，包装回调仍正常执行。
+ * 运行中的业务输入会校验，手动计时句柄由调用方负责结束。
  */
 export interface Monitor {
   start(): void;
@@ -37,6 +34,9 @@ export interface Monitor {
   destroy(): void;
   track(name: string, data?: CustomSignalInput): void;
   startTrace(name: string, data?: CustomSignalInput): TraceHandle;
+  startSpan(name: string, options?: StartSpanOptions): SpanHandle;
+  withTrace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T;
+  withSpan<T>(name: string, callback: (span: SpanHandle) => T, options?: StartSpanOptions): T;
   trace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T;
   setUser(user: UserContextData): void;
   setViewName(name: string): void;
@@ -63,7 +63,7 @@ class BrowserMonitor implements Monitor {
   private readonly signals = new SignalHub();
   private readonly context: ContextManager;
   private readonly transport: Transport;
-  private readonly customTelemetry: CustomTelemetryManager;
+  private readonly tracer: Tracer;
   private readonly capabilities: MonitorCapabilities;
 
   constructor(options: MonitorOptions, dependencies: MonitorDependencies = {}) {
@@ -89,7 +89,7 @@ class BrowserMonitor implements Monitor {
     // 保证任何来源的数据都经过同一套上下文注入与清洗规则。
     const processing = createProcessingPipeline(this.options.processing);
     const pipeline = new MonitorPipeline(this.context, processing, this.transport);
-    this.customTelemetry = new CustomTelemetryManager(pipeline, this.context, this.signals);
+    this.tracer = new Tracer(pipeline, this.context);
 
     // 总开关关闭时逐项置 false，而非跳过创建，保持能力表的结构完整。
     const enabledMetrics = this.options.performance.enabled
@@ -147,7 +147,7 @@ class BrowserMonitor implements Monitor {
     this.registry.register(viewCollector);
     // Transport installs after lifecycle-aware Collectors so pagehide first
     // emits final metric/View snapshots and only then flushes the queue.
-    this.registry.register(this.customTelemetry);
+    this.registry.register(this.tracer);
     this.registry.register(this.transport);
     this.registry.register(pageLifecycle);
     this.registry.register(history);
@@ -183,7 +183,6 @@ class BrowserMonitor implements Monitor {
   // 暂停采集但保留 install 的全局监听，可通过再次 start 快速恢复。
   stop(): void {
     if (!this.lifecycle.isRunning()) return;
-    this.customTelemetry.cancelOpen();
     this.registry.stop();
     this.lifecycle.markStopped();
   }
@@ -192,7 +191,7 @@ class BrowserMonitor implements Monitor {
     if (this.lifecycle.isDestroyed()) return;
     if (this.lifecycle.isRunning()) this.stop();
 
-    // destroy 是终态：释放订阅、上下文和模块引用，之后所有公开操作退化为空操作。
+    // destroy 是终态：释放订阅和上下文，后续采集入口不再提交记录。
     this.registry.destroy();
     this.signals.clear();
     this.context.destroy();
@@ -200,15 +199,27 @@ class BrowserMonitor implements Monitor {
   }
 
   track(name: string, data?: CustomSignalInput): void {
-    this.customTelemetry.track(name, data);
+    this.tracer.track(name, data);
   }
 
   startTrace(name: string, data?: CustomSignalInput): TraceHandle {
-    return this.customTelemetry.startTrace(name, data);
+    return this.tracer.startTrace(name, data);
+  }
+
+  startSpan(name: string, options?: StartSpanOptions): SpanHandle {
+    return this.tracer.startSpan(name, options);
+  }
+
+  withTrace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T {
+    return this.tracer.withTrace(name, callback, data);
+  }
+
+  withSpan<T>(name: string, callback: (span: SpanHandle) => T, options?: StartSpanOptions): T {
+    return this.tracer.withSpan(name, callback, options);
   }
 
   trace<T>(name: string, callback: (trace: TraceHandle) => T, data?: CustomSignalInput): T {
-    return this.customTelemetry.trace(name, callback, data);
+    return this.withTrace(name, callback, data);
   }
 
   // setUser 不要求处于运行态：允许在 start 之前预置用户身份。
@@ -222,7 +233,7 @@ class BrowserMonitor implements Monitor {
     this.context.view.setName(name);
   }
 
-  // 立即冲刷队列（false 表示非卸载场景），用于页面跳转前保证数据不丢。
+  // 尝试立即冲刷队列；false 表示普通发送场景，完成不代表每条记录均已被接收。
   flush(): Promise<void> {
     if (this.lifecycle.isDestroyed()) return Promise.resolve();
     return this.transport.flush(false);

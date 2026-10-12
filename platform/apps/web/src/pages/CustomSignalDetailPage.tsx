@@ -60,22 +60,21 @@ function RecordDetails({ record }: { record: CustomSignalRecord }) {
 }
 
 export function TraceWaterfall({ data, onSelect }: { data: CustomTraceDetail; onSelect: (record: CustomSignalRecord) => void }) {
-  const root = data.records.find((item) => item.kind === 'trace');
-  const origin = root?.startedAt ? new Date(root.startedAt).getTime() : Math.min(...data.records.map((item) =>
-    new Date(item.startedAt ?? item.occurredAt).getTime(),
-  ));
+  const origin = Math.min(...data.records.map((item) => new Date(item.startedAt ?? item.occurredAt).getTime()));
   const end = Math.max(...data.records.map((item) => new Date(item.endedAt ?? item.occurredAt).getTime()));
   const width = Math.max(1, end - origin);
-  const bySpan = new Map(data.records.filter((item) => item.kind === 'span' && item.spanId).map((item) => [item.spanId, item]));
+  const bySpan = new Map(data.records.filter((item) => item.kind !== 'event' && item.spanId).map((item) => [item.spanId, item]));
+  const legacyRoot = data.records.some((item) => item.kind === 'trace' && !item.spanId);
   const depth = (item: CustomSignalRecord): number => {
-    let current = item;
-    let level = item.kind === 'trace' ? 0 : 1;
-    const seen = new Set<string>();
+    let current = item.kind === 'event' && item.spanId ? bySpan.get(item.spanId) ?? item : item;
+    let level = item.kind === 'event' && item.spanId ? 1 : 0;
+    const seen = new Set<string>(current.spanId ? [current.spanId] : []);
     while (current.parentSpanId && bySpan.has(current.parentSpanId) && !seen.has(current.parentSpanId)) {
       seen.add(current.parentSpanId);
       current = bySpan.get(current.parentSpanId)!;
       level += 1;
     }
+    if (legacyRoot && current.kind !== 'trace') level += 1;
     return level;
   };
   const records = [...data.records].sort((a, b) =>
@@ -83,7 +82,7 @@ export function TraceWaterfall({ data, onSelect }: { data: CustomTraceDetail; on
   );
   return (
     <>
-      {data.incomplete && <Alert type="warning" showIcon message="不完整链路：根 Trace 或父 Span 缺失，或原始数据已超过保留期。" style={{ marginBottom: 16 }} />}
+      {data.incomplete && <Alert type="warning" showIcon message="当前链路记录不完整：根节点或关联 Span 缺失，可能受筛选、处理进度、条数上限或保留期影响。" style={{ marginBottom: 16 }} />}
       {records.length === 0 ? <Empty description="没有可查看的链路记录" /> : records.map((item) => {
         const start = new Date(item.startedAt ?? item.occurredAt).getTime();
         const duration = Math.max(item.durationMs ?? 0, 0);

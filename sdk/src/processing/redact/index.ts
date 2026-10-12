@@ -2,8 +2,8 @@
  * ---------------------------------------------------------------------------
  * 当前文件的作用：第三道关卡 —— 脱敏，保证敏感数据与敏感参数不会离开浏览器。
  *
- * 只递归处理业务自定义事件的 properties，因为那是唯一可能含任意用户数据的地方；
- * 性能、View 等结构化 payload 字段固定，不需要递归遍历。
+ * 递归处理自定义 Event、Trace、Span 的 attributes；
+ * 性能、View 等结构化 payload 字段固定，不需要遍历任意业务属性。
  *
  * 三条防护并存：
  *   1. 键名脱敏：命中敏感键（忽略大小写）即整值替换为 [REDACTED]；
@@ -14,9 +14,11 @@
  * ---------------------------------------------------------------------------
  */
 
-import type {
-  CustomSignalPayload,
-  TelemetryEventV3 as TelemetryEnvelope,
+import {
+  WORKFLOW_ATTRIBUTE,
+  type JsonValue,
+  type CustomSignalPayload,
+  type TelemetryEventV3 as TelemetryEnvelope,
 } from '@browser-monitor/protocol';
 import { isRecord } from '../../shared/type-guards';
 import { sanitizeUrl } from '../../shared/url';
@@ -63,10 +65,12 @@ export class RedactStage implements ProcessingStage {
       (payload.type === 'event' || payload.type === 'trace' || payload.type === 'span') &&
       payload.attributes
     ) {
-      payload = {
-        ...payload,
-        attributes: redactValue(payload.attributes, this.keys),
-      } as CustomSignalPayload;
+      const attributes = redactValue(payload.attributes, this.keys) as Record<string, JsonValue>;
+      // The boolean workflow marker is structural metadata, not user content.
+      if (payload.type === 'span' && payload.attributes[WORKFLOW_ATTRIBUTE] === true) {
+        attributes[WORKFLOW_ATTRIBUTE] = true;
+      }
+      payload = { ...payload, attributes } as CustomSignalPayload;
     }
 
     // Context 创建时已脱敏，这里再次处理是进入 Transport 前的纵深防护。

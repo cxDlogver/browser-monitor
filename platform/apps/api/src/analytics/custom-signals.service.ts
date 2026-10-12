@@ -277,9 +277,12 @@ export class CustomSignalsService {
       values,
     );
     const records = result.rows.slice(0, 1000).map((row) => this.recordRow(row));
-    const spanIds = new Set(records.filter((row) => row.kind === 'span').map((row) => row.spanId));
-    const incomplete = result.rows.length > 1000 || !records.some((row) => row.kind === 'trace') ||
-      records.some((row) => row.parentSpanId && !spanIds.has(row.parentSpanId));
+    const spanIds = new Set(records.filter((row) => row.kind !== 'event' && row.spanId).map((row) => row.spanId));
+    const hasRoot = records.some((row) => row.kind === 'trace' || (row.kind === 'span' && !row.parentSpanId));
+    const incomplete = result.rows.length > 1000 || !hasRoot || records.some((row) =>
+      (row.parentSpanId && !spanIds.has(row.parentSpanId)) ||
+      (row.kind === 'event' && row.spanId && !spanIds.has(row.spanId)),
+    );
     return { traceId, incomplete, records };
   }
 

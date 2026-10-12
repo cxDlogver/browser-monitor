@@ -1,10 +1,6 @@
 export { createMonitor, type Monitor, type MonitorCapabilities } from './core/monitor';
-export type {
-  CustomSignalEndInput,
-  CustomSignalInput,
-  SpanHandle,
-  TraceHandle,
-} from './collectors/event/custom';
+export type { CustomSignalEndInput, CustomSignalInput } from './shared/custom-signal';
+export type { SpanContext, SpanHandle, StartSpanOptions, TraceHandle } from './tracing';
 export type { MonitorOptions, RouteLocation } from './core/config';
 export type {
   AppContextData,
