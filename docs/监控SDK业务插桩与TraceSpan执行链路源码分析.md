@@ -4,131 +4,167 @@
 
 全文对应的通用知识主入口：[监控 SDK 插桩与 Trace/Span 工程体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/J-%E7%9B%91%E6%8E%A7SDK%E6%8F%92%E6%A1%A9%E4%B8%8ETraceSpan%E5%B7%A5%E7%A8%8B%E4%BD%93%E7%B3%BB.md)。性能指标采集与浏览器 API 另见[性能测量与真实用户监控专项](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/X-%E6%80%A7%E8%83%BD%E6%B5%8B%E9%87%8F%E4%B8%8E%E7%9C%9F%E5%AE%9E%E7%94%A8%E6%88%B7%E7%9B%91%E6%8E%A7%E4%B8%93%E9%A1%B9.md)。本分析引用的代码路径均以 \`browser-monitor/\` 为起点；官网业务层示例单独标注来源为 \`official-network\`，不能冒充本仓库 SDK 的内部行为。
 
-## 1. 监控目标与 SDK 数据路径
+## 1. 监控目标、数据入口与 SDK 总链路
 
-### 【业务事实与统一数据结构属于两个不同层次】
+### 【先从业务事实区分自动采集与手工插桩】
 
-业务代码能识别“用户点击购买”“进入页面”“一次请求完成”等语义，浏览器 API 能产生 PerformanceEntry、错误、页面生命周期信号。SDK 的任务不是凭空推断业务含义，而是**将这些事实转成一致的遥测记录，并用 Context 和 Correlation 保留发生位置与因果归属**。
+浏览器能主动提供 PerformanceEntry、错误、路由和页面生命周期事实，但它不知道“某个按钮在业务上代表申请合作”，也不会替业务自动定义有效停留时间。自动采集用于已知浏览器事实，代码插桩用于业务语义；两者最后必须收敛到同一个数据管线。
 
 ~~~text
-自动采集：PerformanceObserver / web-vitals / History / 生命周期
-            ↓ 内部 Raw Signal
-         SignalHub（内部事件分发）
-            ↓ Collector（把浏览器事实解释为遥测类型）
-业务手工插桩：monitor.track() / monitor.startTrace() / trace.startSpan()
-            ↓ 自定义 Event / Trace / Span 数据草稿
-        MonitorPipeline.emit(draft)
-            ↓ 补 Event ID、协议版本、App、Session、View、关联 ID
-        ProcessingPipeline（七阶段校验和治理）
-            ↓ 只有通过的数据进入队列
-        Transport.enqueue()（同步、非阻塞）
-            ↓ 内存排队 / 批次阈值 / 定时 / 生命周期触发
-        flush → takeBatch → sendWithRetry → HttpSender
-            ↓ HTTP / Beacon
-        Ingestion API → 存储、查询与展示
+浏览器自动采集 → Instrumentation → SignalHub → Collector
+业务手工插桩 → monitor.track / startTrace / startSpan / withSpan
+                       ↓
+                   TelemetryDraft
+                       ↓
+MonitorPipeline.emit：生成 eventId，绑定 App/Session/View/关联 ID
+                       ↓
+ProcessingPipeline：格式→校验→脱敏→过滤→去重→采样→限流
+                       ↓
+Transport.enqueue：写入有界内存队列
+                       ↓
+Batch/Flush/Retry/Sender：分批发送
+                       ↓
+采集服务端 → 已完成的 Trace/Span/Event 记录
 ~~~
 
-关键是 **Event/Trace/Span 的创建** 与 **Batch 的组织** 完全独立。一次 Trace 中的 Span 可以先结束先发送，也可以被拆进不同 Batch；服务端以后通过 ID 关联，不等待“同一条 Trace 的所有 Span 都收齐”。
+**Trace/Span 属于执行层的语义，Batch 属于传输层的打包单位。** 一个 Trace 的若干 Span 可以在不同时间结束，形成不同批次；不等整条 Trace 完成后才允许上报。
 
-### 【组合根负责模块连接，不在每个页面重复实现采集】
+### 【最新 SDK 的组合根已经改为装配 Tracer】
 
-源码：[sdk/src/core/monitor.ts](../sdk/src/core/monitor.ts)、[sdk/src/core/pipeline.ts](../sdk/src/core/pipeline.ts)。
-
-在 \`BrowserMonitor\` 构造函数中先归一化配置，创建业务 \`ContextManager\`，然后创建 \`HttpSender → Transport → ProcessingPipeline → MonitorPipeline\`，并将同一个 \`pipeline\` 传给各 Collector 和 \`CustomTelemetryManager\`。这是所有监控数据的唯一处理入口。
-
-核心真实代码片段：
+源码：[core/monitor.ts](../sdk/src/core/monitor.ts)、[core/pipeline.ts](../sdk/src/core/pipeline.ts)。
 
 ~~~ts
-const sender =
-  dependencies.sender ??
-  new HttpSender({
-    dsn: this.options.transport.dsn,
-    headers: this.options.transport.headers,
-  });
-this.transport = new Transport(this.options.transport, sender, this.signals);
-
 const processing = createProcessingPipeline(this.options.processing);
 const pipeline = new MonitorPipeline(this.context, processing, this.transport);
-this.customTelemetry = new CustomTelemetryManager(pipeline, this.context, this.signals);
+this.tracer = new Tracer(pipeline, this.context);
 ~~~
 
-说明：这解决了业务代码只需要调用 \`Monitor\` 的接入问题，也允许测试注入 \`Sender\` 而无需真正发网络请求。它不保证任何业务点击都能自动获得业务名称；无法自动理解的动作仍需手工插桩。
+\`BrowserMonitor\` 负责装配业务 Context、Transport、Processing、MonitorPipeline、Tracer 和自动采集模块；公共 API 把 \`startTrace()\`、\`startSpan()\`、\`withTrace()\`、\`withSpan()\`、\`track()\` 转交给同一个 Tracer。Tracer 把已结束的 Span 和点事件交回 TelemetryEmitter，由现有管线继续处理。
 
-## 2. Event、Trace、Span 在当前 SDK 中如何创建
+重构前的 \`CustomTelemetryManager\` 同时管理 TraceHandle、SpanHandle 和 Event，运行时维护子集合；新版本已经拆成 \`Tracer + RecordingSpan + TracingContext + CustomEventCollector\`。后续章节只描述**新版本当前行为**，不把历史设计当作现状。
 
-### 【对外 API 将瞬时事实与时间区间分离】
+## 2. 最新 Tracer 与 Span：身份、父级、Context 和生命周期
 
-通用模型中，Event 是某时刻发生的事实，Span 是有开始和结束的操作，Trace 表示一条相互关联的执行链路。当前自定义 API 已提供这三类表达，但采用**自定义 Trace 对象及父对象引用**，不是标准 OpenTelemetry Tracer API。
+### 【Trace 是具有工作流标记的根 Span，而不是第二套生命周期对象】
 
-源码：[sdk/src/collectors/event/custom/index.ts](../sdk/src/collectors/event/custom/index.ts)、[sdk/src/core/monitor.ts](../sdk/src/core/monitor.ts)。
+源码：[tracing/types.ts](../sdk/src/tracing/types.ts)、[tracing/tracer.ts](../sdk/src/tracing/tracer.ts)、[tracing/span.ts](../sdk/src/tracing/span.ts)、[protocol/constants.ts](../protocol/src/constants.ts)。
 
 ~~~ts
-export interface TraceHandle {
-  readonly traceId: string;
-  startSpan(name: string, data?: CustomSignalInput): SpanHandle;
-  addEvent(name: string, data?: CustomSignalInput): void;
-  end(options?: CustomSignalEndInput): void;
-}
-
-export interface SpanHandle {
+export interface SpanContext {
   readonly traceId: string;
   readonly spanId: string;
-  startSpan(name: string, data?: CustomSignalInput): SpanHandle;
-  addEvent(name: string, data?: CustomSignalInput): void;
-  end(options?: CustomSignalEndInput): void;
 }
+
+export interface StartSpanOptions extends CustomSignalInput {
+  parent?: SpanContext | null;
+}
+
+// 业务 Trace 与普通 Span 使用同一个句柄合同。
+export type TraceHandle = SpanHandle;
 ~~~
 
-实际行为：
+现在 \`startTrace(name)\` 调用 Tracer 的同一创建出口，以 \`parent:null\` 强制建立新链路，并将 \`workflow=true\` 传给 \`RecordingSpan\`；它拥有自己的 traceId、spanId、可选 parentSpanId。终结时 \`RecordingSpan.end()\` 生成 \`type:'span'\` 的负载，对业务根额外写入保留标记 \`monitor.workflow=true\`。Worker 投影时将**无 parentSpanId 且带标记**的根 Span 归类为平台的 \`trace\`，同时保留它的 Span ID。这个设计让业务根也能成为子节点的明确父 Span。
 
-- \`monitor.track('business.action', data)\` 产生独立 Event；默认调用时的 \`correlation\` 为空。
-- \`monitor.startTrace('business.flow')\` 创建 \`TraceHandleImpl\`，具有 Trace ID 和起始时间；\`trace.end()\` 产生 Trace 完成记录。
-- \`trace.startSpan('stage')\` 产生第一层 Span；\`span.startSpan('substage')\` 创建下一层 Span；\`span.end()\` 产生该操作的时间区间记录。
-- \`span.addEvent(...)\` 调用同一个 \`track\` 方法，**显式传入当前 Span 的关联信息**；其事件是单独的 Event Envelope，不等同于 OTel 在单个 SpanRecord 内嵌的 Span Event 数组。
+相比旧版“独立 type=trace 且仅有 traceId”的对象，**新版 Trace 不再有独立的父子对象树；它是根 Span 的业务分类**。
 
-### 【当前父子关系既保留对象引用，也进入独立关联字段】
+### 【Tracer 负责创建 Span，父级选择具有三态规则】
 
-源码中 \`TraceHandleImpl\` 与 \`SpanHandleImpl\` 都持有未结束的子对象：
+实际工厂关键逻辑：
 
 ~~~ts
-class TraceHandleImpl extends TimedHandle implements TraceHandle {
-  readonly traceId = createId('trace');
-  readonly children = new Set<SpanHandleImpl>();
-  // ...
-}
+const { parent: explicit, ...data } = options ?? {};
+const parent = explicit === null
+  ? undefined
+  : (explicit ?? this.scope.current());
 
-class SpanHandleImpl extends TimedHandle implements SpanHandle {
-  readonly spanId = createId('span');
-  readonly traceId: string;
-  readonly children = new Set<SpanHandleImpl>();
+return new RecordingSpan(
+  this,
+  this.running ? requiredName(name) : name,
+  {
+    traceId: parent?.traceId ?? createTraceId(),
+    spanId: createSpanId(),
+    ...(parent ? { parentSpanId: parent.spanId } : {}),
+  },
+  this.running ? this.context.snapshotAt(Date.now()) : undefined,
+  workflow,
+  data,
+);
+~~~
+
+- \`parent: null\`：明确与活动父级断开，开启新 Trace。
+- 传入 \`parent: SpanContext\`：使用调用者指定的父身份，即使另有活动作用域也优先。
+- 不传 \`parent\`：从当前同步活动上下文读取父级；如果没有则创建新的根 Span。
+
+\`createTraceId()\` 生成 32 位十六进制 ID，\`createSpanId()\` 生成 16 位十六进制 ID，并校验显式父级必须使用非全零合法 ID。它们的尺寸兼容 W3C Trace Context 的 ID 要求，但这**不等于项目已经实现了 HTTP traceparent 注入和提取**：单纯 ID 格式兼容不构成跨进程 Tracing。
+
+### 【RecordingSpan 只维护自己的状态，不拥有子 Span 集合】
+
+源码：[tracing/span.ts](../sdk/src/tracing/span.ts)。
+
+~~~ts
+export class RecordingSpan implements SpanHandle {
+  private readonly startedAt = Date.now();
+  private readonly startedMonotonic = monotonicNow();
+  private readonly identity: Readonly<SpanContext & CorrelationContext>;
+  private ended: boolean;
   // ...
-  private correlation(): CorrelationContext {
-    return {
-      traceId: this.traceId,
-      spanId: this.spanId,
-      ...(this.parent ? { parentSpanId: this.parent.spanId } : {}),
-    };
+  startSpan(name: string, data?: CustomSignalInput): SpanHandle {
+    return this.runtime.startSpan(name, { ...data, parent: this.identity });
   }
 }
 ~~~
 
-\`children\` 的作用是生命周期管理，不是服务端重建树的必要字段。当前 \`TraceHandleImpl.end()\` 会递归 \`cancelTree()\` 取消仍然开放的子 Span，Span 结束后还会从父对象的 \`children\` 删除自己。**这一“父结束则取消子”的行为属于当前业务 SDK 的具体约束，不能描述为所有 Trace/Span 系统的标准语义**。通用 OpenTelemetry Span 生命周期可独立结束，是否取消业务子任务应由业务 Runtime 控制。
+每个 Span 保存固定身份、开始时上下文快照、属性/业务指标、时钟和 \`ended\` 标志。**没有 children Set，没有父对象所有权，不需要 Trace 统计子节点数量**。父 Span \`end()\` 仅结束自身，不会自动取消业务子任务，也不会给尚未完成的子 Span 伪造 cancelled 状态。业务若要求所有步骤完成后才结束工作流，需要自行等待 Promise 或维护任务状态。
 
-与此并行，已完成 Span 的记录里使用 \`traceId\`、\`spanId\`、\`parentSpanId\` 这组 ID，不需要上传整个对象树。当前 \`createId\` 是前缀+时间+序列+随机数的自定义生成方法；这并不是 W3C \`traceparent\` 规定的 32 位十六进制 Trace ID、16 位 Span ID，因此不能直接用作标准跨进程传播字段。
+\`RecordingSpan.end()\` 合并数据、校验状态（ok/error/cancelled）、以 \`performance.now()\` 等单调时钟计算 durationMs、设置 ended 标志并生成独立完成记录；重复 end 不会再次提交。**end 产生记录，不等于网络已经发送成功**。
 
-### 【当前 Context 不是 AsyncLocalStorage 的活动 Span Context】
+### 【活动父级仅在同步作用域生效，跨 await 需要显式关联】
 
-源码：[sdk/src/context/snapshot.ts](../sdk/src/context/snapshot.ts)。
+源码：[tracing/context.ts](../sdk/src/tracing/context.ts)。
 
 ~~~ts
-snapshotAt(timestamp: number): TelemetryContext {
-  let view = this.view.resolveAt(timestamp);
-  if (!view) view = this.startView(currentUrl(), timestamp, 'initial').current;
-  return this.snapshotForView(view);
+run<T>(parent: SpanContext, callback: () => T): T {
+  const previous = this.active;
+  this.active = Object.freeze({ traceId: parent.traceId, spanId: parent.spanId });
+  try {
+    return callback();
+  } finally {
+    this.active = previous;
+  }
 }
 ~~~
 
-这个 \`ContextManager\` 解决的是 **App / User / Session / View 的环境归属**，尤其是延迟数据应归属哪个页面；它不保存当前活跃 Span，也没有 Node.js \`AsyncLocalStorage\`。因此现在的父子 Span 是由 \`trace.startSpan()\` / \`span.startSpan()\` 传递对象引用确定，而不是调用 \`tracer.startSpan()\` 自动读取隐式活动上下文。通用设计中两类 Context 可以同时存在，但负责不同问题。
+\`TracingContext.run()\` 进入回调时保存旧活动父级，在 \`finally\` 恢复；\`bind()\` 捕获某个父上下文，并在后续回调被调用时临时激活它。
+
+**它不是 Node.js AsyncLocalStorage，也没有自动在浏览器的 await 后续代码中延续 active**。使用 \`withTrace(async trace => ...)\` 时，包装器会等待回调 Promise 完成才 \`end()\`，但内部 \`run()\` 的活动上下文只覆盖同步调用阶段；await 之后新建子 Span 应用 \`parent:trace\`、\`trace.startSpan()\`、\`trace.span()\` 或 \`bind()\` 显式携带父身份。
+
+~~~ts
+await monitor.withTrace('checkout.flow', async (trace) => {
+  await loadCart();
+  // await 之后不能假定存在隐式当前父级
+  const child = monitor.startSpan('checkout.payment', { parent: trace });
+  try {
+    await submitPayment();
+  } finally {
+    child.end();
+  }
+});
+~~~
+
+并发执行不会共享一个长期存活的可变全局活动父级，避免误把其它并发操作当作父级。此设计解决的是**浏览器端受控同步上下文与显式传递**，不是端到端 HTTP Trace Context 的全部能力。
+
+### 【瞬时 Event 可显式关联，也可以读取同步活动上下文】
+
+~~~ts
+track(name: string, data?: CustomSignalInput, correlation?: CorrelationContext): void {
+  if (!this.running) return;
+  this.events.track(name, data, correlation ?? this.scope.current() ?? {});
+}
+~~~
+
+当回调处于 \`span.run()\`、\`withSpan()\` 的同步活动作用域中，\`monitor.track()\` 可以自动继承 traceId/spanId；否则它是一条不带 Trace 关联的普通 Event。句柄 \`span.addEvent()\` 会显式以该 Span 身份记录 Event，即使业务稍后返回到无活动作用域，也不依赖隐式上下文。
+
+**这里 \`addEvent\` 仍产生独立 Event 信封**，不是把事件对象写入 \`SpanRecord.events[]\`；事件通常引用发生时所属的 Span ID，而不是自己创建额外的 Span。
 
 ## 3. 业务代码插桩：什么时候用 Event、什么时候需要 Span
 
@@ -197,7 +233,7 @@ pageSpan = visitTrace.startSpan('site.page.stay', {
 
 这里的 \`30000\` 仅为说明 API 形状的示例值，不是 SDK 自动计算的业务时长。官网级可见时长还需要独立访问计时器，不能直接累加整站 Trace duration 与所有子 Span duration。
 
-### 【实际官网插件接入作为跨仓库实践，不等于 SDK 内部自动功能】
+### 【实际官网插件接入属于业务层，不等于 SDK 自动功能】
 
 在关联项目 \`official-network\` 中，已实现 Nuxt Client Plugin 组合 \`createMonitor → createStayTracker → monitor.start → stayTracker.begin\`。链接：[插件](https://github.com/cxDlogver/official-network/blob/main/app/plugins/monitor.client.ts)、[业务停留编排](https://github.com/cxDlogver/official-network/blob/main/app/utils/monitor/stay-tracking.ts)、[可见时长计时器](https://github.com/cxDlogver/official-network/blob/main/app/utils/monitor/visible-stopwatch.ts)。
 
@@ -327,47 +363,68 @@ if (navigator.sendBeacon(this.options.dsn, body)) {
 
 \`sendBeacon()\` 返回 true 表示浏览器已经接受并排队请求，**不是服务端持久化成功的确认**。当前页面隐藏时 \`flush(true)\` 仅使该次 drain 的第一批优先使用 Beacon，后续批次转向 fetch；如果正在运行另一轮普通 drain，新来的 \`flush(true)\` 复用已有 Promise，无法自动将其升级成 Beacon。窗口关闭等情况下的最终上报仍是 best-effort。
 
-## 6. 平台怎样凭扁平记录恢复 Trace 关系
+## 6. 后端如何用 Span ID 和工作流标记还原链路
 
-### 【Span 不靠“同一个对象树”或“同时到达”形成关系】
+### 【Worker 将根 Span 识别为平台的 Trace 类别】
 
-当前服务端按 Trace ID 查询独立记录，返回 \`{traceId, incomplete, records}\`，并检查是否缺少根 Trace 或某个父 Span。前端：
+当前线上遥测的业务根仍发送 \`payload.type='span'\` 并保留根 Span ID；Worker 通过 \`monitor.workflow\` 标记和无父级条件转换为报表的 Trace 类别：
+
+~~~ts
+const kind =
+  payload.type === 'span' &&
+  payload.attributes?.[WORKFLOW_ATTRIBUTE] === true &&
+  !event.correlation.parentSpanId
+    ? 'trace'
+    : payload.type;
+~~~
+
+源码：[platform/apps/worker/src/processor.ts](../platform/apps/worker/src/processor.ts)、[protocol/src/constants.ts](../protocol/src/constants.ts)。
+
+这条规则是协议层“一个根 Span 兼作业务 Trace”向分析层转换的关键。不能再使用旧版“Trace 记录没有 spanId”的口径解释当前新根记录。
+
+### 【后端按 Trace ID 查询扁平记录，前端按父级 ID 还原展示】
+
+源码：[custom-signals.service.ts](../platform/apps/api/src/analytics/custom-signals.service.ts)、[CustomSignalDetailPage.tsx](../platform/apps/web/src/pages/CustomSignalDetailPage.tsx)。
+
+~~~ts
+const spanIds = new Set(
+  records.filter(row => row.kind !== 'event' && row.spanId).map(row => row.spanId)
+);
+const hasRoot = records.some(
+  row => row.kind === 'trace' || (row.kind === 'span' && !row.parentSpanId)
+);
+~~~
+
+后端还检查事件的 \`spanId\` 所指向的父操作是否存在、请求结果是否超出 1000 条、以及有无缺失父节点，将 \`incomplete\` 提示给前端。
 
 ~~~ts
 const bySpan = new Map(
   data.records
-    .filter((item) => item.kind === 'span' && item.spanId)
-    .map((item) => [item.spanId, item])
+    .filter(item => item.kind !== 'event' && item.spanId)
+    .map(item => [item.spanId, item])
 );
 ~~~
 
-然后沿 \`parentSpanId\` 查找父级，计算层级和瀑布图位置。这种实现**不是先从后端获得一棵嵌套对象树**，前端也没有建立独立的 \`SpanNode.children[]\` 对象树；当前只为了渲染层级借助 Map 顺着父 ID 找父级。
+瀑布图中，事件如果有 \`spanId\` 会先找到所属 Span 再计算显示层级；Span 则沿 \`parentSpanId\` 查找父级并计算深度。数据库存的是按关联 ID 可以拼接的独立记录，服务端不要求父 Span 先到；前端也无需拥有真实运行时 Span 对象。
 
-源码：[custom-signals.service.ts](../platform/apps/api/src/analytics/custom-signals.service.ts)、[CustomSignalDetailPage.tsx](../platform/apps/web/src/pages/CustomSignalDetailPage.tsx)。
+## 7. 测试证据、现有边界与改进顺序
 
-缺失节点、乱序到达都不应靠时间排序推测真实父子关系；显示不完整链路和局部根更诚实。若业务要支持跨服务 Trace，仍需引入标准 Trace ID、传播器及 HTTP Client/Server 插桩，不能只依赖同一个服务端接收平台。
+### 【新 Trace 重构已有的测试范围】
 
-## 7. 验证范围与改进顺序
+源码：[sdk/tests/event/custom.spec.ts](../sdk/tests/event/custom.spec.ts)、[sdk/tests/transport/transport.spec.ts](../sdk/tests/transport/transport.spec.ts)。
 
-### 【已有测试证明什么、尚未覆盖什么】
+现有测试覆盖业务根 Span 保留 traceId/spanId、父级结束不取消子 Span、显式 parent / parent:null / 同步隐式 parent 的优先级、\`run/bind\`、withTrace/withSpan 同步和 Promise 收尾、已结束句柄幂等、跨 await 后显式继承、Event 在活动作用域中的归属，以及同一 Trace 的稳定采样选择。它们证明**当前 SDK 采用独立 Span 和受控同步 Context**，而不是旧的 children Set。
 
-源码：[sdk/tests/transport/transport.spec.ts](../sdk/tests/transport/transport.spec.ts)、[sdk/tests/event/custom.spec.ts](../sdk/tests/event/custom.spec.ts)、[sdk/src/transport/flush/index.ts](../sdk/src/transport/flush/index.ts)。
+Transport 测试验证两条 Envelope 达到阈值时可以合成一个 Batch 并清空队列，但没有证明网络失败后不丢批次，也没有证明页面关闭能够可靠发送所有积压数据。
 
-当前 Transport 测试验证在 \`batchSize=2\` 时，两条 Envelope 可以形成一个发送批次，队列清空且 \`droppedCount=0\`。官网关联项目的 [monitor-stay.test.ts](https://github.com/cxDlogver/official-network/blob/main/tests/monitor-stay.test.ts) 验证一级路由收敛与计时器 pause/resume，但不能据此声称真实浏览器页面生命周期顺序或线上 DSN 已经端到端通过。
+### 【对当前代码应如何划定事实与设计边界】
 
-建议按风险排序补充针对性测试：
+- **已实现**：Tracer/RecordingSpan/TracingContext 模型；业务根以带 \`monitor.workflow\` 标记的 Span 表达；Span 只管理自身，父结束不递归取消子；显式/同步隐式上下文；统一 Envelope/Processing/Transport；后端按 Trace ID 查询，前端关联展示。
+- **未实现的通用自动能力**：跨 await 自动保留活动父级（当前需要显式 parent 或 bind）；W3C \`traceparent\` 的完整 HTTP 注入、提取与跨服务 Trace（合法十六进制 ID 还不够）。
+- **待完善的可靠性**：Transport 的失败批次在 \`takeBatch\` 后没有重新入队；Beacon 排队状态不能证明服务端已接收；队列容量淘汰可能使 Trace 不完整，且丢弃指标尚需区分失败类型。
+- **业务建模选择**：最终可见时长可以只由 Event 携带；Span 更适合有阶段、时间区间与因果结构的过程；不要让 Trace API 的存在决定业务统计的观测口径。
 
-1. \`sendWithRetry\` 全部失败时，断言失败批次的去向与 \`droppedCount\` 是否符合约定；永久错误不得无限循环。
-2. 页面 \`pagehide/hidden\` 与 SDK 生命周期的注册顺序、重复结束、Beacon 降级、并发中途退出。
-3. 自定义 Trace/Span 的父对象取消语义与未来“父结束不取消子 Span”改造的兼容性。
-4. 真实 UTF-8 大小、浏览器 Beacon 配额、Flush 并发回调、Sender 注入实现抛错等异常边界。
-5. 用 Event-only 与 Trace+Span 两种业务插桩实现同一可见时长需求，验证统计口径一致；仅在需要执行轨迹和瀑布图时增加 Span。
+### 【建议验收顺序】
 
-### 【当前设计与通用体系的边界】
+第一，修复或明确“已出队但发送失败”的批次状态，用专门的失败/重试单测验证，不只依赖代码注释。第二，验证业务 \`pagehide\` 结算、最终 Flash/Beacon、BFCache 恢复、重复监听和异常停止行为。第三，如要完善跨服务追踪，增加标准传播器及 Client/Server 插桩测试；如要支持跨 await 隐式父级，再选择可靠的浏览器异步上下文机制，而不是简单维护全局 active。
 
-- **已实现**：显式 Trace/Span 对象链、自定义 Event、完成记录的扁平 ID 关联、会话/页面上下文、七阶段 Processing、有界队列、串行 Batch、有限重试、页面退出时的尽力冲刷、服务端按 Trace ID 查询及前端关联展示。
-- **尚非通用 Tracer 模型**：当前 SDK 没有 \`Tracer.startActiveSpan()\` + 异步 ActiveContext 的隐式父级继承，没有 W3C 标准 Trace Context 的端到端注入/提取；跨进程需要另行实现。
-- **待修正**：失败批次出队后丢失；队列级/发送级丢失指标未统一；如果把 Trace 作为超长生命周期的容器，当前终止时递归取消子 Span 的行为需由业务语义确认。
-- **进一步设计**：业务页面停留只需要最终可见时长时，可以使用 Event-only；当目标包含操作嵌套、执行阶段归因或轨迹分析时才引入 Span，而不是要求所有埋点使用 Trace+Span。
-
-把这几个边界分开，才能在面试中既解释设计思想，也经得起源码追问。
