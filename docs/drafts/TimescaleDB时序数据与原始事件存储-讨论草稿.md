@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、普通时间窗口聚合，以及连续聚合的物化水位、实时查询、失效与刷新。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度、Chunk Pruning 与复合 B-Tree、分区主键与业务幂等、普通时间窗口聚合、连续聚合的物化水位和刷新，以及历史 Chunk 压缩机制。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -42,8 +42,8 @@
 5. 事务、主键和唯一性在时间分区表中怎么设计？（已讨论）
 6. 时间窗口聚合如何从原始事件得出趋势结果？先理解 GROUP BY 和 time_bucket。（已讨论）
 7. Continuous Aggregate 为什么需要物化结果、失效记录与自动刷新？（已讨论；水位、历史修改与实时查询已追问）
-8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？
-9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？
+8. 历史 Chunk 的压缩如何工作？行存储、压缩布局和压缩策略有什么区别？（已讨论）
+9. Retention 如何自动清理过期 Chunk？它与原始明细、历史聚合的保留期如何协调？（下一轮）
 10. 在上述机制已经建立后，再讨论迟到数据、乱序写入如何影响历史 Chunk、刷新窗口和数据保留。
 11. 如何用真实 SQL、执行计划和后台 Job 状态验证运行效果？
 
@@ -1089,7 +1089,170 @@ SET (timescaledb.materialized_only = false);
 官方参考：[连续聚合物化引擎与失效追踪](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/about-continuous-aggregates/)、[物化水位与历史修改限制](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/troubleshooting/)、[实时聚合](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/real-time-aggregates/)、[连续聚合刷新策略](https://docs.timescale.com/use-timescale/latest/continuous-aggregates/refresh-policies/)。
 
 
-## 11. 当前知识进度与后续讨论
+## 11. 通用问题：为什么需要压缩历史 Chunk，压缩后如何存储与查询
+
+### 【问题背景：持续写入的行式记录为什么值得重新组织】
+
+假设系统每秒保存设备测量或浏览器事件，每条数据都有发生时间、所属设备/项目、事件类型和具体值。随着时间累积，历史数据数量不断增长；近期数据主要用于频繁写入和查单次事件，而历史数据经常按时间范围查询趋势。
+
+普通 PostgreSQL 行式存储可以理解为一条记录把多个字段放在一起：
+
+~~~text
+Row 1：[10:00:01, device=A, type=cpu, value=60]
+Row 2：[10:00:02, device=A, type=cpu, value=61]
+Row 3：[10:00:03, device=A, type=cpu, value=62]
+Row 4：[10:00:04, device=A, type=cpu, value=63]
+~~~
+
+这有利于插入和获取单条完整记录，但历史数据中 device、type 等维度反复出现；查询平均值时往往只需要特定列。因此引出**将较旧 Chunk 的行数据重新组织为按列存放的压缩批次**这一存储策略。
+
+### 【行式与压缩列式布局：不是把原始事件聚合掉】
+
+传统 TimescaleDB 压缩可将同组中多条行记录重新组织为更少的列式批次。抽象示意：
+
+~~~text
+压缩前（行）：
+[10:00:01, A, cpu, 60]
+[10:00:02, A, cpu, 61]
+[10:00:03, A, cpu, 62]
+[10:00:04, A, cpu, 63]
+
+压缩后（列式批次，非物理源码精确格式）：
+device_id = A
+type = cpu
+time = [10:00:01, 10:00:02, 10:00:03, 10:00:04]
+value = [60, 61, 62, 63]
+~~~
+
+关键收益可能包括：减少重复维度、对邻近时间/数值使用适合列数据的压缩编码、历史分析查询可以避免读取不需要的部分数据。但并非所有 SQL 都更快，依赖 event_id 查某条完整 JSONB 与按项目、类型、时间做范围分析的访问模式不同。
+
+**Compression 不等于 Continuous Aggregate。** 压缩以不同物理布局保存原始记录的可查询信息；连续聚合单独保存某一分钟事件 COUNT 等汇总结果，后者本身不能还原每条原始事件。
+
+### 【segmentby 决定压缩批次如何按业务维度分组】
+
+示例：
+
+~~~sql
+ALTER TABLE metrics SET (
+  timescaledb.compress,
+  timescaledb.compress_segmentby = 'device_id',
+  timescaledb.compress_orderby = 'time DESC'
+);
+~~~
+
+\`segmentby\` 指定共同形成压缩批次的业务维度。按 device_id 分组后，设备 A 的记录不会随意与设备 B 记录混到同一组批次。适合与常用查询的过滤字段协调；但若所选维度基数太高、每组数据量很小，可能导致批次数过多、压缩效率下降。
+
+**segmentby 不会额外创建一组 Hypertable 时间分区**；它属于既有 Chunk 内部压缩布局的组织规则。
+
+### 【orderby 决定压缩批次内的排列与时间范围定位】
+
+\`orderby = 'time DESC'\` 使同组数据按时间排序。时序数据的相邻时间值常有规律，适合进行时间相关的压缩编码；排序列的辅助范围信息还有助于在查询时间窗口时跳过无关压缩批次。
+
+\`orderby\` 并不是保证 \`SELECT\` 返回顺序的 SQL ORDER BY，应用如果要求稳定输出顺序，仍应在查询中显式 ORDER BY。
+
+### 【当前原始事件的真实压缩配置】
+
+browser-monitor 中，浏览器 SDK 产生的访问、性能、异常、自定义业务事件经服务端验证、脱敏并去重后进入 \`telemetry_events\`。主要公共字段有：
+- \`project_id\`：网站/应用所属项目；
+- \`type\`：事件类型；
+- \`occurred_at\`：事件实际发生时间，也是 Hypertable 时间分区列；
+- \`event\`：安全处理后的完整遥测 JSONB。
+
+项目实际迁移：
+
+~~~sql
+ALTER TABLE telemetry_events SET (
+  timescaledb.compress,
+  timescaledb.compress_segmentby = 'project_id,type',
+  timescaledb.compress_orderby = 'occurred_at DESC'
+);
+~~~
+
+含义：
+1. 为该 Hypertable 配置传统压缩能力，并不立即压缩全部历史数据。
+2. 在每个待压缩 Chunk 内，将同项目和事件类型的数据组织为压缩批次，有利于常见“项目 + 类型 + 时间”查询；如果组合维度过于稀疏则不一定最佳。
+3. 按发生时间倒序组织批次内容，支持时间范围检索与时间序列压缩。
+
+源码：[0001_platform.sql](../../platform/packages/database/migrations/0001_platform.sql)。
+
+### 【什么时候真正压缩：Compression Policy 的年龄是 Chunk 级阈值】
+
+项目另有：
+
+~~~sql
+SELECT add_compression_policy(
+  'telemetry_events',
+  INTERVAL '24 hours',
+  if_not_exists => TRUE
+);
+~~~
+
+这里的阈值不是每条事件自发生/入库 24 小时后分别压缩。在当前传统策略机制中，需要**整个 Chunk 的时间范围已足够旧**，再由后台任务判断是否执行压缩。
+
+假设一个 Chunk 覆盖 10 月 1 日至 10 月 8 日零时；10 月 1 日的事件不会在 10 月 2 日就被这一策略单独压缩。该 Chunk 的结束时间满足“早于当前 24 小时”后，下一次符合条件的后台任务才可能执行压缩。
+
+因此 \`Chunk Interval\` 与 \`compress_after\` 有联系：Chunk 时间跨度越长，最早进入 Chunk 的记录距离实际压缩可能越久。本项目在建表迁移中没有显式指定 Chunk Interval，**不能仅凭 24 小时阈值得到真实压缩日期**。
+
+### 【压缩后的读取机制与 B-Tree 的边界】
+
+查询仍使用原来的逻辑表名：
+
+~~~sql
+SELECT event_id, occurred_at, type, event
+FROM telemetry_events
+WHERE project_id = $1
+  AND type = $2
+  AND occurred_at >= $3
+  AND occurred_at < $4;
+~~~
+
+数据库可针对已压缩 Chunk 选择对应的压缩数据查询路径。传统压缩的批次存储与普通行式 Chunk 上的 B-Tree 访问方式不同；可利用 segmentby、orderby 及压缩数据元信息减少不必要的批次扫描和解压。
+
+**不能声称配置 segmentby/排序以后，所有点查、任意 JSONB 属性查找都比未压缩快**。性能仍应通过真实数据、执行计划、查询延迟和压缩率验证。项目这里采用传统 \`timescaledb.compress\` / \`compress_segmentby\` / \`compress_orderby\` API，新版本 Hypercore/Columnstore API 在存储和 DML 行为上有所发展，应针对部署版本区分。
+
+### 【如何验证真实压缩效果，而不是只读 Migration】
+
+可以查询实际 Chunk 与压缩统计。下列 SQL 仅为运行实例检查方法，并未在当前项目数据库运行：
+
+~~~sql
+-- 先看哪些 Chunk 已经压缩，以及对应时间范围
+SELECT chunk_name, range_start, range_end, is_compressed
+FROM timescaledb_information.chunks
+WHERE hypertable_name = 'telemetry_events'
+ORDER BY range_start DESC;
+
+-- 传统压缩 API：比较压缩前/后大小
+SELECT
+  number_compressed_chunks,
+  pg_size_pretty(before_compression_total_bytes) AS before_size,
+  pg_size_pretty(after_compression_total_bytes) AS after_size
+FROM hypertable_compression_stats('telemetry_events');
+~~~
+
+需核对实际 TimescaleDB 版本、权限和统计口径；除了压缩空间占用变化，还应比较常用原始事件时间查询的延迟与执行计划。
+
+### 【本轮结论与后续问题的依赖关系】
+
+~~~text
+近期事件持续写入 → 行式 Chunk
+          ↓
+Chunk 逐渐成为历史数据
+          ↓
+压缩策略按 Chunk 的时间边界判断候选
+          ↓
+按 segmentby 组织、按 orderby 排列
+          ↓
+压缩列式批次
+          ↓
+保留原始事件的可查询信息，同时降低历史存储成本
+~~~
+
+**压缩是旧 Chunk 的存储布局转换，不是统计汇总，也不是数据删除。** 后续需要继续讨论 Retention：既然历史数据可能已经压缩，为何数据库还能在保留窗口到期时以 Chunk 为单位删除，而不执行逐行 DELETE？
+
+官方参考：[TimescaleDB Compression](https://docs.timescale.com/use-timescale/latest/compression/about-compression/)、[选择 segmentby 和 orderby](https://docs.timescale.com/use-timescale/latest/compression/about-compression/#configure-time-series-compression)、[压缩策略](https://docs.timescale.com/use-timescale/latest/compression/compression-policy/)。
+
+
+## 12. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -1102,14 +1265,16 @@ SET (timescaledb.materialized_only = false);
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【当前追问衔接：先深化连续聚合，再进入压缩与 Retention】
+### 【下一轮只讨论一个问题：Retention 为什么按 Chunk 清理历史数据】
 
-目前已完整记录：
+**通用讨论问题：** 一张 Hypertable 可能积累几千万条历史事件。为什么 TimescaleDB 倾向于根据保留窗口删除完整的旧 Chunk，而不是每天对所有过期 Row 执行一条巨大的 DELETE？
 
-- GROUP BY 与 time_bucket 怎样形成时间桶；
-- 普通聚合、物化视图与 Continuous Aggregate 的区别；
-- 保存物化结果、后台刷新与实时查询为何是不同动作；
-- Watermark 什么时候推进、旧时间桶如何借助 Invalidation 重新刷新；
-- 最新尚未物化的数据怎样在 SELECT 时临时聚合。
+下一轮依次讨论：
+- DELETE 的 MVCC 死元组、WAL、索引维护与 VACUUM 成本；
+- DROP 旧 Chunk 与逐行删除的本质差异；
+- drop_after 与 Chunk 结束时间、调度执行时刻怎样决定实际清理；
+- 压缩过的 Chunk 如何参与同样的生命周期；
+- 原始事件 30 天、分钟与小时聚合 180 天的配置关系；
+- 连续聚合不能因源数据清理而无条件假定历史统计始终保留，什么时候需要协调 Refresh 和 Retention。
 
-后续优先补充失效时间范围到刷新桶的内部机制，再依照学习计划讨论历史 Chunk 压缩、Retention，最后回到迟到与乱序事件对数据库的影响。
+之后再讨论迟到事件、历史修改对这些已学机制的影响，不提前展开未讲的异常情形。
