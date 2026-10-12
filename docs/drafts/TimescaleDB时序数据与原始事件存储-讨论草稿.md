@@ -1,6 +1,6 @@
 # TimescaleDB 时序数据与原始事件存储——讨论草稿
 
-> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk 组织原始事件，以及 Chunk 时间跨度的调优和生命周期取舍。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
+> **状态：持续学习中的讨论草稿，不是已定稿的知识正文。** 当前记录涵盖时序数据管理需求、Hypertable/Chunk、Chunk 时间跨度，以及 Chunk Pruning 与复合 B-Tree 索引如何协作。后续保持**每次抛出一个通用问题并直接展开回答**的方式，不转换为面试题。
 >
 > **讲解规范**：先交代项目案例中数据的来源、目标和必要角色，再抛出能用于其他业务的通用技术问题；解释原理、具体机制与工程取舍之后，最后才对照实际源码。不要预设读者认识 `Ingestion`、`telemetry_events` 或其他项目变量。
 >
@@ -38,8 +38,8 @@
 1. 为什么不断增长的时间数据会引出专门存储管理需求？（已讨论）
 2. Hypertable 与 Chunk 是什么；数据真正写进哪里？（已讨论）
 3. Chunk 的时间跨度怎样选，过大或过小会造成什么影响？（已讨论）
-4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？（下一轮）
-5. 事务、主键和唯一性在时间分区表中怎么设计？
+4. 时间分区、B-Tree 索引与 JSONB 查询各有什么职责？（已讨论：分区与复合 B-Tree；JSONB 索引为延伸专题）
+5. 事务、主键和唯一性在时间分区表中怎么设计？（下一轮）
 6. 乱序事件、迟到写入会带来什么存储与聚合影响？
 7. 时间聚合与 Continuous Aggregate 解决什么问题？
 8. 压缩、Retention 和后台 Job 怎样管理旧数据？
@@ -494,7 +494,154 @@ SELECT add_retention_policy('telemetry_events', INTERVAL '30 days', if_not_exist
 
 下一轮只推进一个通用问题：**时间分区（Chunk Pruning）与 B-Tree 索引为什么需要同时存在，二者分别在哪个范围解决查询问题？** 仍使用经过业务说明的原始事件表和查询 SQL 作为验证案例，不预设已有项目知识。
 
-## 6. 当前知识进度与后续讨论
+## 6. 通用问题：有时间分区了，为什么仍然需要 B-Tree 索引
+
+### 【先建立业务背景与具体查询目标】
+
+假设业务系统持续写入大量事件。每条事件记录它属于哪个项目、发生时间、事件类别和业务内容。数据库已按发生时间将这些记录分配至多个 Chunk。现在用户希望查看“项目 A 在某一天产生的错误事件”，按发生时间从近到远分页展示。
+
+这里产生了新的问题：**时间范围已经让数据库找到若干相关 Chunk，为什么还需要额外创建数据库索引？**
+
+比如一个 Chunk 覆盖一天，但里面仍有数百万条不同项目、不同类型的数据。**选中某个 Chunk，并不等于直接找到这个 Chunk 内符合条件的那几十条事件。**
+
+### 【Chunk Pruning 缩小分区范围，B-Tree 索引缩小块内行的访问范围】
+
+~~~text
+SQL：查项目 A + 10 月 10 日 + 错误事件
+          ↓
+时间条件与 occurred_at 分区范围比较
+          ↓
+Chunk Pruning / Chunk Exclusion（排除无关时间块）
+    ├─ 10 月 9 日的时间块：跳过
+    ├─ 与 10 月 10 日相交的块：保留
+    └─ 10 月 11 日的时间块：跳过
+          ↓
+PostgreSQL 查询规划器对剩余块选择访问路径
+    ├─ B-Tree Index Scan / Index Only Scan：索引定位
+    ├─ Bitmap Index/Heap Scan：先找候选位置后批量读
+    └─ Seq Scan：数据量或选择性合适时顺序扫描
+          ↓
+结果过滤、排序、分页、返回
+~~~
+
+这是**逻辑解释顺序**，不是断言 PostgreSQL 执行器总要先完整裁剪、再必然进行一次 Index Scan。不同计划可能有 Merge Append、Sort、并行执行以及更多扫描方式。
+
+- **时间分区**决定哪几个物理数据块可能包含所需时间范围。
+- **B-Tree** 是 PostgreSQL 中有序的树形索引，可将项目、类型、时间等键映射到可定位的表行。它能帮助在相关数据块内查找匹配行，也可能直接提供部分所需排序顺序。
+- **行级数据过滤**在查询计划中仍然存在，不能因为索引中出现某列就假设数据库不再读取表数据。
+
+PostgreSQL 原生分区也有分区裁剪能力，不是 TimescaleDB 独有。TimescaleDB 的 Hypertable 继续利用 PostgreSQL 的索引与规划机制。
+
+### 【复合 B-Tree 索引需要与实际查询条件匹配】
+
+例如：
+
+~~~sql
+-- 项目与时间：适合查询某项目的近期全部事件
+CREATE INDEX idx_project_time
+ON events(project_id, occurred_at DESC);
+
+-- 项目、类型和时间：适合项目和类型都有等值过滤时的时间范围查询
+CREATE INDEX idx_project_type_time
+ON events(project_id, type, occurred_at DESC);
+~~~
+
+B-Tree 复合键按索引的字段顺序组织。对于第二个索引：
+
+~~~text
+project_id → type → occurred_at
+      等值       等值         范围
+~~~
+
+若查询同时指定 \`project_id = A\`、\`type = error\` 和一个时间范围，索引可以较好地缩小键空间。如果没有 \`type\` 条件，索引虽然仍可能被使用，但通常不能像第一种索引那样直接对该项目所有类型按时间形成统一有序的结果。实际规划也受到 PostgreSQL 版本、跳跃扫描、数据分布和统计信息影响，不能把“左前缀”误写成绝对禁止后列被使用。
+
+| 查询需求 | 更匹配的方向 | 应注意的问题 |
+| --- | --- | --- |
+| 某项目最近的全部事件 | \`(project_id, occurred_at)\` | 若查询返回大部分数据，顺序扫描也可能更优 |
+| 某项目最近的特定类型 | \`(project_id, type, occurred_at)\` | 类型等值过滤要有意义，选择性可能很低 |
+| 只有时间范围、所有项目 | 时间分区和可用的时间路径 | 两种复合索引均以 project_id 开头，是否利用取决于规划器 |
+| JSONB 内某个属性 | 按字段查询模式评估 GIN 或表达式索引 | 普通项目/时间索引并不自动覆盖所有 JSONB 内部属性 |
+
+**不能无限增加索引。** 每个索引都占磁盘空间并需要在 INSERT/UPDATE/DELETE 时维护，时序表的大量写入会放大这类维护成本；是否保留两个相近索引应依据实际查询受益判断。
+
+### 【回到项目：原始事件的真实索引与查询】
+
+当前监控平台使用 \`telemetry_events\` 保存通过校验和安全处理后的单次遥测事件，\`project_id\` 表示所属项目，\`occurred_at\` 表示事件实际发生时间，\`type\` 表示事件类型。TimescaleDB 按 \`occurred_at\` 划分 Chunk。
+
+迁移文件中真实存在：
+
+~~~sql
+CREATE INDEX telemetry_project_time_idx
+  ON telemetry_events(project_id, occurred_at DESC);
+
+CREATE INDEX telemetry_project_type_time_idx
+  ON telemetry_events(project_id, type, occurred_at DESC);
+~~~
+
+这些索引与项目常见的“按项目和时间查询”“增加事件类型筛选”的需求相匹配。
+
+查询入口在：[analytics.service.ts](../../platform/apps/api/src/analytics/analytics.service.ts)。业务界面允许用户选择项目、时间范围，并可选事件类型、名称、Session、View、Event ID 等筛选项。
+
+它形成的 SQL 可简化为：
+
+~~~sql
+-- 教学 SQL，项目/时间/类型参数须由真实业务传入；
+-- 实际服务支持更多可选条件、权限验证与游标分页。
+SELECT event_id, occurred_at, type, name, event
+FROM telemetry_events
+WHERE project_id = $1
+  AND occurred_at >= $2
+  AND occurred_at < $3
+  AND type = $4
+ORDER BY occurred_at DESC, event_id DESC
+LIMIT 50;
+~~~
+
+这个查询中：
+- \`occurred_at\` 既能触发时间范围的 Chunk 裁剪，也可能参与 B-Tree 范围查找。
+- \`project_id\` 和 \`type\` 为 B-Tree 复合索引提供等值过滤条件。
+- \`ORDER BY occurred_at DESC, event_id DESC\` **没有被上述两个索引中的任何一个明确完整覆盖**：实际是否需要额外排序，取决于执行计划、候选行数等。
+- \`event JSONB\` 会返回单次事件的完整属性，但筛选 JSONB 内部任意字段并不自动获得上面两个索引的加速。
+
+**事实边界**：从迁移可以核实“创建了这些索引”，从代码可核实“查询具有这些过滤条件”；不能未经运行数据验证就声称某次查询必然使用某个索引，或已经达到具体的毫秒延迟。
+
+### 【用真实执行计划证明分区与索引分别发挥了什么作用】
+
+ PostgreSQL 可使用：
+
+~~~sql
+-- 实际执行请替换为有数据的项目 ID 和时间窗口；
+-- ANALYZE 会真正运行 SQL，生产环境须限制测试负荷。
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT event_id, occurred_at, type
+FROM telemetry_events
+WHERE project_id = '00000000-0000-0000-0000-000000000001'
+  AND occurred_at >= '2026-10-10 00:00:00+00'
+  AND occurred_at <  '2026-10-11 00:00:00+00'
+  AND type = 'event'
+ORDER BY occurred_at DESC
+LIMIT 50;
+~~~
+
+需要观察三件事：
+
+1. **Chunk/分区**：哪些子表参与执行、有没有排除明显不相关时间区间的 Chunk。
+2. **扫描方式**：在相关 Chunk 内究竟执行 Index Scan、Bitmap Scan 还是 Seq Scan；有没有使用预期的索引。
+3. **执行代价**：Planning/Execution Time、实际返回行数、Blocks 命中及读取、必要时的排序开销。
+
+\`EXPLAIN ANALYZE\` 使用真实行数与真实耗时，\`BUFFERS\` 记录缓冲读写信息；为了说明机制，可以使用教学 SQL，但要验证项目现状必须运行在有代表性数据的实际实例。
+
+### 【当前讨论结论与下一轮的因果衔接】
+
+**时间分区回答“哪些时间块可能有目标记录”，B-Tree 索引回答“如何在可访问的块中高效定位某些键对应的行”，二者可以同时参与同一条 SQL 的执行。**
+
+下一轮进入与物理分区直接相关的数据正确性问题：**既然一张 Hypertable 的行分散在不同 Chunk 中，数据库如何在写入时保证主键和唯一约束？为什么时序分区表上的 UNIQUE/PRIMARY KEY 必须包含分区时间字段？**
+
+实践会继续使用 \`telemetry_events\`，但先解释事件 ID 在业务上表示什么、主键与唯一约束在 PostgreSQL 中是什么意思，再看项目的实际复合主键与幂等去重策略。
+
+权威参考：[PostgreSQL 分区裁剪](https://www.postgresql.org/docs/current/ddl-partitioning.html)、[PostgreSQL 多列 B-Tree 索引](https://www.postgresql.org/docs/current/indexes-multicolumn.html)、[PostgreSQL EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)、[TimescaleDB Hypertable](https://docs.timescale.com/use-timescale/latest/hypertables/)。
+
+## 7. 当前知识进度与后续讨论
 
 ### 【已经建立的可迁移知识】
 
@@ -507,16 +654,15 @@ SELECT add_retention_policy('telemetry_events', INTERVAL '30 days', if_not_exist
 7. **不能仅依据配置宣称性能与运行结果已验证**：真实 Chunk 间隔、存储状态、Job 执行和查询计划都需在运行实例里核实。
 8. **案例不应占据通用问题的中心**：项目字段、SQL 和源代码用于解释并验证通用机制。
 
-### 【下一轮只讨论一个问题：时间分区与 B-Tree 索引怎样协作】
+### 【下一轮只讨论一个问题：主键、唯一约束和分区键怎样同时成立】
 
-**通用讨论问题：** 时序数据库已经按时间把一张表拆成多个 Chunk，为什么还需要在表中维护 B-Tree 索引？时间分区裁剪和索引查找分别缩小的是哪一层搜索空间？
+**通用讨论问题：** 表已经按时间划为许多 Chunk，为什么主键和 UNIQUE 约束需要包含所有分区列？这和业务方希望“一个事件 ID 只存一次”是否是同一个保证？
 
 下一轮围绕：
-- 时间分区如何依据 WHERE 时间条件排除无关 Chunk；
-- B-Tree 如何在相关 Chunk 内通过项目、时间和类型定位记录；
-- 复合索引中列顺序为何和常见查询有关；
-- 为什么只依靠时间分区不能替代特定业务字段上的索引；
-- 缺少时间过滤、JSONB 属性查询及压缩历史 Chunk 时的边界；
-- 结合原始事件表真实索引、rawEvents 查询和 EXPLAIN 验证查询计划。
+- 什么是主键、UNIQUE、业务幂等键，各自承诺什么；
+- 为什么不同 Chunk 的唯一索引无法自然证明不带时间的跨块唯一性；
+- 复合主键 \`(project_id, event_id, occurred_at)\` 能防住哪些重复，防不住哪些重复；
+- 项目同一请求内去重、数据库事务级咨询锁、检查已有 eventId、ON CONFLICT DO NOTHING 怎样共同维护业务幂等；
+- 这些策略在数据保留超过 30 天、并发请求以及异常/重试条件下还有什么边界。
 
-后续仍只推进一个通用问题，并在正文先说明业务来源和术语，再给真实源码证据。
+继续先讲通用约束，再以项目入库逻辑核验；不展开后续异步任务的实现。
