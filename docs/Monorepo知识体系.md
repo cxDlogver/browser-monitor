@@ -2328,6 +2328,8 @@ Chromium
 
 ### 【Build、Release 与 Deploy 是连续但不同的交付阶段】
 
+当前 SDK 与 Protocol 的真实包发布契约、`workspace:*` 打包转换、`tsup` 对外产物、`prepack` / `prepublishOnly` 和 Registry 发布的待验证边界，另见 [npm 与 pnpm 包发布源码学习](./npm与pnpm包发布源码学习.md)。本章继续讨论不同 Project 从 Artifact 到 Runtime 的关系，发布细节不在这里复制维护。
+
 本章继续从 Artifact 向最终交付延伸。
 
 #### <u>1. Build 只回答“源码变成什么产物”</u>
