@@ -199,6 +199,8 @@ Trace/Span 的对象、父子关系、同步与异步上下文、发送、落库
 
 更完整的目标、设计思想和目录说明见 [Browser Monitor SDK 项目知识梳理](https://github.com/cxDlogver/browser-monitor/blob/main/sdk/docs/Browser-Monitor-SDK-%E9%A1%B9%E7%9B%AE%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86.md)。
 
+SDK 与 Protocol 的打包边界、发布前检查和外部 Registry 验证说明见 [npm 与 pnpm 包发布源码学习](../docs/npm与pnpm包发布源码学习.md)；具体 npm/pnpm 发布通用知识见 [Full-Stack-AI-NOTES 专题](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/N-npm与pnpm包发布工程体系.md)。
+
 ## 本地开发
 
 在 `sdk/` 目录执行 SDK 自身的完整发布检查：

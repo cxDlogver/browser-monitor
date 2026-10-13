@@ -59,6 +59,8 @@ interface TelemetryBatchV3 {
 
 URL 最多 2048 个字符，且 SDK 与服务端都删除 query 和 fragment；routeName、事件名、标识符和 JSON 属性也有明确长度或数量限制。协议限制是第一层结构边界，服务端仍会执行项目身份、Origin、发生时间、属性字节数和隐私校验。
 
+Protocol 作为独立可发布包与 SDK 形成 `workspace:*` 依赖，其包入口、`prepack` / `prepublishOnly` 及消费者版本闭包的项目核对见 [npm 与 pnpm 包发布源码学习](../docs/npm与pnpm包发布源码学习.md)；通用知识见 [npm/pnpm 包发布工程体系](https://github.com/cxDlogver/cx-learn-notes/blob/main/Full-Stack-AI-NOTES/N-npm与pnpm包发布工程体系.md)。
+
 ## 4. 本地验证
 
 ```bash
