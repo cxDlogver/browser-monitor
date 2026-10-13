@@ -1103,3 +1103,55 @@ pnpm add @cxdlogver/browser-monitor-sdk@0.3.0
 ```
 
 这条命令声明 SDK 为项目依赖，包管理器会同时解析 SDK 声明的 protocol 和 web-vitals，以及 protocol 所需的 zod；仅使用 SDK 时不必手工把所有传递依赖逐个加入项目。这里给出接入命令，下一步再用独立项目从 registry 实际安装，验证发布后的代码入口和类型声明。
+
+**发布到 npm 后，理解服务端仍使用本地协议包的原因。**
+
+npm 发布新增了一个供外部项目获取包的渠道，不会自动修改仓库内部的依赖。当前平台的 API、Worker、database 和 shared 仍在各自 package.json 中声明以下依赖；例如 [API 的配置](F:/CX_notes/cx-learn-notes/browser-monitor/platform/apps/api/package.json:15)：
+
+```json
+{
+  "dependencies": {
+    "@cxdlogver/browser-monitor-protocol": "workspace:*"
+  }
+}
+```
+
+源码用包名 import，依赖声明则决定包从哪里获取。当前 pnpm-lock.yaml 对 API 的协议依赖记录如下，link 路径指向仓库中的 protocol 目录：
+
+```yaml
+"@cxdlogver/browser-monitor-protocol":
+  specifier: workspace:*
+  version: link:../../../protocol
+```
+
+因此，SDK 可以供外部项目通过 npm 安装，同时平台在同一仓库中继续使用本地协议包。这两种接入方式可以并存。
+
+这里还需要区分“部署平台应用”和“发布 npm 包”。如果单独部署平台，又不使用已发布的 protocol npm 包，部署过程就必须提供本地 protocol 包。当前 [Dockerfile.backend](F:/CX_notes/cx-learn-notes/browser-monitor/platform/infra/Dockerfile.backend:19)已经这样处理，下面节选复制和构建部分，省略安装与启动配置：
+
+```dockerfile
+COPY protocol ./protocol
+COPY platform ./platform
+RUN pnpm --filter @cxdlogver/browser-monitor-protocol build \
+ && pnpm --filter @browser-monitor/shared build \
+ && pnpm --filter @browser-monitor/database build \
+ && pnpm --filter @browser-monitor/api build \
+ && pnpm --filter @browser-monitor/worker build
+```
+
+它从项目根目录的构建上下文获取 protocol 和 platform，构建协议产物后再构建平台。镜像保留这个工作区，使平台安装的本地依赖链接仍有对应的协议目录；并不是只上传 platform/apps/api/dist 就完成了部署。
+
+为什么运行时也需要协议？[ingestion.service.ts](F:/CX_notes/cx-learn-notes/browser-monitor/platform/apps/api/src/ingestion/ingestion.service.ts:14)中的实际导入如下：
+
+```ts
+import {
+  PROTOCOL_VERSION,
+  telemetryBatchHeaderV3Schema,
+  telemetryEventV3Schema,
+  type JsonValue,
+  type TelemetryEventV3,
+} from "@cxdlogver/browser-monitor-protocol";
+```
+
+其中 JsonValue 和 TelemetryEventV3 是类型，编译后会移除；版本常量和两个 Schema 则供服务端运行时使用。API 当前通过 tsc 编译，构建没有把 protocol 的实现内联进 API。因此，运行环境必须能解析协议包，并提供它的 dist 代码和 zod 依赖。
+
+若把 platform 拆成独立仓库、仍不使用 npm 协议包，就需要把 protocol 目录作为一个独立本地包纳入新项目，同时更新 workspace 成员、锁文件和 Docker 构建路径。保持本地包边界即可，不必把同一份 Schema 分别复制到 API 与 Worker 的业务源码中。构建时需要协议源码及构建工具；运行时需要协议构建产物、包入口配置和运行依赖，源码和测试目录可以在优化部署产物时去除。
