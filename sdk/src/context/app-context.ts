@@ -1,4 +1,4 @@
-import type { AppContextData } from '@browser-monitor/protocol';
+import type { AppContextData } from '@cxdlogver/browser-monitor-protocol';
 
 export class AppContext {
   private readonly value: AppContextData;

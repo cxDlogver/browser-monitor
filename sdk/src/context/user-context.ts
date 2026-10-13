@@ -1,4 +1,4 @@
-import type { UserContextData } from '@browser-monitor/protocol';
+import type { UserContextData } from '@cxdlogver/browser-monitor-protocol';
 
 export class UserContext {
   private value: UserContextData | undefined;

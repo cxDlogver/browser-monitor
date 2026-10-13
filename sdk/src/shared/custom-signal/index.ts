@@ -5,7 +5,7 @@ import {
   type CustomSignalStatus,
   type JsonValue,
   type MetricUnit,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 export interface CustomSignalInput {
   attributes?: Readonly<Record<string, unknown>>;

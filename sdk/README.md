@@ -1,6 +1,6 @@
-# cx-browser-monitor-sdk
+# @cxdlogver/browser-monitor-sdk
 
-`cx-browser-monitor-sdk` 是原生 JavaScript Browser Monitor SDK。所有监控数据都通过同一条链路处理：
+`@cxdlogver/browser-monitor-sdk` 是原生 JavaScript Browser Monitor SDK。所有监控数据都通过同一条链路处理：
 
 ```text
 Instrumentation → Signal Hub → Collector → Context → Envelope
@@ -11,8 +11,14 @@ Performance 不再通过独立订阅回调输出。LCP、FCP、INP、CLS、FPS �
 
 ## 快速开始
 
+```bash
+pnpm add @cxdlogver/browser-monitor-sdk
+```
+
+以下示例在浏览器中执行。SSR 项目应把创建和启动放在客户端初始化入口，具体写法见下方的 SSR 接入说明。
+
 ```ts
-import { createMonitor } from 'cx-browser-monitor-sdk';
+import { createMonitor } from '@cxdlogver/browser-monitor-sdk';
 
 const monitor = createMonitor({
   app: {
@@ -74,6 +80,30 @@ monitor.destroy();
 
 浏览器 IIFE 构建中的统一工厂位于 `CXMonitorSDK.createMonitor`。
 
+### SSR 接入
+
+SSR 项目可以在服务端导入 SDK，监控实例应只在浏览器中创建并启动。当前 SDK 不会自动阻止服务端误调用；服务端调用 `start()` 仍可能启动周期发送任务。
+
+在应用的客户端初始化入口执行一次以下代码，并将示例 DSN 替换为平台提供的地址：
+
+```ts
+import { createMonitor } from '@cxdlogver/browser-monitor-sdk';
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  const monitor = createMonitor({
+    app: { name: 'checkout-web', version: '1.0.0', environment: 'production' },
+    transport: {
+      dsn: 'https://monitor.example.com/api/v3/ingest/bm_pk_xxx/envelopes',
+    },
+  });
+  monitor.start();
+}
+```
+
+环境判断在接入方执行：服务端加载模块时跳过初始化，浏览器执行时才创建实例。使用框架时，也可以将创建和启动放在框架提供的客户端生命周期或客户端专用入口中。组件级实例需要在组件销毁时调用 `monitor.destroy()`；避免重复创建实例。
+
+`@cxdlogver/browser-monitor-protocol` 可用于服务端 Schema 校验，其使用不受浏览器 SDK 初始化位置的限制。
+
 ## 采集服务与 DSN
 
 SDK 不包含数据库、采集 API 或可视化看板。业务应用也不需要自行实现采集接口：在 Browser Monitor Platform 中创建项目、配置允许的 Origin，再把设置页生成的公开 DSN 传给 `transport.dsn` 即可。平台负责协议校验、原始数据与 Outbox 入库、指标计算、TimescaleDB 聚合和 React 看板。
@@ -92,7 +122,7 @@ createMonitor({
 });
 ```
 
-服务端部署、接口、数据处理与看板说明见 [Browser Monitor Platform](../platform/README.md)。
+服务端部署、接口、数据处理与看板说明见 [Browser Monitor Platform](https://github.com/cxDlogver/browser-monitor/tree/main/platform#readme)。
 
 ## 公开 API
 
@@ -163,11 +193,11 @@ Transport 使用有界内存队列，按照数量、字节数和时间组成批�
 | `transport`       | 队列、批处理、发送、重试和 Flush                     |
 | `shared`          | 基础能力及自定义信号共用的数据归一化                 |
 
-跨 SDK、API 和 Worker 的协议 3.0 类型直接来自 workspace 中的 `@browser-monitor/protocol`。SDK 不保留 `src/protocol` 转发目录，避免本地包装类型与共享 Schema 形成两个协议来源。
+跨 SDK、API 和 Worker 的协议 3.0 类型直接来自独立的 `@cxdlogver/browser-monitor-protocol` 包。仓库内部通过 workspace 引用它，独立项目安装 SDK 时由包管理器安装相应协议版本。SDK 不保留 `src/protocol` 转发目录，避免本地包装类型与共享 Schema 形成两个协议来源。
 
-Trace/Span 的对象、父子关系、同步与异步上下文、发送、落库及瀑布图见 [完整链路文档](./docs/07-自定义Trace与Span.md)。`track()` 使用 `{ attributes, metrics }`；父节点 `end()` 只结束自身，手动句柄由业务生命周期负责结束。
+Trace/Span 的对象、父子关系、同步与异步上下文、发送、落库及瀑布图见 [完整链路文档](https://github.com/cxDlogver/browser-monitor/blob/main/sdk/docs/07-%E8%87%AA%E5%AE%9A%E4%B9%89Trace%E4%B8%8ESpan.md)。`track()` 使用 `{ attributes, metrics }`；父节点 `end()` 只结束自身，手动句柄由业务生命周期负责结束。
 
-更完整的目标、设计思想和目录说明见 [Browser Monitor SDK 项目知识梳理](./docs/Browser-Monitor-SDK-项目知识梳理.md)。
+更完整的目标、设计思想和目录说明见 [Browser Monitor SDK 项目知识梳理](https://github.com/cxDlogver/browser-monitor/blob/main/sdk/docs/Browser-Monitor-SDK-%E9%A1%B9%E7%9B%AE%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86.md)。
 
 ## 本地开发
 
@@ -195,4 +225,4 @@ pnpm check
 
 [MIT](./LICENSE)
 
-IIFE 构建内联的第三方依赖及许可证见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
+构建产物内联的第三方依赖及许可证见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。

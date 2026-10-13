@@ -1,6 +1,10 @@
 import type { RouteLocation } from '../core/config';
 import { currentUrl } from '../shared/url';
-import type { AppContextData, TelemetryContext, UserContextData } from '@browser-monitor/protocol';
+import type {
+  AppContextData,
+  TelemetryContext,
+  UserContextData,
+} from '@cxdlogver/browser-monitor-protocol';
 
 import { AppContext } from './app-context';
 import { RuntimeContext } from './runtime-context';

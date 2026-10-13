@@ -4,7 +4,7 @@ import { FPSCollector } from '../../src/collectors/performance/fps';
 import type { TelemetryDraft, TelemetryEmitter } from '../../src/core/pipeline';
 import { SignalHub } from '../../src/core/signal-hub';
 import { AnimationFrameInstrumentation } from '../../src/instrumentation/animation-frame';
-import type { TelemetryPayload } from '@browser-monitor/protocol';
+import type { TelemetryPayload } from '@cxdlogver/browser-monitor-protocol';
 
 class Recorder implements TelemetryEmitter {
   readonly drafts: TelemetryDraft[] = [];

@@ -1,5 +1,5 @@
-import { WORKFLOW_ATTRIBUTE } from '@browser-monitor/protocol';
-import { createPerformanceEventFixture } from '@browser-monitor/protocol/fixtures';
+import { WORKFLOW_ATTRIBUTE } from '@cxdlogver/browser-monitor-protocol';
+import { createPerformanceEventFixture } from '@cxdlogver/browser-monitor-protocol/fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
 import { EventProcessor } from '../src/processor.js';

@@ -1,6 +1,23 @@
 # Browser Monitor Protocol
 
-`@browser-monitor/protocol` 是 Browser Monitor SDK 与监控平台之间唯一的协议来源。它同时导出 Zod 运行时 Schema、由 Schema 推导的 TypeScript 类型、协议常量，以及合法和非法请求夹具。
+`@cxdlogver/browser-monitor-protocol` 是 Browser Monitor SDK 与监控平台之间唯一的协议来源。它同时导出 Zod 运行时 Schema、由 Schema 推导的 TypeScript 类型、协议常量，以及合法和非法请求夹具。
+
+需要直接使用运行时校验或共享类型的项目可以安装本包：
+
+```bash
+pnpm add @cxdlogver/browser-monitor-protocol
+```
+
+```ts
+import {
+  telemetryBatchV3Schema,
+  type TelemetryBatchV3,
+} from "@cxdlogver/browser-monitor-protocol";
+import { PROTOCOL_VERSION } from "@cxdlogver/browser-monitor-protocol/constants";
+import { createBatchFixture } from "@cxdlogver/browser-monitor-protocol/fixtures";
+```
+
+运行时代码以 ESM 形式分发，所有公开入口同时提供 TypeScript 声明。
 
 ## 1. 协议职责
 
@@ -16,7 +33,7 @@ SDK 需要在发送前构造确定的数据，API 需要在不信任浏览器输
 
 ```ts
 interface TelemetryBatchV3 {
-  protocolVersion: '3.0';
+  protocolVersion: "3.0";
   sentAt: number;
   sdk: {
     name: string;
@@ -45,9 +62,13 @@ URL 最多 2048 个字符，且 SDK 与服务端都删除 query 和 fragment；r
 ## 4. 本地验证
 
 ```bash
-pnpm --filter @browser-monitor/protocol typecheck
-pnpm --filter @browser-monitor/protocol test
-pnpm --filter @browser-monitor/protocol build
+pnpm --filter @cxdlogver/browser-monitor-protocol typecheck
+pnpm --filter @cxdlogver/browser-monitor-protocol test
+pnpm --filter @cxdlogver/browser-monitor-protocol build
 ```
 
 SDK 生成的数据必须通过完整 Schema；采集 API 使用批次头 Schema 配合逐事件 Schema 实现部分接收。修改协议字段时，应先修改本包，再同步 SDK 生产逻辑、API 校验、Worker 投影和文档，不在任意一端增加私有同名字段。
+
+## License
+
+[MIT](./LICENSE)

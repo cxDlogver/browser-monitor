@@ -24,7 +24,7 @@ import type {
   PerformanceCapabilityMap,
   PerformanceMetricName,
   PerformanceNavigationType,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 import { performanceTimeOrigin } from '../../shared/time';
 
 // 从全局指标名中收敛出本模块负责的四个，避免 register 时传入 TTFB 之类的无效项。

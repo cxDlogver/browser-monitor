@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { SignalHub } from '../../src/core/signal-hub';
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 import { Transport } from '../../src/transport';
 import { FakeSender } from '../helpers/fake-sender';
 

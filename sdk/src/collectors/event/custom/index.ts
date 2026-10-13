@@ -5,7 +5,7 @@ import {
   requiredName,
   type CustomSignalInput,
 } from '../../../shared/custom-signal';
-import type { CorrelationContext } from '@browser-monitor/protocol';
+import type { CorrelationContext } from '@cxdlogver/browser-monitor-protocol';
 
 /** Point events have no timed lifecycle. Tracer supplies the optional correlation. */
 export class CustomEventCollector {

@@ -15,7 +15,7 @@ importers:
       '@browser-monitor/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@browser-monitor/protocol':
+      '@cxdlogver/browser-monitor-protocol':
         specifier: workspace:*
         version: link:../../../protocol
       '@browser-monitor/shared':
@@ -171,7 +171,7 @@ importers:
       '@browser-monitor/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@browser-monitor/protocol':
+      '@cxdlogver/browser-monitor-protocol':
         specifier: workspace:*
         version: link:../../../protocol
       '@browser-monitor/shared':
@@ -202,7 +202,7 @@ importers:
 
   platform/packages/database:
     dependencies:
-      '@browser-monitor/protocol':
+      '@cxdlogver/browser-monitor-protocol':
         specifier: workspace:*
         version: link:../../../protocol
       drizzle-orm:
@@ -227,7 +227,7 @@ importers:
 
   platform/packages/shared:
     dependencies:
-      '@browser-monitor/protocol':
+      '@cxdlogver/browser-monitor-protocol':
         specifier: workspace:*
         version: link:../../../protocol
       zod:
@@ -265,7 +265,7 @@ importers:
 
   sdk:
     dependencies:
-      '@browser-monitor/protocol':
+      '@cxdlogver/browser-monitor-protocol':
         specifier: workspace:*
         version: link:../protocol
       web-vitals:

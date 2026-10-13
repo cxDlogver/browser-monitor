@@ -3,7 +3,7 @@
 // 并递增 Analytics 缓存版本，失败则指数退避重试，超过 8 次进入 dead_letter_tasks。
 // 此外还承担两个后台维护任务：终结超时的 provisional 性能样本、定期清理过期数据。
 import type { DatabaseHandle } from '@browser-monitor/database';
-import type { TelemetryEventV3 } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 } from '@cxdlogver/browser-monitor-protocol';
 import type { WorkerConfig } from '@browser-monitor/shared';
 import type { Redis } from 'ioredis';
 import { randomUUID } from 'node:crypto';

@@ -27,7 +27,7 @@ import {
   type TelemetryContext,
   type TelemetryEventV3 as TelemetryEnvelope,
   type TelemetryPayload,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 /**
  * 采集器递交的「半成品」：只描述领域事实本身，不携带公共上下文。

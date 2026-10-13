@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 import type { ProcessingStage } from '../pipeline';
 
 /** FNV-1a 32 位哈希：确定性、分布均匀、实现极简，适合做稳定分桶。 */

@@ -17,7 +17,7 @@ import {
   telemetryEventV3Schema,
   type JsonValue,
   type TelemetryEventV3,
-} from "@browser-monitor/protocol";
+} from "@cxdlogver/browser-monitor-protocol";
 import {
   hashUserId,
   redactProperties,

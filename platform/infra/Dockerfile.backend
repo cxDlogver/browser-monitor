@@ -18,7 +18,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY protocol ./protocol
 COPY platform ./platform
-RUN pnpm --filter @browser-monitor/protocol build \
+RUN pnpm --filter @cxdlogver/browser-monitor-protocol build \
  && pnpm --filter @browser-monitor/shared build \
  && pnpm --filter @browser-monitor/database build \
  && pnpm --filter @browser-monitor/api build \

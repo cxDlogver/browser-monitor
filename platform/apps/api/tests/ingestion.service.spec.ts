@@ -1,4 +1,4 @@
-import { createBatchFixture, createPerformanceEventFixture, invalidProtocolFixture } from '@browser-monitor/protocol/fixtures';
+import { createBatchFixture, createPerformanceEventFixture, invalidProtocolFixture } from '@cxdlogver/browser-monitor-protocol/fixtures';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 

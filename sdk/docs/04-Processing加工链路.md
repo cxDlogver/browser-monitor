@@ -143,7 +143,7 @@ createMonitor({
     viewId: 'view_07',
     url: 'https://shop.com/checkout?token=eyJhbGciOi...&step=2#pay',   // 含敏感参数
     runtime: { userAgent: 'Mozilla/5.0 ...', language: 'zh-CN', online: true,
-               sdk: { name: 'cx-browser-monitor-sdk', version: '0.2.0' } },
+               sdk: { name: '@cxdlogver/browser-monitor-sdk', version: '0.2.0' } },
   },
   correlation: {},
   payload: {

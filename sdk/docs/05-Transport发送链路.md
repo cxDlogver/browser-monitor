@@ -15,21 +15,21 @@ Collector emit 一条 → 立刻 fetch 一次
 
 问题依次出现：
 
-| 问题 | 后果 |
-| --- | --- |
-| 一条一个请求 | 页面一次交互就产生几十个请求，把用户带宽和公司服务端一起拖垮 |
-| 同步等待响应 | 采集在业务调用栈上，网络抖动会直接拖慢页面 |
-| 页面关闭时数据丢失 | 最后一批数据随页面卸载被浏览器取消 |
-| 失败就丢 | 一次网络抖动 = 一批数据永久消失 |
-| 队列无上限 | 异常循环时内存被监控数据吃光 |
+| 问题               | 后果                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| 一条一个请求       | 页面一次交互就产生几十个请求，把用户带宽和公司服务端一起拖垮 |
+| 同步等待响应       | 采集在业务调用栈上，网络抖动会直接拖慢页面                   |
+| 页面关闭时数据丢失 | 最后一批数据随页面卸载被浏览器取消                           |
+| 失败就丢           | 一次网络抖动 = 一批数据永久消失                              |
+| 队列无上限         | 异常循环时内存被监控数据吃光                                 |
 
 因此 Transport 要同时满足四个互相冲突的目标：
 
-| 目标 | 手段 |
-| --- | --- |
-| 不阻塞页面 | `enqueue` 同步、只入队，返回极快 |
-| 不拖慢网络 | 攒批发送，一批一个请求 |
-| 尽量不丢 | 五个冲刷时机 + 失败保留队列 + Beacon 兜底 |
+| 目标         | 手段                                           |
+| ------------ | ---------------------------------------------- |
+| 不阻塞页面   | `enqueue` 同步、只入队，返回极快               |
+| 不拖慢网络   | 攒批发送，一批一个请求                         |
+| 尽量不丢     | 五个冲刷时机 + 失败保留队列 + Beacon 兜底      |
 | 不成为故障源 | 队列限容、批次限字节、重试限次数、异常一律吞掉 |
 
 ---
@@ -68,13 +68,13 @@ drain(): while (队列非空)                       ← src/transport/flush
 
 四个模块各司其职，依赖单向：
 
-| 模块 | 输入 | 输出 | 知道什么 | 不知道什么 |
-| --- | --- | --- | --- | --- |
-| `flush`（Transport） | 信封 / 生命周期信号 | 冲刷调度 | 队列、批次、时机 | HTTP |
-| `queue` | 信封 | 一批信封 | 容量、优先级 | 网络、重试 |
-| `batch` | 队列 + 两个上限 | 一批 | 条数与字节 | 怎么发 |
-| `retry` | 一批 + Sender | 成功 / 失败 | 退避与次数 | 队列、HTTP |
-| `sender` | 一批 | `{success, retryable}` | HTTP | 队列、重试 |
+| 模块                 | 输入                | 输出                   | 知道什么         | 不知道什么 |
+| -------------------- | ------------------- | ---------------------- | ---------------- | ---------- |
+| `flush`（Transport） | 信封 / 生命周期信号 | 冲刷调度               | 队列、批次、时机 | HTTP       |
+| `queue`              | 信封                | 一批信封               | 容量、优先级     | 网络、重试 |
+| `batch`              | 队列 + 两个上限     | 一批                   | 条数与字节       | 怎么发     |
+| `retry`              | 一批 + Sender       | 成功 / 失败            | 退避与次数       | 队列、HTTP |
+| `sender`             | 一批                | `{success, retryable}` | HTTP             | 队列、重试 |
 
 ---
 
@@ -87,20 +87,20 @@ drain(): while (队列非空)                       ← src/transport/flush
 ```ts
 export class Transport implements MonitorModule {
   readonly name = 'transport';
-  private readonly queue: MemoryQueue;                        // 缓冲区
-  private timer: ReturnType<typeof setInterval> | undefined;  // 周期冲刷定时器
-  private unsubscribeLifecycle: (() => void) | undefined;     // 信号退订句柄
-  private active = false;                                     // 采集态闸门
-  private flushing: Promise<void> | undefined;                 // 进行中的冲刷（合并并发）
+  private readonly queue: MemoryQueue; // 缓冲区
+  private timer: ReturnType<typeof setInterval> | undefined; // 周期冲刷定时器
+  private unsubscribeLifecycle: (() => void) | undefined; // 信号退订句柄
+  private active = false; // 采集态闸门
+  private flushing: Promise<void> | undefined; // 进行中的冲刷（合并并发）
 }
 ```
 
-| 字段 | 作用 | 出错会怎样 |
-| --- | --- | --- |
-| `timer` | 周期冲刷 | 不清理 → 页面永远有后台任务 |
-| `unsubscribeLifecycle` | 退订 `page.lifecycle` | 不清理 → destroy 后仍被触发 |
-| `active` | false 时 `enqueue` 直接丢弃 | 缺失 → destroy 后仍发请求 |
-| `flushing` | 合并并发 flush | 缺失 → 两个 drain 并发消费同一队列，重复消费 + 乱序 |
+| 字段                   | 作用                        | 出错会怎样                                          |
+| ---------------------- | --------------------------- | --------------------------------------------------- |
+| `timer`                | 周期冲刷                    | 不清理 → 页面永远有后台任务                         |
+| `unsubscribeLifecycle` | 退订 `page.lifecycle`       | 不清理 → destroy 后仍被触发                         |
+| `active`               | false 时 `enqueue` 直接丢弃 | 缺失 → destroy 后仍发请求                           |
+| `flushing`             | 合并并发 flush              | 缺失 → 两个 drain 并发消费同一队列，重复消费 + 乱序 |
 
 #### install：订阅页面生命周期
 
@@ -141,11 +141,11 @@ destroy(): void {
 }
 ```
 
-| 动作 | 定时器 | Beacon | 队列 | 之后 |
-| --- | --- | --- | --- | --- |
-| `start` | 开启 | — | — | 可收数据 |
-| `stop` | 关闭 | 否 | 冲刷后保留 | 再 start 可恢复 |
-| `destroy` | 关闭 | **是** | 冲刷后清空 | 终态 |
+| 动作      | 定时器 | Beacon | 队列       | 之后            |
+| --------- | ------ | ------ | ---------- | --------------- |
+| `start`   | 开启   | —      | —          | 可收数据        |
+| `stop`    | 关闭   | 否     | 冲刷后保留 | 再 start 可恢复 |
+| `destroy` | 关闭   | **是** | 冲刷后清空 | 终态            |
 
 注意三处 `void`：定时器回调与生命周期回调里的 Promise 一律不 await、不 catch，因为**发送失败绝不能变成未处理的 Promise 拒绝冒泡到宿主页面**。
 
@@ -194,11 +194,11 @@ private async drain(preferBeacon: boolean): Promise<void> {
 }
 ```
 
-| 决策 | 理由 |
-| --- | --- |
-| 失败即停 | 继续发只会浪费重试配额，本轮的剩余数据（如果有）等下一个时机再处理 |
-| Beacon 只第一批 | Beacon 拿不到状态码，无法判断成败，因此只用于「页面要没了」的第一批 |
-| `batch.length === 0` 退出 | 理论上不会发生（队列非空必然切得出首条），是防御性死循环保护 |
+| 决策                      | 理由                                                                |
+| ------------------------- | ------------------------------------------------------------------- |
+| 失败即停                  | 继续发只会浪费重试配额，本轮的剩余数据（如果有）等下一个时机再处理  |
+| Beacon 只第一批           | Beacon 拿不到状态码，无法判断成败，因此只用于「页面要没了」的第一批 |
+| `batch.length === 0` 退出 | 理论上不会发生（队列非空必然切得出首条），是防御性死循环保护        |
 
 > ⚠️ **实现细节（务必注意）**：`takeBatch()` 内部调用 `queue.take()`，已经把这一批数据**从队列里 splice 出去**了。发送失败时 `drain` 直接 `return`，**并没有把这一批 `prepend` 回队列** —— 也就是说：
 >
@@ -253,12 +253,12 @@ enqueue(envelope: TelemetryEnvelope): void {
 
 **淘汰算法推演**（设 `capacity = 3`）：
 
-| 步骤 | 队列内容（优先级） | 新数据 | 找到的 lowest | 动作 | dropped |
-| --- | --- | --- | --- | --- | --- |
-| 初始 | `A(1) B(2) C(1)` | `D(1)` perf | `A`（同优先级中最早） | 删 A、插入 D → `B(2) C(1) D(1)` | 1 |
-| 再来 | `B(2) C(1) D(1)` | `E(2)` event | `C`（严格小于才更新，D 不替换 C） | 删 C、插入 E → `B(2) D(1) E(2)` | 2 |
-| 再来 | `B(2) D(1) E(2)` | `F(1)` perf | `D` | 删 D、插入 F → `B(2) E(2) F(1)` | 3 |
-| 再来 | `B(2) E(2) F(1)` | `G(1)` perf | `F` | 1 ≥ 1 → 删 F、插入 G | 4 |
+| 步骤 | 队列内容（优先级） | 新数据       | 找到的 lowest                     | 动作                            | dropped |
+| ---- | ------------------ | ------------ | --------------------------------- | ------------------------------- | ------- |
+| 初始 | `A(1) B(2) C(1)`   | `D(1)` perf  | `A`（同优先级中最早）             | 删 A、插入 D → `B(2) C(1) D(1)` | 1       |
+| 再来 | `B(2) C(1) D(1)`   | `E(2)` event | `C`（严格小于才更新，D 不替换 C） | 删 C、插入 E → `B(2) D(1) E(2)` | 2       |
+| 再来 | `B(2) D(1) E(2)`   | `F(1)` perf  | `D`                               | 删 D、插入 F → `B(2) E(2) F(1)` | 3       |
+| 再来 | `B(2) E(2) F(1)`   | `G(1)` perf  | `F`                               | 1 ≥ 1 → 删 F、插入 G            | 4       |
 
 两个细节：
 
@@ -289,8 +289,12 @@ prepend(envelopes: readonly TelemetryEnvelope[]): void {
 ### 3.3 takeBatch：条数与字节双上限
 
 ```ts
-export function takeBatch(queue: MemoryQueue, maxCount: number, maxBytes: number): TelemetryEnvelope[] {
-  const candidates = queue.take(maxCount);          // 先按条数取出候选
+export function takeBatch(
+  queue: MemoryQueue,
+  maxCount: number,
+  maxBytes: number,
+): TelemetryEnvelope[] {
+  const candidates = queue.take(maxCount); // 先按条数取出候选
   const batch: TelemetryEnvelope[] = [];
   let bytes = 0;
 
@@ -301,7 +305,7 @@ export function takeBatch(queue: MemoryQueue, maxCount: number, maxBytes: number
     const nextBytes = JSON.stringify(envelope).length;
     // 首条即使超限也必须发送，否则它会被永久放回队首并阻塞后续事件。
     if (batch.length > 0 && bytes + nextBytes > maxBytes) {
-      queue.prepend(candidates.slice(index));       // 剩余候选原序回队首
+      queue.prepend(candidates.slice(index)); // 剩余候选原序回队首
       break;
     }
 
@@ -315,13 +319,13 @@ export function takeBatch(queue: MemoryQueue, maxCount: number, maxBytes: number
 
 **推演**（`maxCount = 5`、`maxBytes = 1000`，每条 300 字节）：
 
-| 候选 | 累计字节 | 判定 | 结果 |
-| --- | --- | --- | --- |
-| 第 1 条 | 300 | batch 为空 → 无条件加入 | 入批 |
-| 第 2 条 | 600 | 600 ≤ 1000 | 入批 |
-| 第 3 条 | 900 | 900 ≤ 1000 | 入批 |
-| 第 4 条 | 1200 | **1200 > 1000** | `prepend([4,5])` 回队首，break |
-| 第 5 条 | — | 同上 | 回队首 |
+| 候选    | 累计字节 | 判定                    | 结果                           |
+| ------- | -------- | ----------------------- | ------------------------------ |
+| 第 1 条 | 300      | batch 为空 → 无条件加入 | 入批                           |
+| 第 2 条 | 600      | 600 ≤ 1000              | 入批                           |
+| 第 3 条 | 900      | 900 ≤ 1000              | 入批                           |
+| 第 4 条 | 1200     | **1200 > 1000**         | `prepend([4,5])` 回队首，break |
+| 第 5 条 | —        | 同上                    | 回队首                         |
 
 本批 = 3 条，第 4、5 条回到队首，下一轮 `drain` 继续处理。
 
@@ -351,19 +355,18 @@ attempt 2：send → 503（retryable）→ 等待 500*2^1 + [0,500) ≈ 1000~149
 attempt 3：send → 503 → 已到次数上限 → return false（本批丢弃，不会放回队列）
 ```
 
-| 设计 | 目的 |
-| --- | --- |
-| `retryable` 判定 | 4xx（除 408/429）说明请求本身有问题，重试无意义 |
-| 指数退避 `2^(n-1)` | 失败越久等越久，给服务端恢复时间 |
-| 随机抖动 | 打散重试时刻，防止服务恢复瞬间所有客户端同时打过来（惊群） |
-| Beacon 仅首次 | Beacon 没有「响应」概念，失败后必须换回 fetch 才能判断 |
+| 设计               | 目的                                                       |
+| ------------------ | ---------------------------------------------------------- |
+| `retryable` 判定   | 4xx（除 408/429）说明请求本身有问题，重试无意义            |
+| 指数退避 `2^(n-1)` | 失败越久等越久，给服务端恢复时间                           |
+| 随机抖动           | 打散重试时刻，防止服务恢复瞬间所有客户端同时打过来（惊群） |
+| Beacon 仅首次      | Beacon 没有「响应」概念，失败后必须换回 fetch 才能判断     |
 
 ---
 
 ### 3.5 HttpSender：唯一接触网络的地方
 
 ```ts
-
 export class HttpSender implements Sender {
   constructor(private readonly options: HttpSenderOptions) {}
 
@@ -417,7 +420,6 @@ export class HttpSender implements Sender {
     }
   }
 }
-
 ```
 
 **上报体**：
@@ -426,17 +428,19 @@ export class HttpSender implements Sender {
 {
   "protocolVersion": "2.0",
   "sentAt": 1712345678902,
-  "sdk": { "name": "cx-browser-monitor-sdk", "version": "0.2.0" },
-  "events": [ /* 一批 TelemetryEnvelope */ ]
+  "sdk": { "name": "@cxdlogver/browser-monitor-sdk", "version": "0.2.0" },
+  "events": [
+    /* 一批 TelemetryEnvelope */
+  ]
 }
 ```
 
 **两条路径对比**：
 
-| 路径 | 触发条件 | 能否拿到状态码 | 能否活过页面卸载 | retryable |
-| --- | --- | --- | --- | --- |
-| `sendBeacon` | `preferBeacon && 首次` | 否 | **能**（浏览器接管） | false |
-| `fetch` + `keepalive` | 其余 | 是 | 部分能 | 按状态码 |
+| 路径                  | 触发条件               | 能否拿到状态码 | 能否活过页面卸载     | retryable |
+| --------------------- | ---------------------- | -------------- | -------------------- | --------- |
+| `sendBeacon`          | `preferBeacon && 首次` | 否             | **能**（浏览器接管） | false     |
+| `fetch` + `keepalive` | 其余                   | 是             | 部分能               | 按状态码  |
 
 `Sender` 是接口，可注入自定义实现 —— 这正是 `createMonitorWithDependencies` 存在的意义（测试用内存 Sender、宿主用自己的通道转发）。
 
@@ -549,18 +553,18 @@ destroy → flush(true).finally(queue.clear())
 
 ## 七、数据会在哪些环节丢（全链路汇总）
 
-| 环节 | 条件 | 是否预期 |
-| --- | --- | --- |
-| Processing ② validate | 结构不完整 | **异常**（需修上游） |
-| Processing ④ filter | 命中排除 URL | 预期 |
-| Processing ⑤ dedupe | 窗口内重复 | 预期 |
-| Processing ⑥ sampling | 未命中采样 | 预期 |
-| Processing ⑦ rate-limit | 窗口额度用尽 | 预期 |
-| Transport `enqueue` | `active = false` | 预期（生命周期语义） |
-| Transport 队列满 | 新数据优先级不高于最低者 | 预期（内存保护） |
-| Transport `prepend` 超限 | 回退后超出容量 | 预期（极端情况） |
-| Transport 重试耗尽 | 3 次都失败 | **整批丢弃**（已出队且未放回队列） |
-| Transport destroy | 最后一次冲刷后清空 | 预期（终态） |
+| 环节                     | 条件                     | 是否预期                           |
+| ------------------------ | ------------------------ | ---------------------------------- |
+| Processing ② validate    | 结构不完整               | **异常**（需修上游）               |
+| Processing ④ filter      | 命中排除 URL             | 预期                               |
+| Processing ⑤ dedupe      | 窗口内重复               | 预期                               |
+| Processing ⑥ sampling    | 未命中采样               | 预期                               |
+| Processing ⑦ rate-limit  | 窗口额度用尽             | 预期                               |
+| Transport `enqueue`      | `active = false`         | 预期（生命周期语义）               |
+| Transport 队列满         | 新数据优先级不高于最低者 | 预期（内存保护）                   |
+| Transport `prepend` 超限 | 回退后超出容量           | 预期（极端情况）                   |
+| Transport 重试耗尽       | 3 次都失败               | **整批丢弃**（已出队且未放回队列） |
+| Transport destroy        | 最后一次冲刷后清空       | 预期（终态）                       |
 
 **关键认知**：当前实现下，**「发送失败」就等于「丢这一批」** —— `takeBatch` 已把数据从队列 splice 出去，失败分支没有 `prepend` 放回。所以：
 
@@ -599,14 +603,14 @@ Beacon 拿不到响应状态码，无法判断成败，也就无法重试。它�
 
 ## 九、小结
 
-| 关注点 | 做法 | 代码位置 |
-| --- | --- | --- |
-| 入队 | 同步、廉价、带闸门 | `flush/enqueue` |
-| 缓冲 | 限容 + 优先级淘汰 | `queue` |
-| 切批 | 条数 + 字节双上限，首条豁免 | `batch/takeBatch` |
-| 发送 | Beacon 优先，降级 fetch keepalive | `sender/HttpSender` |
-| 重试 | 指数退避 + 抖动，可重试才重试 | `retry/sendWithRetry` |
-| 调度 | 五个时机汇入同一 flush，并发合并 | `flush/flush + drain` |
-| 清理 | 关定时器、退订信号、清空队列 | `flush/stop + destroy` |
+| 关注点 | 做法                              | 代码位置               |
+| ------ | --------------------------------- | ---------------------- |
+| 入队   | 同步、廉价、带闸门                | `flush/enqueue`        |
+| 缓冲   | 限容 + 优先级淘汰                 | `queue`                |
+| 切批   | 条数 + 字节双上限，首条豁免       | `batch/takeBatch`      |
+| 发送   | Beacon 优先，降级 fetch keepalive | `sender/HttpSender`    |
+| 重试   | 指数退避 + 抖动，可重试才重试     | `retry/sendWithRetry`  |
+| 调度   | 五个时机汇入同一 flush，并发合并  | `flush/flush + drain`  |
+| 清理   | 关定时器、退订信号、清空队列      | `flush/stop + destroy` |
 
 **一句话**：Transport 用「限容优先级队列 + 双上限切批 + 退避重试 + Beacon 兜底」四件事，在**不阻塞页面、不拖慢网络、不无限占用内存**的前提下把数据尽可能完整地送出去；它宁可少发、晚发，也绝不让监控代码成为页面问题的一部分。

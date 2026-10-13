@@ -1,4 +1,4 @@
-import type { PerformanceMetricName, PerformanceMetricRating } from '@browser-monitor/protocol';
+import type { PerformanceMetricName, PerformanceMetricRating } from '@cxdlogver/browser-monitor-protocol';
 
 export interface MetricThreshold {
   direction: 'lower-is-better' | 'higher-is-better';

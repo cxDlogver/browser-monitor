@@ -1,5 +1,5 @@
 import type { CustomSignalEndInput, CustomSignalInput } from '../shared/custom-signal';
-import type { MetricUnit } from '@browser-monitor/protocol';
+import type { MetricUnit } from '@cxdlogver/browser-monitor-protocol';
 
 /** Only immutable identity is propagated; a child never owns its parent handle. */
 export interface SpanContext {

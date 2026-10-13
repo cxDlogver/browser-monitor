@@ -13,7 +13,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 import type { ProcessingStage } from '../pipeline';
 
 // timestamp 和 eventId 不参与指纹；同一 View 内语义与 payload 完全相同才视为重复。

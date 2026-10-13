@@ -1,12 +1,10 @@
 {
-  "name": "cx-browser-monitor-sdk",
+  "name": "@cxdlogver/browser-monitor-sdk",
   "version": "0.3.0",
-  "description": "Framework-agnostic browser telemetry SDK for performance, events, errors, network, and views.",
+  "description": "Framework-agnostic browser telemetry SDK for performance, custom events, traces, and page views.",
   "keywords": [
     "browser",
-    "error-monitoring",
     "monitoring",
-    "network-monitoring",
     "performance",
     "rum",
     "telemetry",
@@ -38,7 +36,8 @@
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "repository": {
     "type": "git",
@@ -50,8 +49,7 @@
   },
   "homepage": "https://github.com/cxDlogver/browser-monitor/tree/main/sdk#readme",
   "engines": {
-    "node": ">=20",
-    "pnpm": ">=10.28.2"
+    "node": ">=20"
   },
   "packageManager": "pnpm@10.28.2",
   "scripts": {
@@ -65,10 +63,11 @@
     "test:watch": "vitest",
     "publint": "publint",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm publint",
+    "prepack": "pnpm build",
     "prepublishOnly": "pnpm check"
   },
   "dependencies": {
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "web-vitals": "6.2.1"
   },
   "devDependencies": {

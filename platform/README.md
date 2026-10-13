@@ -1,6 +1,6 @@
 # Browser Monitor Platform
 
-Browser Monitor Platform 是 `cx-browser-monitor-sdk` 的服务端和可视化平台。SDK 只负责在浏览器中采集、治理和发送遥测数据；平台负责接收协议 3.0 批次、可靠地生成查询模型、计算服务端指标口径，并向项目成员提供管理后台与监控看板。
+Browser Monitor Platform 是 `@cxdlogver/browser-monitor-sdk` 的服务端和可视化平台。SDK 只负责在浏览器中采集、治理和发送遥测数据；平台负责接收协议 3.0 批次、可靠地生成查询模型、计算服务端指标口径，并向项目成员提供管理后台与监控看板。
 
 完整链路为：`Monitor SDK → 公开 DSN → Ingestion API → telemetry_events + Outbox → Worker → TimescaleDB 聚合 → Analytics API → React 看板`。
 
@@ -11,7 +11,7 @@ Browser Monitor Platform 是 `cx-browser-monitor-sdk` 的服务端和可视化�
 业务应用只需要安装 SDK、填写应用身份、配置稳定页面名称并使用平台生成的 DSN。业务项目**不需要自己实现 `endpoint` 接口，也不需要额外开发可视化页面**；采集接口和看板都由本项目提供。
 
 ```ts
-import { createMonitor } from "cx-browser-monitor-sdk";
+import { createMonitor } from "@cxdlogver/browser-monitor-sdk";
 
 const monitor = createMonitor({
   app: {

@@ -15,7 +15,7 @@ import {
   PROTOCOL_VERSION,
   type PerformancePayload,
   type TelemetryEventV3 as TelemetryEnvelope,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 import type { ProcessingStage } from '../pipeline';
 

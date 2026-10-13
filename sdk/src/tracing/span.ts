@@ -13,7 +13,7 @@ import {
   type CustomSpanPayload,
   type MetricUnit,
   type TelemetryContext,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 import type { TracingContext } from './context';
 import type { SpanContext, SpanHandle, StartSpanOptions } from './types';

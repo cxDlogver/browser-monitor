@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createProcessingPipeline } from '../../src/processing';
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 
 function envelope(value: number = 1_000): TelemetryEnvelope {
   return {

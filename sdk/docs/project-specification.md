@@ -498,7 +498,7 @@ Transport 只能接收已经处理完成的数据。如果 Transport 还需要�
 
 ### 【signals 与共享 Protocol：定义不同范围的契约】
 
-`src/signals` 描述 Raw Signal，只服务 SDK 内部 Instrumentation、Signal Hub 与 Collector。线上 Envelope、Context、Correlation 和 Payload 则直接从 `@browser-monitor/protocol` 导入；它位于 monorepo 根目录的 `protocol/`，同时被 SDK、采集 API 和 Worker 使用。SDK 不再保留 `src/protocol` 转发文件，避免本地类型与 Zod Schema 成为两个协议来源。
+`src/signals` 描述 Raw Signal，只服务 SDK 内部 Instrumentation、Signal Hub 与 Collector。线上 Envelope、Context、Correlation 和 Payload 则直接从 `@cxdlogver/browser-monitor-protocol` 导入；它位于 monorepo 根目录的 `protocol/`，同时被 SDK、采集 API 和 Worker 使用。SDK 不再保留 `src/protocol` 转发文件，避免本地类型与 Zod Schema 成为两个协议来源。
 
 Signal 与 Protocol 都不处理数据、不访问浏览器、不保存状态。某个类型如果只被一个实现内部使用，就应该放回该模块；只有线上三端需要共同理解的数据才进入共享协议包。
 
@@ -518,11 +518,11 @@ Shared 只容纳没有领域归属、被多个模块共同需要的纯基础能�
 index → core
 core → instrumentation / collectors / context / processing / transport
 instrumentation → signals / shared
-collectors → context / signals / @browser-monitor/protocol / shared
-context → @browser-monitor/protocol / shared
-processing → @browser-monitor/protocol / shared
-transport → @browser-monitor/protocol / shared
-signals → @browser-monitor/protocol（只复用枚举与字段类型）
+collectors → context / signals / @cxdlogver/browser-monitor-protocol / shared
+context → @cxdlogver/browser-monitor-protocol / shared
+processing → @cxdlogver/browser-monitor-protocol / shared
+transport → @cxdlogver/browser-monitor-protocol / shared
+signals → @cxdlogver/browser-monitor-protocol（只复用枚举与字段类型）
 shared → 不依赖业务模块
 ```
 

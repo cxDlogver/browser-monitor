@@ -535,7 +535,7 @@ instrumentation → 浏览器 API 和 Hook
 collectors → Performance / Event / Error / Network / View 领域语义
 context → Session / View / User / Runtime Context
 signals → SDK 内部浏览器事实契约
-@browser-monitor/protocol → SDK、API 与 Worker 的协议 2.0 数据契约
+@cxdlogver/browser-monitor-protocol → SDK、API 与 Worker 的协议 2.0 数据契约
 processing → Normalize / Redact / Dedupe / Sampling / Rate Limit
 transport → Queue / Batch / Sender / Retry / Flush
 shared → 无领域语义的基础能力
@@ -934,7 +934,7 @@ Action 关联同样不能被无限扩大。一次点击可以为紧随其后的�
 
 ### 【signals 与共享 Protocol：区分内部事实和线上协议】
 
-`src/signals` 保存 Instrumentation 与 Collector 共同理解的 SDK 内部事实；monorepo 根目录的 `protocol/` 则发布 `@browser-monitor/protocol`，保存 SDK、采集 API 与 Worker 共同遵守的线上协议。两者都只定义形状和语义，不访问浏览器、不处理数据，也不保存运行状态，但作用范围不同，因此不能放在同一个 SDK 转发目录中。
+`src/signals` 保存 Instrumentation 与 Collector 共同理解的 SDK 内部事实；monorepo 根目录的 `protocol/` 则发布 `@cxdlogver/browser-monitor-protocol`，保存 SDK、采集 API 与 Worker 共同遵守的线上协议。两者都只定义形状和语义，不访问浏览器、不处理数据，也不保存运行状态，但作用范围不同，因此不能放在同一个 SDK 转发目录中。
 
 #### <u>1. Raw Signal：描述浏览器刚刚发生的事实</u>
 
@@ -944,7 +944,7 @@ Raw Signal 不等于上报数据。它可能缺少完整 Context，也没有经�
 
 #### <u>2. 共享 Envelope：统一公共字段</u>
 
-所有 Collector 输出的数据最终进入 `@browser-monitor/protocol` 定义的统一 Envelope。统一的是公共身份、时间、上下文和关联方式，不是把所有领域字段压成同一种结构。SDK 源码直接导入协议包，不再通过 `src/protocol` 二次导出。
+所有 Collector 输出的数据最终进入 `@cxdlogver/browser-monitor-protocol` 定义的统一 Envelope。统一的是公共身份、时间、上下文和关联方式，不是把所有领域字段压成同一种结构。SDK 源码直接导入协议包，不再通过 `src/protocol` 二次导出。
 
 ```ts
 interface TelemetryEnvelope<T extends TelemetryPayload> {
@@ -1053,11 +1053,11 @@ core → instrumentation / collectors / context / processing / transport
 
 基础依赖
 instrumentation → signals / shared
-collectors      → context / signals / @browser-monitor/protocol / shared
-context         → @browser-monitor/protocol / shared
-processing      → @browser-monitor/protocol / shared
-transport       → @browser-monitor/protocol / shared
-signals         → @browser-monitor/protocol（只复用枚举与字段类型）
+collectors      → context / signals / @cxdlogver/browser-monitor-protocol / shared
+context         → @cxdlogver/browser-monitor-protocol / shared
+processing      → @cxdlogver/browser-monitor-protocol / shared
+transport       → @cxdlogver/browser-monitor-protocol / shared
+signals         → @cxdlogver/browser-monitor-protocol（只复用枚举与字段类型）
 shared          → 不依赖任何监控业务模块
 ```
 
@@ -1120,8 +1120,8 @@ Collector 之间不形成调用链，Processing 不回头访问浏览器对象�
 | 怎样安全监听或包装某个浏览器 API              | `instrumentation` |
 | 浏览器事实在监控领域中代表什么                | `collectors`      |
 | 数据属于哪个 Session、View、Action 或 Request | `context`         |
-| SDK 内部 Raw Signal 必须包含哪些字段           | `signals`         |
-| 线上事件和批次必须包含哪些字段                 | 根目录 `protocol` |
+| SDK 内部 Raw Signal 必须包含哪些字段          | `signals`         |
+| 线上事件和批次必须包含哪些字段                | 根目录 `protocol` |
 | 数据是否安全、有效、重复或超量                | `processing`      |
 | 数据怎样排队、组批、发送和重试                | `transport`       |
 | 模块怎样创建、注册、启停和销毁                | `core`            |
@@ -1527,7 +1527,7 @@ HttpSender 把批次序列化为统一请求体：
 {
   protocolVersion: '2.0',
   sentAt: Date.now(),
-  sdk: { name: 'cx-browser-monitor-sdk', version: '0.2.0' },
+  sdk: { name: '@cxdlogver/browser-monitor-sdk', version: '0.2.0' },
   events: batch
 }
 ```
@@ -1621,7 +1621,7 @@ MonitorPipeline 根据 Signal timestamp 查找当时的 View，生成 eventId，
     url: 'https://host/checkout',
     runtime: {
       sdk: {
-        name: 'cx-browser-monitor-sdk',
+        name: '@cxdlogver/browser-monitor-sdk',
         version: '0.2.0'
       }
     }

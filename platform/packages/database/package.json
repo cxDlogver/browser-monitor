@@ -17,7 +17,7 @@
     "migrate": "tsx src/migrate.ts"
   },
   "dependencies": {
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "drizzle-orm": "^0.44.5",
     "pg": "^8.16.3"
   },

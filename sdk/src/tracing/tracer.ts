@@ -3,7 +3,7 @@ import type { ContextManager } from '../context';
 import type { MonitorModule } from '../core/module-registry';
 import type { TelemetryDraft, TelemetryEmitter } from '../core/pipeline';
 import { requiredName, type CustomSignalInput } from '../shared/custom-signal';
-import type { CorrelationContext, CustomSpanPayload } from '@browser-monitor/protocol';
+import type { CorrelationContext, CustomSpanPayload } from '@cxdlogver/browser-monitor-protocol';
 
 import { TracingContext } from './context';
 import { createSpanId, createTraceId } from './id';

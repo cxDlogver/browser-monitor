@@ -153,12 +153,12 @@ Application
 └── @browser-monitor/web
 
 Library / Shared Package
-├── @browser-monitor/protocol
+├── @cxdlogver/browser-monitor-protocol
 ├── @browser-monitor/database
 └── @browser-monitor/shared
 
 Public SDK Package
-└── cx-browser-monitor-sdk
+└── @cxdlogver/browser-monitor-sdk
 ~~~
 
 其中 SDK 是一个特殊的 Library/Package：它会作为 Package 被构建和发布，但真正的业务代码最终运行在接入它的 Browser 页面中。
@@ -516,7 +516,7 @@ platform/packages/shared/package.json
 
 ~~~text
 protocol/package.json
-name = @browser-monitor/protocol
+name = @cxdlogver/browser-monitor-protocol
 ~~~
 
 ~~~text
@@ -598,7 +598,7 @@ browser-monitor/protocol/package.json：
 
 ~~~json
 {
-  "name": "@browser-monitor/protocol",
+  "name": "@cxdlogver/browser-monitor-protocol",
   "version": "3.0.0"
 }
 ~~~
@@ -614,7 +614,7 @@ browser-monitor/platform/apps/api/package.json：
 因此内部依赖声明使用的是：
 
 ~~~text
-@browser-monitor/protocol
+@cxdlogver/browser-monitor-protocol
 @browser-monitor/database
 @browser-monitor/shared
 ~~~
@@ -708,7 +708,7 @@ API 的依赖关系不是根据目录结构推测出来的，而是 platform/app
 {
   "dependencies": {
     "@browser-monitor/database": "workspace:*",
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "@browser-monitor/shared": "workspace:*"
   }
 }
@@ -719,7 +719,7 @@ API 的依赖关系不是根据目录结构推测出来的，而是 platform/app
 ~~~text
 @browser-monitor/api
     ├── depends on @browser-monitor/database
-    ├── depends on @browser-monitor/protocol
+    ├── depends on @cxdlogver/browser-monitor-protocol
     └── depends on @browser-monitor/shared
 ~~~
 
@@ -729,7 +729,7 @@ Worker 同样由 package.json 声明：
 {
   "dependencies": {
     "@browser-monitor/database": "workspace:*",
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "@browser-monitor/shared": "workspace:*"
   }
 }
@@ -871,7 +871,7 @@ SDK：
 ~~~json
 {
   "dependencies": {
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "web-vitals": "6.2.1"
   }
 }
@@ -880,7 +880,7 @@ SDK：
 这两个依赖虽然都位于 dependencies，但解析来源不同：
 
 ~~~text
-@browser-monitor/protocol
+@cxdlogver/browser-monitor-protocol
     ↓ workspace:*
 当前 Workspace
 
@@ -2063,7 +2063,7 @@ dist/index.global.js
 所以消费者依赖 Package Name：
 
 ~~~text
-@browser-monitor/protocol
+@cxdlogver/browser-monitor-protocol
 ~~~
 
 最终解析到的是该 Package 对外声明的 Entry，而不是随意访问其内部 src 文件。
@@ -2938,7 +2938,7 @@ Runtime Architecture
 >
 > pnpm 先按照 packages 路径模式发现 sdk、protocol、platform/apps/*、platform/packages/* 等目录，再读取这些目录的 package.json。package.json.name 给每个 Package 一个逻辑身份，但此时只是完成项目发现，还没有自动产生项目依赖。
 >
-> 项目之间真正的代码依赖来自消费者 package.json。例如 API 的 dependencies 明确声明了 @browser-monitor/database、@browser-monitor/protocol 和 @browser-monitor/shared。workspace:* 再进一步要求这些 Package 必须从当前 Workspace 解析，而不能静默使用 Registry 中的同名 Package。
+> 项目之间真正的代码依赖来自消费者 package.json。例如 API 的 dependencies 明确声明了 @browser-monitor/database、@cxdlogver/browser-monitor-protocol 和 @browser-monitor/shared。workspace:* 再进一步要求这些 Package 必须从当前 Workspace 解析，而不能静默使用 Registry 中的同名 Package。
 >
 > pnpm install 根据这些 Manifest 和 pnpm-lock.yaml 完成依赖解析、外部依赖安装以及内部 Workspace Package 的本地可解析关系。但是 Package 能被找到不代表已经 Build；像 Protocol 的 exports 指向 dist，因此仍然需要执行自己的 build 生成 dist。
 >

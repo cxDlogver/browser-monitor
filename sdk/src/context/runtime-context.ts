@@ -1,4 +1,4 @@
-import { SDK_NAME, type RuntimeContextData } from '@browser-monitor/protocol';
+import { SDK_NAME, type RuntimeContextData } from '@cxdlogver/browser-monitor-protocol';
 
 const SDK_VERSION = '0.3.0';
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HttpSender } from '../../src/transport';
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 
 const event: TelemetryEnvelope = {
   protocolVersion: '3.0',
@@ -15,7 +15,7 @@ const event: TelemetryEnvelope = {
     viewId: 'view-1',
     routeName: 'checkout',
     url: 'https://shop.test/checkout',
-    runtime: { sdk: { name: 'cx-browser-monitor-sdk', version: '0.3.0' } },
+    runtime: { sdk: { name: '@cxdlogver/browser-monitor-sdk', version: '0.3.0' } },
   },
   correlation: {},
   payload: { type: 'event', name: 'checkout', source: 'custom' },
@@ -43,7 +43,7 @@ describe('HttpSender protocol 3.0', () => {
     const body = typeof init.body === 'string' ? init.body : '';
     expect(JSON.parse(body)).toMatchObject({
       protocolVersion: '3.0',
-      sdk: { name: 'cx-browser-monitor-sdk', version: '0.3.0' },
+      sdk: { name: '@cxdlogver/browser-monitor-sdk', version: '0.3.0' },
       events: [{ protocolVersion: '3.0', eventId: 'event-1' }],
     });
   });

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@browser-monitor/database": "workspace:*",
-    "@browser-monitor/protocol": "workspace:*",
+    "@cxdlogver/browser-monitor-protocol": "workspace:*",
     "@browser-monitor/shared": "workspace:*",
     "ioredis": "^5.7.0",
     "pg": "^8.16.3"

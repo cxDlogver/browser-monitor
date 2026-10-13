@@ -10,7 +10,10 @@ import { PerformanceObserverInstrumentation } from '../instrumentation/performan
 import { WebVitalsInstrumentation } from '../instrumentation/web-vitals';
 import { createProcessingPipeline } from '../processing';
 import { HttpSender, Transport, type Sender } from '../transport';
-import type { PerformanceCapabilityMap, UserContextData } from '@browser-monitor/protocol';
+import type {
+  PerformanceCapabilityMap,
+  UserContextData,
+} from '@cxdlogver/browser-monitor-protocol';
 
 import { normalizeOptions, type MonitorOptions, type NormalizedMonitorOptions } from './config';
 import { Lifecycle } from './lifecycle';

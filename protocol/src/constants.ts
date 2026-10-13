@@ -4,7 +4,7 @@ export const PROTOCOL_VERSION = '3.0' as const;
 /** Reserved SDK attribute identifying a business workflow root Span. */
 export const WORKFLOW_ATTRIBUTE = 'monitor.workflow' as const;
 
-export const SDK_NAME = 'cx-browser-monitor-sdk' as const;
+export const SDK_NAME = '@cxdlogver/browser-monitor-sdk' as const;
 
 export const BUILTIN_METRIC_UNITS = ['ms', 's', 'bytes', 'count', 'percent', 'score'] as const;
 

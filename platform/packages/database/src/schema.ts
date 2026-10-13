@@ -1,4 +1,4 @@
-import type { TelemetryEventV3 } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 } from '@cxdlogver/browser-monitor-protocol';
 import { sql } from 'drizzle-orm';
 import {
   boolean,

@@ -30,11 +30,11 @@ pnpm check
 
 `cx-learn-notes` 通过 Git 子模块将本仓库保留在 `browser-monitor/` 路径，并锁定具体提交。克隆主仓库时使用 `git clone --recurse-submodules`；已有主仓库时执行 `git submodule update --init --recursive`。
 
-主仓库的 pnpm workspace 继续包含 `browser-monitor/protocol` 和 `browser-monitor/sdk`，官网与走航车前端继续通过 `cx-browser-monitor-sdk: workspace:*` 使用 SDK。先在主仓库根目录执行 `pnpm install`，再构建协议和 SDK：
+主仓库的 pnpm workspace 继续包含 `browser-monitor/protocol` 和 `browser-monitor/sdk`，官网与走航车前端继续通过 `@cxdlogver/browser-monitor-sdk: workspace:*` 使用 SDK。先在主仓库根目录执行 `pnpm install`，再构建协议和 SDK：
 
 ```bash
-pnpm --filter @browser-monitor/protocol build
-pnpm --filter cx-browser-monitor-sdk build
+pnpm --filter @cxdlogver/browser-monitor-protocol build
+pnpm --filter @cxdlogver/browser-monitor-sdk build
 ```
 
 监控系统自身的 API、Worker、Web 检查与部署命令仍从本目录执行。修改监控代码时，先向本仓库提交并推送，再在 `cx-learn-notes` 中提交 `browser-monitor` 的子模块版本指针。
@@ -43,11 +43,11 @@ pnpm --filter cx-browser-monitor-sdk build
 
 | 目录 | 包名 | 职责 |
 | --- | --- | --- |
-| `sdk/` | `cx-browser-monitor-sdk` | 在浏览器中采集、加工、排队并发送遥测数据 |
-| `protocol/` | `@browser-monitor/protocol` | 定义 SDK、API 与 Worker 共同遵守的协议 3.0 Schema、类型、枚举和测试夹具 |
+| `sdk/` | `@cxdlogver/browser-monitor-sdk` | 在浏览器中采集、加工、排队并发送遥测数据 |
+| `protocol/` | `@cxdlogver/browser-monitor-protocol` | 定义 SDK、API 与 Worker 共同遵守的协议 3.0 Schema、类型、枚举和测试夹具 |
 | `platform/` | `@browser-monitor/platform` | 提供账号与项目管理、采集 API、异步处理、TimescaleDB 聚合和 React 看板 |
 
-`protocol/` 是线上数据契约的唯一来源。SDK 不再保留 `src/protocol` 转发目录，而是直接依赖 `@browser-monitor/protocol`。SDK 内部尚未形成上报事件的浏览器事实放在 `sdk/src/signals/`；Raw Signal 只在 SDK 进程内流动，不属于跨项目协议。
+`protocol/` 是线上数据契约的唯一来源。SDK 不再保留 `src/protocol` 转发目录，而是直接依赖 `@cxdlogver/browser-monitor-protocol`。SDK 内部尚未形成上报事件的浏览器事实放在 `sdk/src/signals/`；Raw Signal 只在 SDK 进程内流动，不属于跨项目协议。
 
 ## 2. 目录结构
 

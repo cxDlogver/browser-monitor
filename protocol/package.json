@@ -1,7 +1,8 @@
 {
-  "name": "@browser-monitor/protocol",
+  "name": "@cxdlogver/browser-monitor-protocol",
   "version": "3.0.0",
   "description": "Runtime schemas and TypeScript contracts shared by Browser Monitor SDK and platform.",
+  "author": "cxDlogver",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,12 +24,29 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxDlogver/browser-monitor.git",
+    "directory": "protocol"
+  },
+  "bugs": {
+    "url": "https://github.com/cxDlogver/browser-monitor/issues"
+  },
+  "homepage": "https://github.com/cxDlogver/browser-monitor/tree/main/protocol#readme",
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "prepack": "pnpm build",
+    "prepublishOnly": "pnpm check"
   },
   "dependencies": {
     "zod": "^3.24.2"
@@ -40,4 +58,3 @@
     "vitest": "^4.0.18"
   }
 }
-

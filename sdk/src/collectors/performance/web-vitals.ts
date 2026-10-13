@@ -1,6 +1,9 @@
 import type { MonitorModule } from '../../core/module-registry';
 import type { TelemetryEmitter } from '../../core/pipeline';
-import type { PerformanceMetricName, WebVitalPerformancePayload } from '@browser-monitor/protocol';
+import type {
+  PerformanceMetricName,
+  WebVitalPerformancePayload,
+} from '@cxdlogver/browser-monitor-protocol';
 import type { SignalSubscriber, WebVitalSignal } from '../../signals';
 
 // Collector 只接收稳定的 Raw Signal，不把 web-vitals 库对象泄漏进领域协议。

@@ -2,8 +2,8 @@ import {
   WORKFLOW_ATTRIBUTE,
   telemetryEventV3Schema,
   type CustomSignalPayload,
-} from '@browser-monitor/protocol';
-import { createPerformanceEventFixture } from '@browser-monitor/protocol/fixtures';
+} from '@cxdlogver/browser-monitor-protocol';
+import { createPerformanceEventFixture } from '@cxdlogver/browser-monitor-protocol/fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createMonitorWithDependencies } from '../../src/core/monitor';

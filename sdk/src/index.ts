@@ -26,4 +26,4 @@ export type {
   UserContextData,
   ViewPayload,
   WebVitalPerformancePayload,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';

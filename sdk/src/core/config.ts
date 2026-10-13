@@ -13,7 +13,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { AppContextData, PerformanceMetricName } from '@browser-monitor/protocol';
+import type { AppContextData, PerformanceMetricName } from '@cxdlogver/browser-monitor-protocol';
 
 /** 自定义属性中默认脱敏的键名。URL query 在进入协议前会被整体删除。 */
 const DEFAULT_SENSITIVE_KEYS = [

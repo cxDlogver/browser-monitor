@@ -16,7 +16,7 @@ import {
   PROTOCOL_VERSION,
   SDK_NAME,
   type TelemetryEventV3 as TelemetryEnvelope,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 export interface SendResult {
   /** 是否发送成功。 */

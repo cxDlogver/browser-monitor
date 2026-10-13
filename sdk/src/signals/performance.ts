@@ -2,7 +2,7 @@ import type {
   PerformanceMetricName,
   PerformanceMetricRating,
   PerformanceNavigationType,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 
 export interface WebVitalSignal {
   name: Extract<PerformanceMetricName, 'LCP' | 'FCP' | 'INP' | 'CLS'>;

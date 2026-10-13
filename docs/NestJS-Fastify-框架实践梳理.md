@@ -627,7 +627,7 @@ providers: [{ provide: APP_INTERCEPTOR, useClass: RequestIdInterceptor }];
 
 Nest 的标准做法是 DTO 类 + `class-validator` 装饰器 + `app.useGlobalPipes(new ValidationPipe())`。本项目完全不用，原因是协作方式：
 
-- **协议包已经用 zod 定义了一套 Schema**（`@browser-monitor/protocol`），SDK、API、Worker 共用同一份契约。再写一遍 DTO 类等于把同一份约束维护两次。
+- **协议包已经用 zod 定义了一套 Schema**（`@cxdlogver/browser-monitor-protocol`），SDK、API、Worker 共用同一份契约。再写一遍 DTO 类等于把同一份约束维护两次。
 - zod 的 Schema 是**值**，可以被组合、复用、`extend`、`superRefine`，而 DTO 装饰器是类元数据，组合能力弱。
 - 校验失败时的响应体形状可以完全自定义（见 8.2），而 `ValidationPipe` 的输出形状由框架决定。
 
@@ -1249,7 +1249,7 @@ query: vi.fn(async (sql: string) => {
 });
 ```
 
-配合 `@browser-monitor/protocol/fixtures` 提供的 `createBatchFixture()`、`createPerformanceEventFixture()`、`invalidProtocolFixture()`，**测试数据与协议包同源**，协议变更时 fixture 会一起更新。
+配合 `@cxdlogver/browser-monitor-protocol/fixtures` 提供的 `createBatchFixture()`、`createPerformanceEventFixture()`、`invalidProtocolFixture()`，**测试数据与协议包同源**，协议变更时 fixture 会一起更新。
 
 何时应该改用 `Test.createTestingModule`：当被测对象**依赖 Nest 的执行管线**时（守卫是否放行、装饰器取到什么值、拦截器顺序），构造式测试无法覆盖。本项目把这类逻辑做得足够薄（守卫是 10 行纯函数式判断），因此用更直接的方式验证 Service 层。
 

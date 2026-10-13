@@ -1,4 +1,4 @@
-import type { JsonValue } from '@browser-monitor/protocol';
+import type { JsonValue } from '@cxdlogver/browser-monitor-protocol';
 
 const SENSITIVE_KEY = /authorization|password|passwd|token|secret|cookie|api[_-]?key|session/i;
 const MAX_PROPERTY_FIELDS = 100;

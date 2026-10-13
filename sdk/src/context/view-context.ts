@@ -1,7 +1,7 @@
 import type { RouteLocation } from '../core/config';
 import { createId } from '../shared/id';
 import { sanitizeUrl } from '../shared/url';
-import type { ViewPayload } from '@browser-monitor/protocol';
+import type { ViewPayload } from '@cxdlogver/browser-monitor-protocol';
 
 export type ViewSource = ViewPayload['source'];
 

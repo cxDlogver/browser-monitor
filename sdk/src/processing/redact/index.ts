@@ -19,7 +19,7 @@ import {
   type JsonValue,
   type CustomSignalPayload,
   type TelemetryEventV3 as TelemetryEnvelope,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 import { isRecord } from '../../shared/type-guards';
 import { sanitizeUrl } from '../../shared/url';
 import type { ProcessingStage } from '../pipeline';

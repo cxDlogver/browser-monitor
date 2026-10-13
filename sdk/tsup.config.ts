@@ -10,7 +10,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   splitting: false,
-  noExternal: ['@browser-monitor/protocol'],
+  noExternal: ['@cxdlogver/browser-monitor-protocol'],
   outExtension({ format }) {
     return {
       js: format === 'iife' ? '.global.js' : '.js',

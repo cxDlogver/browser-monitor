@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import type { TelemetryEventV3 as TelemetryEnvelope } from '@browser-monitor/protocol';
+import type { TelemetryEventV3 as TelemetryEnvelope } from '@cxdlogver/browser-monitor-protocol';
 import type { Sender } from '../sender';
 
 export interface RetryOptions {

@@ -2,14 +2,14 @@
 // 并在成功后回填 telemetry_events.processed_at。性能样本与页面视图用事务级咨询锁串行化，
 // 避免多 Worker 并发对同一 sample/view 产生重复或乱序写入。
 import type { DatabaseHandle } from '@browser-monitor/database';
-import { WORKFLOW_ATTRIBUTE } from '@browser-monitor/protocol';
+import { WORKFLOW_ATTRIBUTE } from '@cxdlogver/browser-monitor-protocol';
 import type {
   CustomSignalPayload,
   PerformanceMetricName,
   PerformancePayload,
   TelemetryEventV3,
   ViewPayload,
-} from '@browser-monitor/protocol';
+} from '@cxdlogver/browser-monitor-protocol';
 import {
   DEFAULT_THRESHOLDS,
   mergeThresholds,
