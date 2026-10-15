@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project get",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50130",
+    "projectId": "00000000-0000-4000-8000-000000000009"
+  },
+  "data": {
+    "id": "00000000-0000-4000-8000-000000000009",
+    "displayName": "malformed",
+    "appName": "malformed",
+    "enabled": true,
+    "role": "owner",
+    "origins": [
+      "http://localhost:3000"
+    ],
+    "keys": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "active": true,
+        "expiresAt": null,
+        "dsn": "http://127.0.0.1:50130/ingest/key"
+      }
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 43
+  }
+}

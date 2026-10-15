@@ -1,0 +1,85 @@
+{
+  "caseId": "AC-E2E-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "244a53957e736994b4572796d0616c025eefb12c0f53bb930df8da2486c6f77c",
+      "bytes": 241
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "run.json",
+      "sha256": "e7023f6a5b476a24e62d9814923856eea66fca24b6105ba0a1efe7a179d3392a",
+      "bytes": 2409
+    },
+    {
+      "path": "steps/ai-create/command.txt",
+      "sha256": "3380248ec852fd54916be65e3fd12e33bf8573f638a8f9c70c5f6e0bd1ef0a30",
+      "bytes": 169
+    },
+    {
+      "path": "steps/ai-create/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/ai-create/stdout.json",
+      "sha256": "2bd397bde11974c317606ae3fcb9ab3998d28747fb7a91406fb35c28b79b1f42",
+      "bytes": 610
+    },
+    {
+      "path": "steps/ai-export/command.txt",
+      "sha256": "651c51ccf581ba01cf62a8a02b3e3330ffde31b0c759f51e4200f71deaa6d726",
+      "bytes": 180
+    },
+    {
+      "path": "steps/ai-export/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/ai-export/stdout.json",
+      "sha256": "38d11a8040f3836f96448fda9aabab3a1a13e36c4eb415b6031d0960a6f47109",
+      "bytes": 1311
+    },
+    {
+      "path": "steps/ai-origins/command.txt",
+      "sha256": "0855db2c64d39243be02cae9761de89122aab3887665820de4fa1de3d802913a",
+      "bytes": 159
+    },
+    {
+      "path": "steps/ai-origins/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/ai-origins/stdout.json",
+      "sha256": "fc114b8aa58ff9fd162d550062662403812edcbb571dde9899433fff3751258a",
+      "bytes": 419
+    },
+    {
+      "path": "steps/ai-readback/command.txt",
+      "sha256": "c9069426226148c3b939284fd7690673cb5a0ee171efd29f68bc1f3d5bdb3d81",
+      "bytes": 124
+    },
+    {
+      "path": "steps/ai-readback/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/ai-readback/stdout.json",
+      "sha256": "324120eed7ebbaea80b46bffbe816754f9f0fe97604a8d1fa9df344300b98ed0",
+      "bytes": 1820
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "sdk" "export" "--app-version" "1.0.0" "--environment" "cli-acceptance" "--project" "00000000-0000-4000-8000-000000000001" "--base-url" "http://127.0.0.1:54640"

@@ -1,0 +1,471 @@
+{
+  "caseId": "AC-04-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "来源按协议、主机和端口归一化去重，平台地址不会替代业务地址。",
+      "observed": {
+        "checks": [
+          {
+            "name": "normalized set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "replace entire set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "old removed",
+            "expected": false,
+            "observed": false,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "get-before",
+            "exitCode": 0,
+            "elapsedMs": 419
+          },
+          {
+            "name": "set",
+            "exitCode": 0,
+            "elapsedMs": 469
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 436
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e535d82ae253b32614f81aa79aba24218b9693360de16340331794171d8b3613",
+          "bytes": 1039,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "899e0e6435929f6363dec54120751871e73249405c3664496c0f57352e5a8d87",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "bytes": 585,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "bytes": 712,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "bytes": 584,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "bytes": 711,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "ff3d20812eb741f6c52efbf22eb0340e8c4143510d15e675514185da52007d5f",
+          "bytes": 1241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "5c1a945f98a458bcf5ee5ef1498134035407fbd3bfb0bce00c42b962c9d44cd7",
+          "bytes": 51,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "cbd7a43623ac43b017ebc7592f17f87f3dd534ba4d500edf0379ea811cbdb604",
+          "bytes": 1940,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "52654b377aba9db356055f40db2f79acc9a741731299cb9a40ec7c7e7c1631b3",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "11f3afdfed558148790fcc03087ab941fff3ab2ddcd427d68bf05a6dd9de5279",
+          "bytes": 366,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/command.txt",
+          "sha256": "52654b377aba9db356055f40db2f79acc9a741731299cb9a40ec7c7e7c1631b3",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/stdout.json",
+          "sha256": "a647b1bafe8d3d931be774375bdb2a13428292c37383e3da871b36c07920477c",
+          "bytes": 341,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/command.txt",
+          "sha256": "134e07fba68ec0eba1f67a5866a0e368662887d18cdc4e3e84e0a82924d1e250",
+          "bytes": 227,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/stdout.json",
+          "sha256": "23d26217f2dc16757b7be107abd5805f98ecab389d3b65d527bb3d9760417cd3",
+          "bytes": 444,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "保存的是新完整集合，旧项不再保留；提交响应、回查及独立读取一致。",
+      "observed": {
+        "checks": [
+          {
+            "name": "normalized set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "replace entire set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "old removed",
+            "expected": false,
+            "observed": false,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "get-before",
+            "exitCode": 0,
+            "elapsedMs": 419
+          },
+          {
+            "name": "set",
+            "exitCode": 0,
+            "elapsedMs": 469
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 436
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e535d82ae253b32614f81aa79aba24218b9693360de16340331794171d8b3613",
+          "bytes": 1039,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "899e0e6435929f6363dec54120751871e73249405c3664496c0f57352e5a8d87",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "bytes": 585,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "bytes": 712,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "bytes": 584,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "bytes": 711,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "ff3d20812eb741f6c52efbf22eb0340e8c4143510d15e675514185da52007d5f",
+          "bytes": 1241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "5c1a945f98a458bcf5ee5ef1498134035407fbd3bfb0bce00c42b962c9d44cd7",
+          "bytes": 51,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "cbd7a43623ac43b017ebc7592f17f87f3dd534ba4d500edf0379ea811cbdb604",
+          "bytes": 1940,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "52654b377aba9db356055f40db2f79acc9a741731299cb9a40ec7c7e7c1631b3",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "11f3afdfed558148790fcc03087ab941fff3ab2ddcd427d68bf05a6dd9de5279",
+          "bytes": 366,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/command.txt",
+          "sha256": "52654b377aba9db356055f40db2f79acc9a741731299cb9a40ec7c7e7c1631b3",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/get-before/stdout.json",
+          "sha256": "a647b1bafe8d3d931be774375bdb2a13428292c37383e3da871b36c07920477c",
+          "bytes": 341,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/command.txt",
+          "sha256": "134e07fba68ec0eba1f67a5866a0e368662887d18cdc4e3e84e0a82924d1e250",
+          "bytes": 227,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/set/stdout.json",
+          "sha256": "23d26217f2dc16757b7be107abd5805f98ecab389d3b65d527bb3d9760417cd3",
+          "bytes": 444,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

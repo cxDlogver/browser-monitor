@@ -1,0 +1,56 @@
+[
+  {
+    "name": "table target",
+    "expected": "00000000-0000-4000-8000-000000000001",
+    "observed": "00000000-0000-4000-8000-000000000001",
+    "verdict": "passed"
+  },
+  {
+    "name": "table fact pendingTotal",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "table fact failed",
+    "expected": 21,
+    "observed": 21,
+    "verdict": "passed"
+  },
+  {
+    "name": "table fact deadLetters",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "table fact recentFailuresLimit",
+    "expected": 20,
+    "observed": 20,
+    "verdict": "passed"
+  },
+  {
+    "name": "table fact recentFailuresHasMore",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "single JSON parse",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "logs separated",
+    "expected": "",
+    "observed": "",
+    "verdict": "passed"
+  },
+  {
+    "name": "help describes input/permission/recovery",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

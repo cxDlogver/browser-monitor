@@ -1,0 +1,215 @@
+{
+  "caseId": "AC-06-04",
+  "startedAt": "2026-10-13T12:12:50.725Z",
+  "endedAt": "2026-10-13T12:12:54.731Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "first",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:50.725Z",
+      "endedAt": "2026-10-13T12:12:51.154Z",
+      "elapsedMs": 429,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-malformed",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "invalid",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:51.154Z",
+      "endedAt": "2026-10-13T12:12:51.530Z",
+      "elapsedMs": 376,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-filter",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDgwOSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjUxLjAxOVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NTEuMDE5WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--name",
+        "changed",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:51.530Z",
+      "endedAt": "2026-10-13T12:12:51.904Z",
+      "elapsedMs": 375,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-project",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDgwOSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjUxLjAxOVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NTEuMDE5WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:51.904Z",
+      "endedAt": "2026-10-13T12:12:52.327Z",
+      "elapsedMs": 423,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-time-format",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T00:00:00",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:52.327Z",
+      "endedAt": "2026-10-13T12:12:52.800Z",
+      "elapsedMs": 473,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-reversed",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T00:00:00Z",
+        "--to",
+        "2026-10-12T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:52.800Z",
+      "endedAt": "2026-10-13T12:12:53.189Z",
+      "elapsedMs": 389,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-span",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2025-01-01T00:00:00Z",
+        "--to",
+        "2026-10-13T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:53.189Z",
+      "endedAt": "2026-10-13T12:12:53.567Z",
+      "elapsedMs": 378,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-limit",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "101",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:53.567Z",
+      "endedAt": "2026-10-13T12:12:53.952Z",
+      "elapsedMs": 385,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-zero",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:53.952Z",
+      "endedAt": "2026-10-13T12:12:54.338Z",
+      "elapsedMs": 386,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    },
+    {
+      "name": "invalid-invalid-calendar",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-02-30T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54809"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:54.338Z",
+      "endedAt": "2026-10-13T12:12:54.718Z",
+      "elapsedMs": 380,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YaQ1fm"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

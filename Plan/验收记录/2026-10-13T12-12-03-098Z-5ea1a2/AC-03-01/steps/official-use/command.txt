@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "use" "9d0d0f78-cefc-46d5-9543-7682587db457" "--context-dir" "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY\\official" "--base-url" "http://localhost:8080"

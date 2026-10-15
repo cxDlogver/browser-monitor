@@ -1,0 +1,75 @@
+{
+  "caseId": "AC-03-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "44e6f0cd3dc12c17831cd5ddac5ba90d479da449d45a07d19ffc5b6b3c092bef",
+      "bytes": 260
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "5ad0f1238c1cf5cdffa8a5dea3f69f26a49a1b90399d1f60319a6b52eba839ad",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "b77ddbf50d7cbc4a8f82cf509d1b29d3b9f9670ea0e4df3589db09745062d748",
+      "bytes": 792
+    },
+    {
+      "path": "reference/saved-project.json",
+      "sha256": "aaa11c07b652994ee4a6f61b9ed8c01f7626345f6b1b9bd8aef7caec4ed60813",
+      "bytes": 369
+    },
+    {
+      "path": "run.json",
+      "sha256": "a9259da2c1681bcca4ae5cd2ee474f32c36ac6287c5f88481b2e4e8c45aa2dda",
+      "bytes": 1734
+    },
+    {
+      "path": "steps/create-lost/command.txt",
+      "sha256": "b6b95d2fa1821cc56e59367682bc6a2784e361aee67d3850e4527a2494c9f0a3",
+      "bytes": 130
+    },
+    {
+      "path": "steps/create-lost/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/create-lost/stdout.json",
+      "sha256": "97695893538c73170199675026ac8131391120764e1ab54d8d0bafb4e972510c",
+      "bytes": 489
+    },
+    {
+      "path": "steps/readback/command.txt",
+      "sha256": "69b2183d76cd7f0d41d525da2c1ad78d50bdfc6413766edeac5e100d416fd98e",
+      "bytes": 125
+    },
+    {
+      "path": "steps/readback/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/readback/stdout.json",
+      "sha256": "3af1c604d5e46589b348f4d73b8d96a4b2359c032e84ab1046a035cc4c6347c8",
+      "bytes": 685
+    },
+    {
+      "path": "steps/use-failed/command.txt",
+      "sha256": "8b239f5fd95feef56b7e557c4d24eec4b63903194d5469f7555386e41e0374d2",
+      "bytes": 113
+    },
+    {
+      "path": "steps/use-failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/use-failed/stdout.json",
+      "sha256": "56ca8b5594c619ccb6899e2ee9345ad06dc8b23e7be6ae3c3adc19a114f1fd45",
+      "bytes": 305
+    }
+  ]
+}

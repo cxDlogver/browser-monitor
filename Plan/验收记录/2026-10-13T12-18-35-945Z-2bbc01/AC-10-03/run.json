@@ -1,0 +1,59 @@
+{
+  "caseId": "AC-10-03",
+  "startedAt": "2026-10-13T12:19:44.791Z",
+  "endedAt": "2026-10-13T12:20:50.650Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "default-budget",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:53349"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:44.791Z",
+      "endedAt": "2026-10-13T12:20:45.213Z",
+      "elapsedMs": 60422,
+      "exitCode": 6,
+      "expectedExitCode": 6,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-R5ReCs"
+    },
+    {
+      "name": "short-budget",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--timeout",
+        "5",
+        "--interval",
+        "2",
+        "--request-timeout",
+        "10",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:53349"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:20:45.217Z",
+      "endedAt": "2026-10-13T12:20:50.632Z",
+      "elapsedMs": 5415,
+      "exitCode": 6,
+      "expectedExitCode": 6,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-R5ReCs"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

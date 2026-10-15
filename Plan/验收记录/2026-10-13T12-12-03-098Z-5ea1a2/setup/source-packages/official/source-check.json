@@ -1,0 +1,9 @@
+{
+  "sdkVersion": "0.3.0",
+  "protocolVersion": "3.0.0",
+  "source": "registry",
+  "workspaceLink": false,
+  "registryIntegrity": "sha512-Se2hUqXtEhxmU02/fIZOIFb+zXkZczJISAnuWKU5gbC7N1ZEtaB2u6et8omBNrMKCWSCfqTHZQXZhsvgKsK9Qw==",
+  "lockContainsIntegrity": true,
+  "configHash": "82cf2f6e5860dfc1019a1e3a1c00d636db24469ddab37a9126feda2e7b77aee9"
+}

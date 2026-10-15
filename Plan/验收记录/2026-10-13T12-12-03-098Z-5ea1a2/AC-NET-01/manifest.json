@@ -1,0 +1,105 @@
+{
+  "caseId": "AC-NET-01",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "009df8462161f94ac57810b92bbd2b7b96f13d910a1c11b106bb734fbced79ab",
+      "bytes": 866
+    },
+    {
+      "path": "checks/network-monotonic-timeline.json",
+      "sha256": "f22d885f9ef8e21890aa4c9e667e991cf2aff88ea8b4c7f696bdd9d04e4c25a5",
+      "bytes": 1030
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "de69d4db7839693661c0616df74e3de465254ca1036c9a503da99bb587a20127",
+      "bytes": 241
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "f22d885f9ef8e21890aa4c9e667e991cf2aff88ea8b4c7f696bdd9d04e4c25a5",
+      "bytes": 1030
+    },
+    {
+      "path": "run.json",
+      "sha256": "cddab5aa9b154fb2bae4e68b5ef7cf2f9ba85d48494a1c1c0c1343f8bcfd8250",
+      "bytes": 2356
+    },
+    {
+      "path": "steps/default-request-budget/command.txt",
+      "sha256": "fc4cb0f2c4f4418d1a90c63ad8885d120ab4a8c9f39e2f3dde35f51a12f3d64c",
+      "bytes": 75
+    },
+    {
+      "path": "steps/default-request-budget/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/default-request-budget/stdout.json",
+      "sha256": "ec0c43f12df5b1619f72f18daa182ec30bca25cec4f826a3c5ccb4e9b5378852",
+      "bytes": 426
+    },
+    {
+      "path": "steps/exhausted/command.txt",
+      "sha256": "fc4cb0f2c4f4418d1a90c63ad8885d120ab4a8c9f39e2f3dde35f51a12f3d64c",
+      "bytes": 75
+    },
+    {
+      "path": "steps/exhausted/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/exhausted/stdout.json",
+      "sha256": "ff45e05f3eadabe7648b36bc09b386607ca00e90adc7550b4c4c20135125caa9",
+      "bytes": 412
+    },
+    {
+      "path": "steps/non-retryable/command.txt",
+      "sha256": "fc4cb0f2c4f4418d1a90c63ad8885d120ab4a8c9f39e2f3dde35f51a12f3d64c",
+      "bytes": 75
+    },
+    {
+      "path": "steps/non-retryable/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/non-retryable/stdout.json",
+      "sha256": "78529331f3d85b190ee27eea1ae60a0f89da986fc1c3a1386c17d049f272b815",
+      "bytes": 419
+    },
+    {
+      "path": "steps/recover/command.txt",
+      "sha256": "fc4cb0f2c4f4418d1a90c63ad8885d120ab4a8c9f39e2f3dde35f51a12f3d64c",
+      "bytes": 75
+    },
+    {
+      "path": "steps/recover/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/recover/stdout.json",
+      "sha256": "a073318577da936d437c2958bd50a2ea29e9f8d946408cdeddb01d7d42d31785",
+      "bytes": 1254
+    },
+    {
+      "path": "steps/retry-after/command.txt",
+      "sha256": "fc4cb0f2c4f4418d1a90c63ad8885d120ab4a8c9f39e2f3dde35f51a12f3d64c",
+      "bytes": 75
+    },
+    {
+      "path": "steps/retry-after/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/retry-after/stdout.json",
+      "sha256": "73dc440dcf2523b67093b867107b19298252579436bfc2029e385041f03670ea",
+      "bytes": 392
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "caseId": "AC-02-02",
+  "startedAt": "2026-10-13T12:18:45.174Z",
+  "endedAt": "2026-10-13T12:18:47.570Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "stdin-login",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:58162"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:18:45.174Z",
+      "endedAt": "2026-10-13T12:18:45.828Z",
+      "elapsedMs": 654,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-UgI2J8"
+    },
+    {
+      "name": "no-input",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--base-url",
+        "http://127.0.0.1:58162"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:45.828Z",
+      "endedAt": "2026-10-13T12:18:46.223Z",
+      "elapsedMs": 395,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-UgI2J8"
+    },
+    {
+      "name": "expired",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:58162"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:46.223Z",
+      "endedAt": "2026-10-13T12:18:46.852Z",
+      "elapsedMs": 629,
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-UgI2J8"
+    },
+    {
+      "name": "unknown-expiry",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:58162"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:18:46.852Z",
+      "endedAt": "2026-10-13T12:18:47.560Z",
+      "elapsedMs": 708,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-UgI2J8"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

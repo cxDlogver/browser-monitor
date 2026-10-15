@@ -1,0 +1,26 @@
+[
+  {
+    "name": "write outcome unknown",
+    "expected": "WRITE_OUTCOME_UNKNOWN",
+    "observed": "WRITE_OUTCOME_UNKNOWN",
+    "verdict": "passed"
+  },
+  {
+    "name": "exactly one create",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "known ID retained",
+    "expected": "00000000-0000-4000-8000-000000000003",
+    "observed": "00000000-0000-4000-8000-000000000003",
+    "verdict": "passed"
+  },
+  {
+    "name": "still one create",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  }
+]

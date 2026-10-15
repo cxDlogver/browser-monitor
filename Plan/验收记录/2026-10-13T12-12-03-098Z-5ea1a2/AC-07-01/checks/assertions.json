@@ -1,0 +1,32 @@
+[
+  {
+    "name": "summary-scope recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "all retained including old",
+    "expected": 152,
+    "observed": 152,
+    "verdict": "passed"
+  },
+  {
+    "name": "latest received",
+    "expected": "2026-10-13T12:11:57.834Z",
+    "observed": "2026-10-13T12:11:57.834Z",
+    "verdict": "passed"
+  },
+  {
+    "name": "summary ignores list filter",
+    "expected": 152,
+    "observed": 152,
+    "verdict": "passed"
+  },
+  {
+    "name": "source database",
+    "expected": "database",
+    "observed": "database",
+    "verdict": "passed"
+  }
+]

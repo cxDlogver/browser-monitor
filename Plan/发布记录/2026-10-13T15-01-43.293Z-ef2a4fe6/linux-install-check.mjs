@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {readFileSync,statSync} from 'node:fs';
+const install=execFileSync('npm',['install','--global','/tmp/cli.tgz','--ignore-scripts','--no-audit','--no-fund'],{encoding:'utf8'});
+const help=execFileSync('bm',['--help'],{cwd:'/tmp',encoding:'utf8'});
+assert(help.includes('监控平台 CLI'));
+const root=execFileSync('npm',['root','--global'],{encoding:'utf8'}).trim();
+const pkg=JSON.parse(readFileSync(root+'/@cxdlogver/browser-monitor-cli/package.json','utf8'));
+assert.equal(pkg.version,'0.1.0');
+const error=spawnSync('bm',['events','list','--project','11111111-1111-4111-8111-111111111111','--limit','101'],{cwd:'/tmp',encoding:'utf8'});
+assert.equal(error.status,2);
+assert.equal(JSON.parse(error.stdout).error.code,'INVALID_ARGUMENT');
+const mode=statSync(root+'/@cxdlogver/browser-monitor-cli/bin/bm.mjs').mode;
+assert(mode&0o111);
+console.log(JSON.stringify({status:'passed',source:'offline Linux container, tested npm tarball',nodeVersion:process.versions.node,packageVersion:pkg.version,globalCommand:true,executablePermissions:true,structuredError:true,install},null,2));

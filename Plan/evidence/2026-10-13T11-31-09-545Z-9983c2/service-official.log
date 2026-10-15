@@ -1,0 +1,180 @@
+|
+•  Nuxt 4.3.0 (with Nitro 2.13.4, Vite 7.3.6 and Vue 3.5.43)
+
+  ➜ Local:    http://localhost:3000/
+  ➜ Network:  use --host to expose
+
+[@nuxt/content] √ Processed 2 collections and 11 files in 837.53ms (0 cached, 11 parsed)
+i Nuxt Icon server bundle mode is set to local
+√ Nuxt Icon discovered local-installed 2 collections: heroicons, lucide
+√ Nuxt Icon loaded local collection my-icon with 0 icons
+√ Nuxt Icon loaded local collection my-job with 8 icons
+i Nuxt Icon client bundle consist of 43 icons with 10.40KB(uncompressed) in size
+[nuxt] i Compiled nuxt-icon-client-bundle.mjs in 818.58ms
+i Re-optimizing dependencies because vite config has changed
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > remark-gfm, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > remark-emoji, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > remark-mdc, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > remark-rehype, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > rehype-raw, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > parse5, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > unist-util-visit, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > unified, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > debug, present in client 'optimizeDeps.include'
+
+
+ WARN  Failed to resolve dependency: @nuxtjs/mdc > extend, present in client 'optimizeDeps.include'
+
+√ Vite client built in 871ms
+√ Vite server built in 876ms
+[nitro] √ Nuxt Nitro server built in 10053ms
+i Vite server warmed up in 1ms
+i Vite client warmed up in 4ms
+
+F:\CX_notes\cx-learn-notes\official-network\app\pages\news\[id].vue
+  275:15  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+F:\CX_notes\cx-learn-notes\official-network\app\plugins\monitor.client.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+✖ 2 problems (1 error, 1 warning)
+  1 error and 0 warnings potentially fixable with the --fix option.
+  Plugin: vite:eslint2
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36
+User-Agent: curl/8.21.0
+WARN  [Vue warn]: Failed to resolve component: SolutionCTASection
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+WARN  [Vue warn]: Component <Anonymous> is missing template or render function. at <Anonymous>
+at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+WARN  [Vue warn]: Failed to resolve component: SolutionCTASection
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+WARN  [Vue warn]: Component <Anonymous> is missing template or render function. at <Anonymous>
+at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+
+F:\CX_notes\cx-learn-notes\official-network\app\plugins\monitor.client.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+✖ 1 problem (1 error, 0 warnings)
+  1 error and 0 warnings potentially fixable with the --fix option.
+  Plugin: vite:eslint2
+i ✨ new dependencies optimized: @cxdlogver/browser-monitor-sdk, echarts/charts, echarts/components, echarts/core, echarts/renderers, vue-echarts
+i ✨ optimized dependencies changed. reloading
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36
+WARN  [Vue warn]: Failed to resolve component: SolutionCTASection
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+WARN  [Vue warn]: Component <Anonymous> is missing template or render function. at <Anonymous>
+at <Index>
+at <RouteProvider>
+at <RouterView>
+at <NuxtPage>
+at <Default>
+at <AsyncComponentWrapper>
+at <LayoutLoader>
+at <NuxtLayoutProvider>
+at <NuxtLayout>
+at <ToastProvider>
+at <Toaster>
+at <TooltipProvider>
+at <ConfigProvider>
+at <App>
+at <App>
+at <NuxtRoot>
+
+F:\CX_notes\cx-learn-notes\official-network\app\plugins\monitor.client.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+✖ 1 problem (1 error, 0 warnings)
+  1 error and 0 warnings potentially fixable with the --fix option.
+  Plugin: vite:eslint2

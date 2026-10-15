@@ -1,0 +1,93 @@
+{
+  "caseId": "AC-NET-01",
+  "startedAt": "2026-10-13T12:21:42.919Z",
+  "endedAt": "2026-10-13T12:22:46.381Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "recover",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:61976"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:42.919Z",
+      "endedAt": "2026-10-13T12:21:43.991Z",
+      "elapsedMs": 1072,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-alJ9iz"
+    },
+    {
+      "name": "exhausted",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:61976"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:43.991Z",
+      "endedAt": "2026-10-13T12:21:45.177Z",
+      "elapsedMs": 1186,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-alJ9iz"
+    },
+    {
+      "name": "non-retryable",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:61976"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:45.177Z",
+      "endedAt": "2026-10-13T12:21:45.597Z",
+      "elapsedMs": 420,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-alJ9iz"
+    },
+    {
+      "name": "retry-after",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:61976"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:45.597Z",
+      "endedAt": "2026-10-13T12:22:15.987Z",
+      "elapsedMs": 30390,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-alJ9iz"
+    },
+    {
+      "name": "default-request-budget",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:61976"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:15.987Z",
+      "endedAt": "2026-10-13T12:22:46.371Z",
+      "elapsedMs": 30384,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-alJ9iz"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

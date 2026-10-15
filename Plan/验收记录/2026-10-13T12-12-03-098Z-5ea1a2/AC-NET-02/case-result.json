@@ -1,0 +1,333 @@
+{
+  "caseId": "AC-NET-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "已发出的写请求没有可靠确认时按 WRITE_OUTCOME_UNKNOWN / 退出码 5 处理，不能按普通只读契约失败断言未写入。",
+      "observed": {
+        "checks": [
+          {
+            "name": "create unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "origins unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "one each write",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "known ID preserved",
+            "expected": "00000000-0000-4000-8000-000000000009",
+            "observed": "00000000-0000-4000-8000-000000000009",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-malformed",
+            "exitCode": 5,
+            "elapsedMs": 417
+          },
+          {
+            "name": "origins-malformed",
+            "exitCode": 5,
+            "elapsedMs": 399
+          },
+          {
+            "name": "readback-created",
+            "exitCode": 0,
+            "elapsedMs": 382
+          },
+          {
+            "name": "readback-origins",
+            "exitCode": 0,
+            "elapsedMs": 391
+          },
+          {
+            "name": "partial-identity",
+            "exitCode": 5,
+            "elapsedMs": 411
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "1c6accb207eaddd5e31b3cdc7c9fa4c93349e1e4d8c85d350a40d746fb6a69ef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "4ff779bd4506b3d3d0b53551072b62c77530e7bb4c561dd4a9f0b8ec997aa5c1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "52ca91098360f3cd58e8f81295e17404caecd8f999eec1540fbaaf478c69e497",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "b78d42743f1259b827facacd0a94059847876687bda19d385cd94c0ae1342d69",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5f3fe524714b6341c32e2f9c567cd1b52e6f2ec35535225d6fb16efc63499add",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create-malformed/command.txt",
+          "sha256": "2b0b3e7ee8e7f87b30f905b082b380234368884afb5f13538bb9fe7bb73b7bfb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-malformed/stdout.json",
+          "sha256": "f49abcb4aa7957c11eba948e057aac428ce13aa266e0ee600a1162bdd25454ca",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/command.txt",
+          "sha256": "caf230bb853a03d2664b5140edbc5d4c566ccd9574d2adc67b5dc6f11ab16829",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/stdout.json",
+          "sha256": "7b63e5e825d9445a54e4fa38efe58ac5e8d727ed73961a77390c1b37eadcd584",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/command.txt",
+          "sha256": "c14d77e466068757f892b532996108203b0c1306f14abadea1f092ef6e83e1d1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/stdout.json",
+          "sha256": "e2ffb1e1eb40b63c8f563ee7a12f9e089a050025aabecf66a0e11cc0f7414cd1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/command.txt",
+          "sha256": "f2daeda37019ae9c48973534edb55dbf20660b344444ccdc4e25d4052873e40a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/stdout.json",
+          "sha256": "07bf4a4822998a0e0fc84b81cdf07bd1de3dab97a48586ea193d79f85681d142",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/command.txt",
+          "sha256": "5f526fd0cb243a6b41a1873d52006710c3ac4746a7bad179c48a7082cb2707b1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/stdout.json",
+          "sha256": "fe2327beaa0a8f1aca50d2b22574207d36271c216de22b11dce99fc1d6802dca",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "请求不自动重试，可知身份和回查方向保留，独立读取与真实保存状态可对齐。",
+      "observed": {
+        "checks": [
+          {
+            "name": "create unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "origins unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "one each write",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "known ID preserved",
+            "expected": "00000000-0000-4000-8000-000000000009",
+            "observed": "00000000-0000-4000-8000-000000000009",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-malformed",
+            "exitCode": 5,
+            "elapsedMs": 417
+          },
+          {
+            "name": "origins-malformed",
+            "exitCode": 5,
+            "elapsedMs": 399
+          },
+          {
+            "name": "readback-created",
+            "exitCode": 0,
+            "elapsedMs": 382
+          },
+          {
+            "name": "readback-origins",
+            "exitCode": 0,
+            "elapsedMs": 391
+          },
+          {
+            "name": "partial-identity",
+            "exitCode": 5,
+            "elapsedMs": 411
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "1c6accb207eaddd5e31b3cdc7c9fa4c93349e1e4d8c85d350a40d746fb6a69ef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "4ff779bd4506b3d3d0b53551072b62c77530e7bb4c561dd4a9f0b8ec997aa5c1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "52ca91098360f3cd58e8f81295e17404caecd8f999eec1540fbaaf478c69e497",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "b78d42743f1259b827facacd0a94059847876687bda19d385cd94c0ae1342d69",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5f3fe524714b6341c32e2f9c567cd1b52e6f2ec35535225d6fb16efc63499add",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create-malformed/command.txt",
+          "sha256": "2b0b3e7ee8e7f87b30f905b082b380234368884afb5f13538bb9fe7bb73b7bfb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-malformed/stdout.json",
+          "sha256": "f49abcb4aa7957c11eba948e057aac428ce13aa266e0ee600a1162bdd25454ca",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/command.txt",
+          "sha256": "caf230bb853a03d2664b5140edbc5d4c566ccd9574d2adc67b5dc6f11ab16829",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-malformed/stdout.json",
+          "sha256": "7b63e5e825d9445a54e4fa38efe58ac5e8d727ed73961a77390c1b37eadcd584",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/command.txt",
+          "sha256": "c14d77e466068757f892b532996108203b0c1306f14abadea1f092ef6e83e1d1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial-identity/stdout.json",
+          "sha256": "e2ffb1e1eb40b63c8f563ee7a12f9e089a050025aabecf66a0e11cc0f7414cd1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/command.txt",
+          "sha256": "f2daeda37019ae9c48973534edb55dbf20660b344444ccdc4e25d4052873e40a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-created/stdout.json",
+          "sha256": "07bf4a4822998a0e0fc84b81cdf07bd1de3dab97a48586ea193d79f85681d142",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/command.txt",
+          "sha256": "5f526fd0cb243a6b41a1873d52006710c3ac4746a7bad179c48a7082cb2707b1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback-origins/stdout.json",
+          "sha256": "fe2327beaa0a8f1aca50d2b22574207d36271c216de22b11dce99fc1d6802dca",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

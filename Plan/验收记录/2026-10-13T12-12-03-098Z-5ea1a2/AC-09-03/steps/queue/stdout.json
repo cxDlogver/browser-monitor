@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "queue status",
+  "context": {
+    "baseUrl": "http://127.0.0.1:55078",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "pendingTotal": 3,
+    "readyPending": 1,
+    "delayedPending": 1,
+    "pendingUnclassified": 1,
+    "processingTotal": 3,
+    "processingActive": 1,
+    "processingStale": 1,
+    "processingUnclassified": 1,
+    "failed": 21,
+    "deadLetters": 1,
+    "processedLastMinute": 2,
+    "lockTimeoutSeconds": 300,
+    "recentFailures": [
+      {
+        "eventId": "failed-0",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-1",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-2",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-3",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-4",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-5",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-6",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-7",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-8",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-9",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-10",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-11",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-12",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-13",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-14",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-15",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-16",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-17",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-18",
+        "error": "failure",
+        "failedAt": null
+      },
+      {
+        "eventId": "failed-19",
+        "error": "failure",
+        "failedAt": null
+      }
+    ],
+    "recentFailuresLimit": 20,
+    "recentFailuresHasMore": true,
+    "source": "database",
+    "asOf": "2026-10-13T12:13:07.253Z",
+    "ingestion": {
+      "accepted": 999,
+      "source": "redis",
+      "asOf": null
+    },
+    "otherTasks": {
+      "labAudits": {
+        "pending": 2
+      }
+    },
+    "limitations": [
+      "deadLetters can overlap failed; active lock does not prove a live worker; auxiliary sources are not an atomic database snapshot"
+    ]
+  },
+  "meta": {
+    "source": "database_and_labeled_auxiliary_sources",
+    "warnings": [],
+    "asOf": "2026-10-13T12:13:07.253Z",
+    "elapsedMs": 47
+  }
+}

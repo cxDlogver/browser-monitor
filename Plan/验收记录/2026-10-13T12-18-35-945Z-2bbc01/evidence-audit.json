@@ -1,0 +1,298 @@
+{
+  "status": "passed",
+  "cases": 47,
+  "checkpoints": 94,
+  "artifactCount": 1023,
+  "implementationHashesMatch": true,
+  "jsonArtifactsParse": true,
+  "artifactHashesMatch": true,
+  "audit": [
+    {
+      "caseId": "AC-01-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 19
+    },
+    {
+      "caseId": "AC-01-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 16
+    },
+    {
+      "caseId": "AC-01-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 20
+    },
+    {
+      "caseId": "AC-02-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 17
+    },
+    {
+      "caseId": "AC-02-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 18
+    },
+    {
+      "caseId": "AC-02-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 26
+    },
+    {
+      "caseId": "AC-02-04",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 23
+    },
+    {
+      "caseId": "AC-03-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 38
+    },
+    {
+      "caseId": "AC-03-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 26
+    },
+    {
+      "caseId": "AC-03-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 15
+    },
+    {
+      "caseId": "AC-04-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 19
+    },
+    {
+      "caseId": "AC-04-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 24
+    },
+    {
+      "caseId": "AC-04-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 12
+    },
+    {
+      "caseId": "AC-05-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 24
+    },
+    {
+      "caseId": "AC-05-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 29
+    },
+    {
+      "caseId": "AC-05-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 18
+    },
+    {
+      "caseId": "AC-06-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 18
+    },
+    {
+      "caseId": "AC-06-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 39
+    },
+    {
+      "caseId": "AC-06-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 28
+    },
+    {
+      "caseId": "AC-06-04",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 36
+    },
+    {
+      "caseId": "AC-06-05",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 43
+    },
+    {
+      "caseId": "AC-07-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 16
+    },
+    {
+      "caseId": "AC-07-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 15
+    },
+    {
+      "caseId": "AC-08-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 16
+    },
+    {
+      "caseId": "AC-08-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 12
+    },
+    {
+      "caseId": "AC-08-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 9
+    },
+    {
+      "caseId": "AC-08-04",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 15
+    },
+    {
+      "caseId": "AC-09-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 9
+    },
+    {
+      "caseId": "AC-09-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 11
+    },
+    {
+      "caseId": "AC-09-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 14
+    },
+    {
+      "caseId": "AC-10-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 14
+    },
+    {
+      "caseId": "AC-10-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 20
+    },
+    {
+      "caseId": "AC-10-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 12
+    },
+    {
+      "caseId": "AC-10-04",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 8
+    },
+    {
+      "caseId": "AC-11-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 14
+    },
+    {
+      "caseId": "AC-11-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 32
+    },
+    {
+      "caseId": "AC-11-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 30
+    },
+    {
+      "caseId": "AC-11-04",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 15
+    },
+    {
+      "caseId": "AC-11-05",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 29
+    },
+    {
+      "caseId": "AC-12-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 12
+    },
+    {
+      "caseId": "AC-12-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 14
+    },
+    {
+      "caseId": "AC-12-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 12
+    },
+    {
+      "caseId": "AC-NET-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 21
+    },
+    {
+      "caseId": "AC-NET-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 21
+    },
+    {
+      "caseId": "AC-E2E-01",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 67
+    },
+    {
+      "caseId": "AC-E2E-02",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 49
+    },
+    {
+      "caseId": "AC-E2E-03",
+      "status": "passed",
+      "assertions": 2,
+      "artifacts": 28
+    }
+  ],
+  "finalCheckedAt": "2026-10-13T12:53:05.087Z",
+  "executorRecorded": true,
+  "sharedEvidenceHashesMatch": true,
+  "sourceHashesMatch": true,
+  "scriptSyntaxChecksPassed": true
+}

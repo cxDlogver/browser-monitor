@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "sdk" "export" "--context-dir" "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX" "--app-version" "1.0.0" "--environment" "cli-acceptance" "--out" "monitor.json" "--base-url" "http://127.0.0.1:55055"

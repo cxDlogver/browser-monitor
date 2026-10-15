@@ -1,0 +1,45 @@
+{
+  "status": "published_and_verified",
+  "name": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "registry": {
+    "version": "0.1.0",
+    "latest": "0.1.0",
+    "access": "public",
+    "anonymousMetadataHttpStatus": 200,
+    "anonymousTarballHttpStatus": 200,
+    "integrityMatches": true,
+    "integrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+    "checkedAt": "2026-10-13T15:16:18.478Z"
+  },
+  "tarball": "cxdlogver-browser-monitor-cli-0.1.0.tgz",
+  "packageVerification": "passed",
+  "regressionTests": 27,
+  "regressionFailed": 0,
+  "automaticReview": {
+    "action": "npm publish tested tarball --access public",
+    "result": "rejected",
+    "reason": "Requires explicit authorization to publish this concrete package and contents publicly.",
+    "resolution": "Explicit authorization received; public publication subsequently approved and completed."
+  },
+  "explicitPublicAuthorization": "User explicitly confirmed public npm publication of @cxdlogver/browser-monitor-cli@0.1.0 and its audited 14 files.",
+  "authentication": {
+    "provider": "npm",
+    "method": "interactive web / device verification",
+    "completed": true,
+    "sessionSecretsRecorded": false
+  },
+  "publish": {
+    "exitCode": 0,
+    "observedResult": "+ @cxdlogver/browser-monitor-cli@0.1.0",
+    "tag": "latest",
+    "access": "public"
+  },
+  "globalInstallation": {
+    "localTarball": "passed",
+    "officialRegistry": "passed",
+    "windows": "passed",
+    "linux": "passed",
+    "prefix": "D:/xiang/CX_repo/nodejs/node_global"
+  }
+}

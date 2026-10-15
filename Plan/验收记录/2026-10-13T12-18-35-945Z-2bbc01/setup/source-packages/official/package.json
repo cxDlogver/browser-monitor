@@ -1,0 +1,61 @@
+{
+  "name": "official-network",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node --max-old-space-size=4096 ./node_modules/nuxt/bin/nuxt.mjs build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@cxdlogver/browser-monitor-sdk": "0.3.0",
+    "@nuxt/content": "^3.11.0",
+    "@nuxt/icon": "2.2.1",
+    "@nuxt/image": "2.0.0",
+    "@nuxt/ui": "^4.4.0",
+    "@nuxtjs/seo": "^3.4.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@unhead/vue": "2.1.2",
+    "better-sqlite3": "^12.6.2",
+    "echarts": "^6.0.0",
+    "nuxt": "4.3.0",
+    "nuxt-gtag": "4.1.0",
+    "path": "^0.12.7",
+    "tailwindcss": "^4.1.18",
+    "unhead": "2.1.4",
+    "vue": "^3.5.27",
+    "vue-echarts": "^8.0.1",
+    "vue-router": "^4.6.4",
+    "web-vitals": "^5.1.0",
+    "wpapi": "^1.2.2"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
+  "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
+    "@iconify-json/lucide": "^1.2.87",
+    "@nuxt/eslint": "^1.13.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "^25.0.10",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "install": "^0.13.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "typescript": "^5.9.3",
+    "vite-plugin-eslint2": "^5.0.4",
+    "vite-tsconfig-paths": "^6.0.5",
+    "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  }
+}

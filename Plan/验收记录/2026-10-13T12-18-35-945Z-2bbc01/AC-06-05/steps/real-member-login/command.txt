@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "auth" "login" "--email" "cli-permission-9210acc4-0eab-4f8b-acf7-df7e31ef4d21@example.test" "--password-stdin" "--base-url" "http://localhost:8080"

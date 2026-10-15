@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "data summary",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PROJECT_UNAVAILABLE",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/9d0d0f78-cefc-46d5-9543-7682587db457/diagnostics/data",
+      "status": 404
+    }
+  }
+}

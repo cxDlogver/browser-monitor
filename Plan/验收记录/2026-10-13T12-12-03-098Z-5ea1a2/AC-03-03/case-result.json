@@ -1,0 +1,229 @@
+{
+  "caseId": "AC-03-03",
+  "status": "failed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": "AssertionError [ERR_ASSERTION]: use-failed: {\n  \"schemaVersion\": 1,\n  \"ok\": false,\n  \"command\": \"project use\",\n  \"context\": null,\n  \"data\": null,\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": []\n  },\n  \"error\": {\n    \"code\": \"CONTEXT_MISSING\",\n    \"message\": \"项目上下文文件无法读取或已损坏。\",\n    \"details\": null\n  }\n}\n\n\n2 !== 8\n\n    at Case.run (file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-kit.mjs:110:36)\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-management.mjs:69:161\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-acceptance.mjs:66:47",
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "响应丢失返回 WRITE_OUTCOME_UNKNOWN / 退出码 5，创建写请求只有一次，不自动重试或依据同名项宣称成功。",
+      "observed": {
+        "checks": [
+          {
+            "name": "write outcome unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "exactly one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-lost",
+            "exitCode": 5,
+            "elapsedMs": 402
+          },
+          {
+            "name": "readback",
+            "exitCode": 0,
+            "elapsedMs": 386
+          },
+          {
+            "name": "use-failed",
+            "exitCode": 2,
+            "elapsedMs": 363
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "44e6f0cd3dc12c17831cd5ddac5ba90d479da449d45a07d19ffc5b6b3c092bef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "5ad0f1238c1cf5cdffa8a5dea3f69f26a49a1b90399d1f60319a6b52eba839ad",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "b77ddbf50d7cbc4a8f82cf509d1b29d3b9f9670ea0e4df3589db09745062d748",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-project.json",
+          "sha256": "aaa11c07b652994ee4a6f61b9ed8c01f7626345f6b1b9bd8aef7caec4ed60813",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "a9259da2c1681bcca4ae5cd2ee474f32c36ac6287c5f88481b2e4e8c45aa2dda",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create-lost/command.txt",
+          "sha256": "b6b95d2fa1821cc56e59367682bc6a2784e361aee67d3850e4527a2494c9f0a3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-lost/stdout.json",
+          "sha256": "97695893538c73170199675026ac8131391120764e1ab54d8d0bafb4e972510c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/command.txt",
+          "sha256": "69b2183d76cd7f0d41d525da2c1ad78d50bdfc6413766edeac5e100d416fd98e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/stdout.json",
+          "sha256": "3af1c604d5e46589b348f4d73b8d96a4b2359c032e84ab1046a035cc4c6347c8",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/command.txt",
+          "sha256": "8b239f5fd95feef56b7e557c4d24eec4b63903194d5469f7555386e41e0374d2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/stdout.json",
+          "sha256": "56ca8b5594c619ccb6899e2ee9345ad06dc8b23e7be6ae3c3adc19a114f1fd45",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "后续回查或本地选择失败保留已创建身份，不重建或删除成功项目。",
+      "observed": {
+        "checks": [
+          {
+            "name": "write outcome unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "exactly one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-lost",
+            "exitCode": 5,
+            "elapsedMs": 402
+          },
+          {
+            "name": "readback",
+            "exitCode": 0,
+            "elapsedMs": 386
+          },
+          {
+            "name": "use-failed",
+            "exitCode": 2,
+            "elapsedMs": 363
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "44e6f0cd3dc12c17831cd5ddac5ba90d479da449d45a07d19ffc5b6b3c092bef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "5ad0f1238c1cf5cdffa8a5dea3f69f26a49a1b90399d1f60319a6b52eba839ad",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "b77ddbf50d7cbc4a8f82cf509d1b29d3b9f9670ea0e4df3589db09745062d748",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-project.json",
+          "sha256": "aaa11c07b652994ee4a6f61b9ed8c01f7626345f6b1b9bd8aef7caec4ed60813",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "a9259da2c1681bcca4ae5cd2ee474f32c36ac6287c5f88481b2e4e8c45aa2dda",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create-lost/command.txt",
+          "sha256": "b6b95d2fa1821cc56e59367682bc6a2784e361aee67d3850e4527a2494c9f0a3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create-lost/stdout.json",
+          "sha256": "97695893538c73170199675026ac8131391120764e1ab54d8d0bafb4e972510c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/command.txt",
+          "sha256": "69b2183d76cd7f0d41d525da2c1ad78d50bdfc6413766edeac5e100d416fd98e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/readback/stdout.json",
+          "sha256": "3af1c604d5e46589b348f4d73b8d96a4b2359c032e84ab1046a035cc4c6347c8",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/command.txt",
+          "sha256": "8b239f5fd95feef56b7e557c4d24eec4b63903194d5469f7555386e41e0374d2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use-failed/stdout.json",
+          "sha256": "56ca8b5594c619ccb6899e2ee9345ad06dc8b23e7be6ae3c3adc19a114f1fd45",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

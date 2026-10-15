@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events list",
+  "context": null,
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "--max-output-bytes 超出有效范围",
+    "details": null
+  }
+}

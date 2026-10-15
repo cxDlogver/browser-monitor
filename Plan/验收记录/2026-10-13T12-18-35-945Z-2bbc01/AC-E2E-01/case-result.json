@@ -1,0 +1,2009 @@
+{
+  "caseId": "AC-E2E-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "CLI 创建、Origin 更新及导出均关联本批次两个真实项目，平台保存值与导出值一致；SDK 输入来源报告确认精确发布包，配置 app.name / version / environment / DSN 对应固定参数和动态项目。此结果验证 CLI 写入与产物，不评判业务功能。",
+      "observed": {
+        "checks": [
+          {
+            "name": "qhzhc-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-export original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-export original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-summary exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-diagnose exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-queue exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-comparison independent comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-summary exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-diagnose exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-queue exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-comparison independent comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc list target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc exactly one real input",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc envelope equals independent DB",
+            "expected": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "view.start",
+              "type": "view",
+              "context": {
+                "url": "http://127.0.0.1:9527/",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/dataVisualization",
+                "sessionId": "session-mv6lymu2-1-4nyjjht5"
+              },
+              "eventId": "event-mv6lymu3-3-as5ip2jy",
+              "payload": {
+                "url": "http://127.0.0.1:9527/",
+                "name": "view.start",
+                "type": "view",
+                "source": "initial",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "routeName": "/dataVisualization",
+                "startedAt": 1791891547419
+              },
+              "occurredAt": 1791891547419,
+              "correlation": {},
+              "protocolVersion": "3.0"
+            },
+            "observed": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "view.start",
+              "type": "view",
+              "context": {
+                "url": "http://127.0.0.1:9527/",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/dataVisualization",
+                "sessionId": "session-mv6lymu2-1-4nyjjht5"
+              },
+              "eventId": "event-mv6lymu3-3-as5ip2jy",
+              "payload": {
+                "url": "http://127.0.0.1:9527/",
+                "name": "view.start",
+                "type": "view",
+                "source": "initial",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "routeName": "/dataVisualization",
+                "startedAt": 1791891547419
+              },
+              "occurredAt": 1791891547419,
+              "correlation": {},
+              "protocolVersion": "3.0"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc summary target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc raw summary DB count",
+            "expected": 233,
+            "observed": 233,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc diagnose target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc processing/task",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc wait target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc wait completed",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc queue target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc independently present/completed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "official list target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official exactly one real input",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "official envelope equals independent DB",
+            "expected": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "site.route.stay",
+              "type": "span",
+              "context": {
+                "url": "http://localhost:3000/solution",
+                "viewId": "view-mv6m7ad4-2-5rocy26r",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/solution",
+                "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+              },
+              "eventId": "event-mv6m7o46-p-fgojbyio",
+              "payload": {
+                "name": "site.route.stay",
+                "type": "span",
+                "source": "custom",
+                "status": "ok",
+                "endedAt": 1791891968982,
+                "metrics": {
+                  "visibleMs": {
+                    "unit": "ms",
+                    "value": 17821
+                  }
+                },
+                "startedAt": 1791891951161,
+                "attributes": {
+                  "path": "/solution",
+                  "section": "/solution"
+                },
+                "durationMs": 17821.40000000596
+              },
+              "occurredAt": 1791891968982,
+              "correlation": {
+                "spanId": "adf2c42894e06be4",
+                "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+                "parentSpanId": "79b9f934eae822f7"
+              },
+              "protocolVersion": "3.0"
+            },
+            "observed": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "site.route.stay",
+              "type": "span",
+              "context": {
+                "url": "http://localhost:3000/solution",
+                "viewId": "view-mv6m7ad4-2-5rocy26r",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/solution",
+                "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+              },
+              "eventId": "event-mv6m7o46-p-fgojbyio",
+              "payload": {
+                "name": "site.route.stay",
+                "type": "span",
+                "source": "custom",
+                "status": "ok",
+                "endedAt": 1791891968982,
+                "metrics": {
+                  "visibleMs": {
+                    "unit": "ms",
+                    "value": 17821
+                  }
+                },
+                "startedAt": 1791891951161,
+                "attributes": {
+                  "path": "/solution",
+                  "section": "/solution"
+                },
+                "durationMs": 17821.40000000596
+              },
+              "occurredAt": 1791891968982,
+              "correlation": {
+                "spanId": "adf2c42894e06be4",
+                "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+                "parentSpanId": "79b9f934eae822f7"
+              },
+              "protocolVersion": "3.0"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "official summary target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official raw summary DB count",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "official diagnose target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official processing/task",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "official wait target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official wait completed",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "official queue target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official independently present/completed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc consumed CLI config",
+            "expected": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "official consumed CLI config",
+            "expected": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "qhzhc-live-list",
+            "exitCode": 0,
+            "elapsedMs": 508
+          },
+          {
+            "name": "qhzhc-live-summary",
+            "exitCode": 0,
+            "elapsedMs": 451
+          },
+          {
+            "name": "qhzhc-live-diagnose",
+            "exitCode": 0,
+            "elapsedMs": 474
+          },
+          {
+            "name": "qhzhc-live-wait",
+            "exitCode": 0,
+            "elapsedMs": 508
+          },
+          {
+            "name": "qhzhc-live-queue",
+            "exitCode": 0,
+            "elapsedMs": 531
+          },
+          {
+            "name": "official-live-list",
+            "exitCode": 0,
+            "elapsedMs": 472
+          },
+          {
+            "name": "official-live-summary",
+            "exitCode": 0,
+            "elapsedMs": 472
+          },
+          {
+            "name": "official-live-diagnose",
+            "exitCode": 0,
+            "elapsedMs": 575
+          },
+          {
+            "name": "official-live-wait",
+            "exitCode": 0,
+            "elapsedMs": 471
+          },
+          {
+            "name": "official-live-queue",
+            "exitCode": 0,
+            "elapsedMs": 466
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/official-sdk-config.json",
+          "sha256": "82cf2f6e5860dfc1019a1e3a1c00d636db24469ddab37a9126feda2e7b77aee9",
+          "bytes": 234,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/qhzhc-sdk-config.json",
+          "sha256": "a8ef288d0f13e9ec5f27aa956575d3c912f03090dba766990f308e0a37142e4d",
+          "bytes": 231,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7078e9c0de896f16ae05c7d2617e21eadf09af7f6e6c21ba167448f342af27e0",
+          "bytes": 12580,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/business-sources.json",
+          "sha256": "7ce79d8839e234c2e309902add24214ce29554c0364e6a29613012e14d54256a",
+          "bytes": 1161,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "ef1589bc52fc62a6f3c65b5c5e0d9f4c967e6edb035ed13d5b2a3c8dbc572514",
+          "bytes": 241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-candidates.json",
+          "sha256": "573c0f6b03f1b946c763c5828617b9820b4c2442f86188ab1913071f21c77e2b",
+          "bytes": 3882,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-comparison.json",
+          "sha256": "8666426a709825c4cb4f46d93f6fc758e3eef0be235871606347785c5da7ed55",
+          "bytes": 11748,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-diagnose.json",
+          "sha256": "4b519252d07f55fac4bbb4cc5da96f71434289a1f14976530e679804c3c039ad",
+          "bytes": 3989,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "bytes": 4180,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-queue.json",
+          "sha256": "7beb89aabd7520bd70a77e93389a4c1c8bfc1aeeb0fc4e8e81a883151b160f57",
+          "bytes": 2196,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-summary.json",
+          "sha256": "3bdbb8259fc416f6766e84005c078f1036827619239d0897fbdbe30e537d92c8",
+          "bytes": 1023,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-wait.json",
+          "sha256": "24bdbe340f81b54d8d5c405c36a5cd2e41776abc12062d0ca7f46a8f16800e92",
+          "bytes": 2504,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-create.json",
+          "sha256": "4690bb1b4e4f863273871b327d267e95492ebf147ab4848fbb1d5ebefc976ea4",
+          "bytes": 863,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-event-stage-snapshot.json",
+          "sha256": "55cbc2c9283929b604eecdf545b4a25e83f228a7521a9f54e6f0e893da69338c",
+          "bytes": 226,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-export.json",
+          "sha256": "af3747645c1d812a33378f9c0930cae53320a6f1a8b1b750398492b17cafa70d",
+          "bytes": 1602,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-get.json",
+          "sha256": "549452181ec931cd8d0874e8fad5b96336a79f016b4a802328baacaeafcca7e9",
+          "bytes": 2148,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "bytes": 585,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "bytes": 712,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-raw-summary-snapshot.json",
+          "sha256": "842243ae37cc109634040baa1c58a74eae98bcf1c2080cc237b6557f6364b30e",
+          "bytes": 59,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-candidates.json",
+          "sha256": "98f99a056e8598fc62251bd6b8f633270eec92b9399f28cfc40b7f8edaf6d59c",
+          "bytes": 1682,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-comparison.json",
+          "sha256": "8ab59d578654b407c9763b39dec8106c256e51f90d9190da7f17e1ddcbe95618",
+          "bytes": 19211,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-diagnose.json",
+          "sha256": "71df0c76f6fa4432982a7479ea200b201fdefb7d3387ce0758c02a3612a5d828",
+          "bytes": 3495,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "bytes": 3605,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-queue.json",
+          "sha256": "43a60a7e44c587cda691ad83f8c02b19050548f565754e6f5d93392b7088a226",
+          "bytes": 11172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-summary.json",
+          "sha256": "30d128b758d5153d4db17aa21c88aafea5bb714c06946ef2b92d9cd375fb9802",
+          "bytes": 1024,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-wait.json",
+          "sha256": "fbcaab0392ac636914f35770d871a06d88ce43c921697be2e5b65f4848aff6ab",
+          "bytes": 2405,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-create.json",
+          "sha256": "997712e52601d0e922081a5530591236b01f623ae95613952b356cdf3cd0e4a3",
+          "bytes": 876,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-event-stage-snapshot.json",
+          "sha256": "8d6f4388c584b7f4fe7d4985e232188fa631a1ecc3dc4e4ed29a7ee0cb66c953",
+          "bytes": 226,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-export.json",
+          "sha256": "384f1fd9e4c395e9b39ca23921fee1009314e898eba37786de968fb87f3d8e1b",
+          "bytes": 1598,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-get.json",
+          "sha256": "81c25ce27ad004d1eadd22944fe2a41e1180d7c77a270b6777d0e5bbe89f8c56",
+          "bytes": 2154,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "bytes": 584,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "bytes": 711,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-raw-summary-snapshot.json",
+          "sha256": "07d05d2e9a16907768e2c0210b96eb704fb37b67ae516c7d1b46380b8f0f54c3",
+          "bytes": 59,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "bytes": 3,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/sdk-source.json",
+          "sha256": "f11ac4f7121da9192896f7c72bd79a7be4bbd22b8469959578e635726ce501fb",
+          "bytes": 1744,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "8ce3dbf9a1ae41c0658cb7888bef08ec82a18d1591cae4638c5dd389af0c205f",
+          "bytes": 6048,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/official-live-diagnose/command.txt",
+          "sha256": "3b6cee88b8fcdaf96541b5bcf4945aacc58fa09d179b97cd19aaf5febadab1f7",
+          "bytes": 212,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-diagnose/stdout.json",
+          "sha256": "f70044e2413c64f8f8f47e6e89921672999012d6ca8034434bef6ccde7a72552",
+          "bytes": 1857,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/command.txt",
+          "sha256": "66b1dad726c884a7574c19c963a59c7eb82a8a4939ecbf74d707c25f2a4cd81f",
+          "bytes": 255,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/stdout.json",
+          "sha256": "aaa2f085bc25e1e4baef61c189b0840133e0ba9c0e1c0ceeb5f4bfa8b9c82ab4",
+          "bytes": 3150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/command.txt",
+          "sha256": "bb8497d367442ebc25ab3205f796e9f0fdd5442ab4c2fb79ac7a986f14e1159d",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/stdout.json",
+          "sha256": "c0f6b8cb10b79317fbbfd42fc3345925f8e4cdc1dc67d140bb845c53b4eafc1d",
+          "bytes": 1937,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/command.txt",
+          "sha256": "c8fb580a6b8620477bf888d48df4f4573da3a2c1683bc3bd0fcf18f4998e1be7",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/stdout.json",
+          "sha256": "5911f9e82c444ca8a52e743f73dd659ea9478b417d40eafc4f3b9b810dbbaeb5",
+          "bytes": 828,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/command.txt",
+          "sha256": "35be15bf5d194c4c4651740a971b62b401b0056d40a047351d1cdc997066f086",
+          "bytes": 208,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/stdout.json",
+          "sha256": "4b0a472353bac81f7989b6ccdb44623d4f3d4247b0a734826a56e7d24f75d77d",
+          "bytes": 2130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/command.txt",
+          "sha256": "f41f1bee490c98857bd6a0776020e8e6b3d6b5a891fce36f83e5d4810c8e5bb4",
+          "bytes": 212,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/stdout.json",
+          "sha256": "ef685ab1ba75f012365e838b512393b2801923169572dc7b8dfa17e43088fe63",
+          "bytes": 1767,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/command.txt",
+          "sha256": "233c34fcc15f0112d7f55a7ca9add96534fdad637d339f8e88251d22a7a83ec6",
+          "bytes": 255,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/stdout.json",
+          "sha256": "c97edbaa38818f48f4a496be79722500e451eb2ec99cbda60d1a2651f022ef7c",
+          "bytes": 2603,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/command.txt",
+          "sha256": "af2e2ff8e26855fdbe9d4cc32b065c954e510b2d86332b391a3914844d155c78",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/stdout.json",
+          "sha256": "32dae26e22652d03e64ad6ed3e65f853f359850eb87e2d4def8abb6b43c7240f",
+          "bytes": 10470,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/command.txt",
+          "sha256": "754fe15df72abf9aa2ca3f5e442a84473539f40ea07afa2d837bdd560b740836",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/stdout.json",
+          "sha256": "c1850c1fa660344f46fa1a5a9cd707ad76051d503e1df255e3568c1716075c5b",
+          "bytes": 827,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/command.txt",
+          "sha256": "5f74e80ada46a3a0a06fad33da6e797daaa6fb6c12e1b1ebf523bddd7ab3b83e",
+          "bytes": 208,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/stdout.json",
+          "sha256": "fe06365ad78debdad3d8a69ceb6b224593b3aaa6eee8e575811d467db9b7ad4b",
+          "bytes": 2039,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "CLI 分别查询到与真实业务动作及采集身份对齐的 view.start / site.route.stay 数据库记录，类型、名称、业务参数、路由、必要字段和关联身份正确，项目切换不串数据。普通事件不要求包含 runId/acceptanceRunId。概况匹配可比较快照；诊断与等待对应同一事件，processing 已提交且 task 存在并 completed 才完成。",
+      "observed": {
+        "checks": [
+          {
+            "name": "qhzhc-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-export original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-export original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-summary exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-diagnose exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-queue exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-comparison independent comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-summary exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-diagnose exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-queue exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-comparison independent comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc list target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc exactly one real input",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc envelope equals independent DB",
+            "expected": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "view.start",
+              "type": "view",
+              "context": {
+                "url": "http://127.0.0.1:9527/",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/dataVisualization",
+                "sessionId": "session-mv6lymu2-1-4nyjjht5"
+              },
+              "eventId": "event-mv6lymu3-3-as5ip2jy",
+              "payload": {
+                "url": "http://127.0.0.1:9527/",
+                "name": "view.start",
+                "type": "view",
+                "source": "initial",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "routeName": "/dataVisualization",
+                "startedAt": 1791891547419
+              },
+              "occurredAt": 1791891547419,
+              "correlation": {},
+              "protocolVersion": "3.0"
+            },
+            "observed": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "view.start",
+              "type": "view",
+              "context": {
+                "url": "http://127.0.0.1:9527/",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/dataVisualization",
+                "sessionId": "session-mv6lymu2-1-4nyjjht5"
+              },
+              "eventId": "event-mv6lymu3-3-as5ip2jy",
+              "payload": {
+                "url": "http://127.0.0.1:9527/",
+                "name": "view.start",
+                "type": "view",
+                "source": "initial",
+                "viewId": "view-mv6lymu3-2-k3gcygom",
+                "routeName": "/dataVisualization",
+                "startedAt": 1791891547419
+              },
+              "occurredAt": 1791891547419,
+              "correlation": {},
+              "protocolVersion": "3.0"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc summary target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc raw summary DB count",
+            "expected": 233,
+            "observed": 233,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc diagnose target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc processing/task",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc wait target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc wait completed",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc queue target",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc independently present/completed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "official list target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official exactly one real input",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "official envelope equals independent DB",
+            "expected": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "site.route.stay",
+              "type": "span",
+              "context": {
+                "url": "http://localhost:3000/solution",
+                "viewId": "view-mv6m7ad4-2-5rocy26r",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/solution",
+                "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+              },
+              "eventId": "event-mv6m7o46-p-fgojbyio",
+              "payload": {
+                "name": "site.route.stay",
+                "type": "span",
+                "source": "custom",
+                "status": "ok",
+                "endedAt": 1791891968982,
+                "metrics": {
+                  "visibleMs": {
+                    "unit": "ms",
+                    "value": 17821
+                  }
+                },
+                "startedAt": 1791891951161,
+                "attributes": {
+                  "path": "/solution",
+                  "section": "/solution"
+                },
+                "durationMs": 17821.40000000596
+              },
+              "occurredAt": 1791891968982,
+              "correlation": {
+                "spanId": "adf2c42894e06be4",
+                "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+                "parentSpanId": "79b9f934eae822f7"
+              },
+              "protocolVersion": "3.0"
+            },
+            "observed": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "name": "site.route.stay",
+              "type": "span",
+              "context": {
+                "url": "http://localhost:3000/solution",
+                "viewId": "view-mv6m7ad4-2-5rocy26r",
+                "runtime": {
+                  "sdk": {
+                    "name": "@cxdlogver/browser-monitor-sdk",
+                    "version": "0.3.0"
+                  },
+                  "online": true,
+                  "language": "zh-CN",
+                  "platform": "Win32",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+                },
+                "routeName": "/solution",
+                "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+              },
+              "eventId": "event-mv6m7o46-p-fgojbyio",
+              "payload": {
+                "name": "site.route.stay",
+                "type": "span",
+                "source": "custom",
+                "status": "ok",
+                "endedAt": 1791891968982,
+                "metrics": {
+                  "visibleMs": {
+                    "unit": "ms",
+                    "value": 17821
+                  }
+                },
+                "startedAt": 1791891951161,
+                "attributes": {
+                  "path": "/solution",
+                  "section": "/solution"
+                },
+                "durationMs": 17821.40000000596
+              },
+              "occurredAt": 1791891968982,
+              "correlation": {
+                "spanId": "adf2c42894e06be4",
+                "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+                "parentSpanId": "79b9f934eae822f7"
+              },
+              "protocolVersion": "3.0"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "official summary target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official raw summary DB count",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "official diagnose target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official processing/task",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "official wait target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official wait completed",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "official queue target",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official independently present/completed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc consumed CLI config",
+            "expected": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "qhzhc",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "official consumed CLI config",
+            "expected": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "guanwang",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "qhzhc-live-list",
+            "exitCode": 0,
+            "elapsedMs": 508
+          },
+          {
+            "name": "qhzhc-live-summary",
+            "exitCode": 0,
+            "elapsedMs": 451
+          },
+          {
+            "name": "qhzhc-live-diagnose",
+            "exitCode": 0,
+            "elapsedMs": 474
+          },
+          {
+            "name": "qhzhc-live-wait",
+            "exitCode": 0,
+            "elapsedMs": 508
+          },
+          {
+            "name": "qhzhc-live-queue",
+            "exitCode": 0,
+            "elapsedMs": 531
+          },
+          {
+            "name": "official-live-list",
+            "exitCode": 0,
+            "elapsedMs": 472
+          },
+          {
+            "name": "official-live-summary",
+            "exitCode": 0,
+            "elapsedMs": 472
+          },
+          {
+            "name": "official-live-diagnose",
+            "exitCode": 0,
+            "elapsedMs": 575
+          },
+          {
+            "name": "official-live-wait",
+            "exitCode": 0,
+            "elapsedMs": 471
+          },
+          {
+            "name": "official-live-queue",
+            "exitCode": 0,
+            "elapsedMs": 466
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/official-sdk-config.json",
+          "sha256": "82cf2f6e5860dfc1019a1e3a1c00d636db24469ddab37a9126feda2e7b77aee9",
+          "bytes": 234,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/qhzhc-sdk-config.json",
+          "sha256": "a8ef288d0f13e9ec5f27aa956575d3c912f03090dba766990f308e0a37142e4d",
+          "bytes": 231,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7078e9c0de896f16ae05c7d2617e21eadf09af7f6e6c21ba167448f342af27e0",
+          "bytes": 12580,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/business-sources.json",
+          "sha256": "7ce79d8839e234c2e309902add24214ce29554c0364e6a29613012e14d54256a",
+          "bytes": 1161,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "ef1589bc52fc62a6f3c65b5c5e0d9f4c967e6edb035ed13d5b2a3c8dbc572514",
+          "bytes": 241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-candidates.json",
+          "sha256": "573c0f6b03f1b946c763c5828617b9820b4c2442f86188ab1913071f21c77e2b",
+          "bytes": 3882,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-comparison.json",
+          "sha256": "8666426a709825c4cb4f46d93f6fc758e3eef0be235871606347785c5da7ed55",
+          "bytes": 11748,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-diagnose.json",
+          "sha256": "4b519252d07f55fac4bbb4cc5da96f71434289a1f14976530e679804c3c039ad",
+          "bytes": 3989,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "bytes": 4180,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-queue.json",
+          "sha256": "7beb89aabd7520bd70a77e93389a4c1c8bfc1aeeb0fc4e8e81a883151b160f57",
+          "bytes": 2196,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-summary.json",
+          "sha256": "3bdbb8259fc416f6766e84005c078f1036827619239d0897fbdbe30e537d92c8",
+          "bytes": 1023,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-wait.json",
+          "sha256": "24bdbe340f81b54d8d5c405c36a5cd2e41776abc12062d0ca7f46a8f16800e92",
+          "bytes": 2504,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-create.json",
+          "sha256": "4690bb1b4e4f863273871b327d267e95492ebf147ab4848fbb1d5ebefc976ea4",
+          "bytes": 863,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-event-stage-snapshot.json",
+          "sha256": "55cbc2c9283929b604eecdf545b4a25e83f228a7521a9f54e6f0e893da69338c",
+          "bytes": 226,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-export.json",
+          "sha256": "af3747645c1d812a33378f9c0930cae53320a6f1a8b1b750398492b17cafa70d",
+          "bytes": 1602,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-get.json",
+          "sha256": "549452181ec931cd8d0874e8fad5b96336a79f016b4a802328baacaeafcca7e9",
+          "bytes": 2148,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "bytes": 585,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "bytes": 712,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-raw-summary-snapshot.json",
+          "sha256": "842243ae37cc109634040baa1c58a74eae98bcf1c2080cc237b6557f6364b30e",
+          "bytes": 59,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-candidates.json",
+          "sha256": "98f99a056e8598fc62251bd6b8f633270eec92b9399f28cfc40b7f8edaf6d59c",
+          "bytes": 1682,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-comparison.json",
+          "sha256": "8ab59d578654b407c9763b39dec8106c256e51f90d9190da7f17e1ddcbe95618",
+          "bytes": 19211,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-diagnose.json",
+          "sha256": "71df0c76f6fa4432982a7479ea200b201fdefb7d3387ce0758c02a3612a5d828",
+          "bytes": 3495,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "bytes": 3605,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-queue.json",
+          "sha256": "43a60a7e44c587cda691ad83f8c02b19050548f565754e6f5d93392b7088a226",
+          "bytes": 11172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-summary.json",
+          "sha256": "30d128b758d5153d4db17aa21c88aafea5bb714c06946ef2b92d9cd375fb9802",
+          "bytes": 1024,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-wait.json",
+          "sha256": "fbcaab0392ac636914f35770d871a06d88ce43c921697be2e5b65f4848aff6ab",
+          "bytes": 2405,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-create.json",
+          "sha256": "997712e52601d0e922081a5530591236b01f623ae95613952b356cdf3cd0e4a3",
+          "bytes": 876,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-event-stage-snapshot.json",
+          "sha256": "8d6f4388c584b7f4fe7d4985e232188fa631a1ecc3dc4e4ed29a7ee0cb66c953",
+          "bytes": 226,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-export.json",
+          "sha256": "384f1fd9e4c395e9b39ca23921fee1009314e898eba37786de968fb87f3d8e1b",
+          "bytes": 1598,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-get.json",
+          "sha256": "81c25ce27ad004d1eadd22944fe2a41e1180d7c77a270b6777d0e5bbe89f8c56",
+          "bytes": 2154,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "bytes": 584,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "bytes": 711,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-raw-summary-snapshot.json",
+          "sha256": "07d05d2e9a16907768e2c0210b96eb704fb37b67ae516c7d1b46380b8f0f54c3",
+          "bytes": 59,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "bytes": 3,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/sdk-source.json",
+          "sha256": "f11ac4f7121da9192896f7c72bd79a7be4bbd22b8469959578e635726ce501fb",
+          "bytes": 1744,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "8ce3dbf9a1ae41c0658cb7888bef08ec82a18d1591cae4638c5dd389af0c205f",
+          "bytes": 6048,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/official-live-diagnose/command.txt",
+          "sha256": "3b6cee88b8fcdaf96541b5bcf4945aacc58fa09d179b97cd19aaf5febadab1f7",
+          "bytes": 212,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-diagnose/stdout.json",
+          "sha256": "f70044e2413c64f8f8f47e6e89921672999012d6ca8034434bef6ccde7a72552",
+          "bytes": 1857,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/command.txt",
+          "sha256": "66b1dad726c884a7574c19c963a59c7eb82a8a4939ecbf74d707c25f2a4cd81f",
+          "bytes": 255,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-list/stdout.json",
+          "sha256": "aaa2f085bc25e1e4baef61c189b0840133e0ba9c0e1c0ceeb5f4bfa8b9c82ab4",
+          "bytes": 3150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/command.txt",
+          "sha256": "bb8497d367442ebc25ab3205f796e9f0fdd5442ab4c2fb79ac7a986f14e1159d",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-queue/stdout.json",
+          "sha256": "c0f6b8cb10b79317fbbfd42fc3345925f8e4cdc1dc67d140bb845c53b4eafc1d",
+          "bytes": 1937,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/command.txt",
+          "sha256": "c8fb580a6b8620477bf888d48df4f4573da3a2c1683bc3bd0fcf18f4998e1be7",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-summary/stdout.json",
+          "sha256": "5911f9e82c444ca8a52e743f73dd659ea9478b417d40eafc4f3b9b810dbbaeb5",
+          "bytes": 828,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/command.txt",
+          "sha256": "35be15bf5d194c4c4651740a971b62b401b0056d40a047351d1cdc997066f086",
+          "bytes": 208,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/official-live-wait/stdout.json",
+          "sha256": "4b0a472353bac81f7989b6ccdb44623d4f3d4247b0a734826a56e7d24f75d77d",
+          "bytes": 2130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/command.txt",
+          "sha256": "f41f1bee490c98857bd6a0776020e8e6b3d6b5a891fce36f83e5d4810c8e5bb4",
+          "bytes": 212,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-diagnose/stdout.json",
+          "sha256": "ef685ab1ba75f012365e838b512393b2801923169572dc7b8dfa17e43088fe63",
+          "bytes": 1767,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/command.txt",
+          "sha256": "233c34fcc15f0112d7f55a7ca9add96534fdad637d339f8e88251d22a7a83ec6",
+          "bytes": 255,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-list/stdout.json",
+          "sha256": "c97edbaa38818f48f4a496be79722500e451eb2ec99cbda60d1a2651f022ef7c",
+          "bytes": 2603,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/command.txt",
+          "sha256": "af2e2ff8e26855fdbe9d4cc32b065c954e510b2d86332b391a3914844d155c78",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-queue/stdout.json",
+          "sha256": "32dae26e22652d03e64ad6ed3e65f853f359850eb87e2d4def8abb6b43c7240f",
+          "bytes": 10470,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/command.txt",
+          "sha256": "754fe15df72abf9aa2ca3f5e442a84473539f40ea07afa2d837bdd560b740836",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-summary/stdout.json",
+          "sha256": "c1850c1fa660344f46fa1a5a9cd707ad76051d503e1df255e3568c1716075c5b",
+          "bytes": 827,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/command.txt",
+          "sha256": "5f74e80ada46a3a0a06fad33da6e797daaa6fb6c12e1b1ebf523bddd7ab3b83e",
+          "bytes": 208,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/qhzhc-live-wait/stdout.json",
+          "sha256": "fe06365ad78debdad3d8a69ceb6b224593b3aaa6eee8e575811d467db9b7ad4b",
+          "bytes": 2039,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

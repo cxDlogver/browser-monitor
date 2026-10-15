@@ -1,0 +1,347 @@
+{
+  "caseId": "AC-10-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "failed 返回 PROCESSING_FAILED，已提交但任务缺失返回 HISTORY_INCOMPLETE，退出码均为 7；阶段事实仍保留。",
+      "observed": {
+        "checks": [
+          {
+            "name": "failed correct terminal",
+            "expected": "PROCESSING_FAILED",
+            "observed": "PROCESSING_FAILED",
+            "verdict": "passed"
+          },
+          {
+            "name": "failed evidence retained",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing correct terminal",
+            "expected": "HISTORY_INCOMPLETE",
+            "observed": "HISTORY_INCOMPLETE",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing evidence retained",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid not polled",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "wait only GET",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "failed",
+            "exitCode": 7,
+            "elapsedMs": 455
+          },
+          {
+            "name": "missing",
+            "exitCode": 7,
+            "elapsedMs": 430
+          },
+          {
+            "name": "ambiguous",
+            "exitCode": 2,
+            "elapsedMs": 461
+          },
+          {
+            "name": "invalid-timeout",
+            "exitCode": 2,
+            "elapsedMs": 389
+          },
+          {
+            "name": "invalid-interval",
+            "exitCode": 2,
+            "elapsedMs": 393
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2c8d28c49949414acb904410a5c031efb5e2f4e33c7e6de21d3b2bd4cc89e989",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "73d63909aa4a2aa987476d82a74a1665f9e5dfa72a3fe7db36eb4a7045359f31",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "e04f3d813b7d92dbb57e7f8f2cea8212e2f06fafbac7647a04b17c58dfa84f2c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "02371a12dc86ae1e4cc857f39990c4208de6189dc7f7db7984167d28add764e2",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ambiguous/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stdout.json",
+          "sha256": "29bd59dfe3efd6ccbfc334a40c82cdfa81281e07e72d26bd14a6d70bbfc2e7fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/stdout.json",
+          "sha256": "94268d0d121307bb0eb248e6ae3c9b4bc9aa9072bc97876e47e933a407b3922d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/command.txt",
+          "sha256": "c472307451bfe70ebd3ca6f2a95b712357f76dec833d6e745c509dac779c54cd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/stdout.json",
+          "sha256": "5a2d0cf224c075bcdff815dea9c0d45cf67dca211e3782ffd849dd048bae89df",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/command.txt",
+          "sha256": "e09836bda7a275ae5dfb21ee549a099d15b76cd6fab70c12cf56b43fe6c9613f",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/stdout.json",
+          "sha256": "0601f7826f1f81980bb07b34db6aca93cb1fb050a8bbbb33fa4369ca47810abc",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "1ea66b3c45010ce7f29da73db55c199c5a94b058548a66736b713eb4a50b1a6f",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "歧义及无效等待输入返回对应参数错误 / 退出码 2，不无限轮询或触发任务写操作。",
+      "observed": {
+        "checks": [
+          {
+            "name": "failed correct terminal",
+            "expected": "PROCESSING_FAILED",
+            "observed": "PROCESSING_FAILED",
+            "verdict": "passed"
+          },
+          {
+            "name": "failed evidence retained",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing correct terminal",
+            "expected": "HISTORY_INCOMPLETE",
+            "observed": "HISTORY_INCOMPLETE",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing evidence retained",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid not polled",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "wait only GET",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "failed",
+            "exitCode": 7,
+            "elapsedMs": 455
+          },
+          {
+            "name": "missing",
+            "exitCode": 7,
+            "elapsedMs": 430
+          },
+          {
+            "name": "ambiguous",
+            "exitCode": 2,
+            "elapsedMs": 461
+          },
+          {
+            "name": "invalid-timeout",
+            "exitCode": 2,
+            "elapsedMs": 389
+          },
+          {
+            "name": "invalid-interval",
+            "exitCode": 2,
+            "elapsedMs": 393
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2c8d28c49949414acb904410a5c031efb5e2f4e33c7e6de21d3b2bd4cc89e989",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "73d63909aa4a2aa987476d82a74a1665f9e5dfa72a3fe7db36eb4a7045359f31",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "e04f3d813b7d92dbb57e7f8f2cea8212e2f06fafbac7647a04b17c58dfa84f2c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "02371a12dc86ae1e4cc857f39990c4208de6189dc7f7db7984167d28add764e2",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ambiguous/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stdout.json",
+          "sha256": "29bd59dfe3efd6ccbfc334a40c82cdfa81281e07e72d26bd14a6d70bbfc2e7fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/failed/stdout.json",
+          "sha256": "94268d0d121307bb0eb248e6ae3c9b4bc9aa9072bc97876e47e933a407b3922d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/command.txt",
+          "sha256": "c472307451bfe70ebd3ca6f2a95b712357f76dec833d6e745c509dac779c54cd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-interval/stdout.json",
+          "sha256": "5a2d0cf224c075bcdff815dea9c0d45cf67dca211e3782ffd849dd048bae89df",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/command.txt",
+          "sha256": "e09836bda7a275ae5dfb21ee549a099d15b76cd6fab70c12cf56b43fe6c9613f",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-timeout/stdout.json",
+          "sha256": "0601f7826f1f81980bb07b34db6aca93cb1fb050a8bbbb33fa4369ca47810abc",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "6c754caab6c5a7dcc67cbc84d19ad3e9e15a91ee4a09bca05a745c41e6e1e0f9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "1ea66b3c45010ce7f29da73db55c199c5a94b058548a66736b713eb4a50b1a6f",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

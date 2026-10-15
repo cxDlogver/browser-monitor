@@ -1,0 +1,117 @@
+{
+  "caseId": "AC-09-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "f5e151ef7b746b24fcb1e71698c5ebb43143c564e8d914d627bd667cf80fe1f7",
+      "bytes": 750
+    },
+    {
+      "path": "reference/database-queue-boundaries.json",
+      "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+      "bytes": 2807
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "8c1b3dd3be51b3adfa524cf6e2ed73a26e4bfd50433c0d6fef0197ae68780338",
+      "bytes": 240
+    },
+    {
+      "path": "reference/official-business-queue.json",
+      "sha256": "7beb89aabd7520bd70a77e93389a4c1c8bfc1aeeb0fc4e8e81a883151b160f57",
+      "bytes": 2196
+    },
+    {
+      "path": "reference/qhzhc-business-queue.json",
+      "sha256": "43a60a7e44c587cda691ad83f8c02b19050548f565754e6f5d93392b7088a226",
+      "bytes": 11172
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "e92854d9c63231f3196d8033585bf2c88d86fc596dbad568ed32b9e9604dbe81",
+      "bytes": 1606
+    },
+    {
+      "path": "run.json",
+      "sha256": "985def41c5eef5df793fa7ff61dfa8c5851d18866bac3829c34097b8efc234f9",
+      "bytes": 1314
+    },
+    {
+      "path": "steps/failed/command.txt",
+      "sha256": "04e09975733f7244d28722282b104e449b97e94d2527cf31bf5522024b88c001",
+      "bytes": 126
+    },
+    {
+      "path": "steps/failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/failed/stdout.json",
+      "sha256": "216dc5871969fcd1170eb47b6deb7e7dd182d93df4edeb18a8e48a00d6331a5d",
+      "bytes": 501
+    },
+    {
+      "path": "steps/queue/command.txt",
+      "sha256": "04e09975733f7244d28722282b104e449b97e94d2527cf31bf5522024b88c001",
+      "bytes": 126
+    },
+    {
+      "path": "steps/queue/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/queue/stdout.json",
+      "sha256": "c4ad89e352176aa9264fdb8a2a25a0b97243a8a7ba2c2b8e62b92a376583b75f",
+      "bytes": 3251
+    },
+    {
+      "path": "case-result.json",
+      "sha256": "748bf7135e2aa847216be371f0d4fba06c48cea9847d7d30ac6cf5c60b06504a",
+      "bytes": 13468
+    }
+  ],
+  "sharedEvidence": [
+    {
+      "path": "../setup/inputs.json",
+      "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/bindings.json",
+      "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/events.json",
+      "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/event-definitions.json",
+      "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/implementation.json",
+      "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/installation-audit.json",
+      "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/source-versions.json",
+      "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/diagnostics-fixture-sources.json",
+      "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+      "locator": "explicit input, implementation or independent source audit"
+    }
+  ]
+}

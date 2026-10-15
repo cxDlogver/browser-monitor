@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "data summary",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54955",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "retainedRawEventCount": 0,
+    "latestReceivedAt": null,
+    "retentionPolicy": {
+      "rawEvents": {
+        "state": "unknown",
+        "dropAfter": null
+      }
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:12:59.360Z"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:12:59.360Z",
+    "elapsedMs": 80
+  }
+}

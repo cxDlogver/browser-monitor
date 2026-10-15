@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "origins set",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "OWNER_REQUIRED",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd/origins",
+      "status": 403
+    }
+  }
+}

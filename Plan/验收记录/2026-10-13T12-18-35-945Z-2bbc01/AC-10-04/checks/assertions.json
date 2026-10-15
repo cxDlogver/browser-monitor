@@ -1,0 +1,26 @@
+[
+  {
+    "name": "read failure distinct",
+    "expected": "query_failed",
+    "observed": "query_failed",
+    "verdict": "passed"
+  },
+  {
+    "name": "keep original asOf",
+    "expected": "2026-10-13T12:20:51.084Z",
+    "observed": "2026-10-13T12:20:51.084Z",
+    "verdict": "passed"
+  },
+  {
+    "name": "failed request no new fake snapshot",
+    "expected": "2026-10-13T12:20:51.084Z",
+    "observed": "2026-10-13T12:20:51.084Z",
+    "verdict": "passed"
+  },
+  {
+    "name": "last failure explicit",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "caseId": "AC-12-02",
+  "startedAt": "2026-10-13T12:21:08.720Z",
+  "endedAt": "2026-10-13T12:21:11.334Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "unready",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:50557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:08.720Z",
+      "endedAt": "2026-10-13T12:21:09.764Z",
+      "elapsedMs": 1044,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-kqHNSD"
+    },
+    {
+      "name": "api-failed",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:50557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:09.764Z",
+      "endedAt": "2026-10-13T12:21:10.799Z",
+      "elapsedMs": 1035,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-kqHNSD"
+    },
+    {
+      "name": "missing-check",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:50557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:10.799Z",
+      "endedAt": "2026-10-13T12:21:11.328Z",
+      "elapsedMs": 529,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-kqHNSD"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

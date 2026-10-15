@@ -1,0 +1,80 @@
+{
+  "invocation": [
+    "events",
+    "list",
+    "--from",
+    "2026-10-13T11:14:38.536Z",
+    "--to",
+    "2026-10-13T11:31:19.536Z",
+    "--limit",
+    "50",
+    "--cursor",
+    "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwicHJvamVjdElkIjoiYzM3NGU2Y2QtNGQ5Yi00MDQ1LTg2NzgtMGQwZjViM2NhNmRkIiwicXVlcnkiOnsiZnJvbSI6IjIwMjYtMTAtMTNUMTE6MTQ6MzguNTM2WiIsInRvIjoiMjAyNi0xMC0xM1QxMTozMToxOS41MzZaIn0sInNlcnZlckN1cnNvciI6ImV5SjJaWEp6YVc5dUlqb3hMQ0ptYVc1blpYSndjbWx1ZENJNkltWTRaVEpqWlRJeVpURXhaRGxoTjJabU9HTmlOemszWkRKbFlqVmxNV1UzTXpVMlpURTRNMkprWWpZeFl6WmlPVEV6TVRaaU9UWTBORGcyWldZd09EZ2lMQ0p2WTJOMWNuSmxaRUYwSWpvaU1qQXlOaTB4TUMweE0xUXhNVG95T0RveU5DNDFNelphSWl3aVpYWmxiblJKWkNJNkluQmhaMlV0TWpBeU5pMHhNQzB4TTFReE1TMHpNUzB3T1MwMU5EVmFMVGs1T0ROak1pMHhORGtpZlEifQ",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events list",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "items": [
+        {
+          "eventId": "page-2026-10-13T11-31-09-545Z-9983c2-148",
+          "occurredAt": "2026-10-13T11:28:24.536Z",
+          "receivedAt": "2026-10-13T11:31:22.675Z",
+          "type": "performance",
+          "name": "LCP",
+          "environment": "cli-acceptance",
+          "version": "1.0.0",
+          "sessionId": "session-fixture-1",
+          "viewId": "view-fixture-1",
+          "routeName": "home",
+          "correlation": {}
+        },
+        {
+          "eventId": "page-2026-10-13T11-31-09-545Z-9983c2-150",
+          "occurredAt": "2026-10-13T11:28:23.536Z",
+          "receivedAt": "2026-10-13T11:31:22.681Z",
+          "type": "performance",
+          "name": "LCP",
+          "environment": "cli-acceptance",
+          "version": "1.0.0",
+          "sessionId": "session-fixture-1",
+          "viewId": "view-fixture-1",
+          "routeName": "home",
+          "correlation": {}
+        }
+      ],
+      "nextCursor": null,
+      "hasMore": false,
+      "range": {
+        "from": "2026-10-13T11:14:38.536Z",
+        "to": "2026-10-13T11:31:19.536Z"
+      },
+      "asOf": "2026-10-13T11:31:25.806Z",
+      "source": "database",
+      "limitations": [
+        "Keyset pagination is not a snapshot across separate page requests."
+      ]
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:25.806Z",
+      "query": {
+        "from": "2026-10-13T11:14:38.536Z",
+        "to": "2026-10-13T11:31:19.536Z"
+      },
+      "elapsedMs": 92
+    }
+  },
+  "stderr": ""
+}

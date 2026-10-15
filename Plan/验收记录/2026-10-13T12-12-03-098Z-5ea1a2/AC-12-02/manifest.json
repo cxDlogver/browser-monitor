@@ -1,0 +1,70 @@
+{
+  "caseId": "AC-12-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "29b1fbd134e87a16569870831a20651236a992d49da1cde36f1775689d339f8c",
+      "bytes": 1159
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "a32e1627d7d467972e2e459c0db64c351975ebb580ed5c6975a46ece6b582a95",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "79a3a639b214d4054be4f2fe501a3881a03f6b4b92d15400d7798f120bf39086",
+      "bytes": 4503
+    },
+    {
+      "path": "run.json",
+      "sha256": "e0721aa1b7408edd98dddb685c7a84c0647b40cdc481f909467a98b59b8aed03",
+      "bytes": 1480
+    },
+    {
+      "path": "steps/api-failed/command.txt",
+      "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+      "bytes": 67
+    },
+    {
+      "path": "steps/api-failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/api-failed/stdout.json",
+      "sha256": "31d597b70f6315493475358ac1196234e685f92663016a945cf362a0a22edeab",
+      "bytes": 1147
+    },
+    {
+      "path": "steps/missing-check/command.txt",
+      "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+      "bytes": 67
+    },
+    {
+      "path": "steps/missing-check/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/missing-check/stdout.json",
+      "sha256": "bdb8e633265ee7bcd6df8c6ac56e80aacfdc393b021749f10a0e813347b29118",
+      "bytes": 1135
+    },
+    {
+      "path": "steps/unready/command.txt",
+      "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+      "bytes": 67
+    },
+    {
+      "path": "steps/unready/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/unready/stdout.json",
+      "sha256": "fb51b201787db982af8db630202f9b916b8788bde7679dbcc2616f60ce829a1a",
+      "bytes": 1102
+    }
+  ]
+}

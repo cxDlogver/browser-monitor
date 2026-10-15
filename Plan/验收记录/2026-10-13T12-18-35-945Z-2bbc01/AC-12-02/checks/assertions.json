@@ -1,0 +1,56 @@
+[
+  {
+    "name": "unready outcome",
+    "expected": "HEALTH_UNREADY",
+    "observed": "HEALTH_UNREADY",
+    "verdict": "passed"
+  },
+  {
+    "name": "unready retains liveness",
+    "expected": "pass",
+    "observed": "pass",
+    "verdict": "passed"
+  },
+  {
+    "name": "unready stage state",
+    "expected": "fail",
+    "observed": "fail",
+    "verdict": "passed"
+  },
+  {
+    "name": "api-failed outcome",
+    "expected": "HEALTH_UNREADY",
+    "observed": "HEALTH_UNREADY",
+    "verdict": "passed"
+  },
+  {
+    "name": "api-failed retains liveness",
+    "expected": "pass",
+    "observed": "pass",
+    "verdict": "passed"
+  },
+  {
+    "name": "api-failed stage state",
+    "expected": "fail",
+    "observed": "fail",
+    "verdict": "passed"
+  },
+  {
+    "name": "missing-check outcome",
+    "expected": "CAPABILITY_UNAVAILABLE",
+    "observed": "CAPABILITY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "missing-check retains liveness",
+    "expected": "pass",
+    "observed": "pass",
+    "verdict": "passed"
+  },
+  {
+    "name": "missing-check stage state",
+    "expected": "unknown",
+    "observed": "unknown",
+    "verdict": "passed"
+  }
+]

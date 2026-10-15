@@ -1,0 +1,68 @@
+{
+  "source": "actual_database_queries_with_controlled_snapshot_clock",
+  "snapshotClock": "2026-10-13T11:54:59.469Z",
+  "expected": {
+    "processing": "committed",
+    "entityCount": 1,
+    "sequence": 2,
+    "eventEffect": "unknown"
+  },
+  "observed": {
+    "diagnostic": {
+      "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+      "event": {
+        "eventId": "revision-old",
+        "occurredAt": "2026-10-13T11:53:58.469Z",
+        "receivedAt": "2026-10-13T11:54:59.614Z",
+        "type": "performance",
+        "name": "LCP"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:54:59.616Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "dc2b1a90-356c-4cb3-a3a5-0f3ecd8602ab",
+        "status": "completed",
+        "attempts": 0,
+        "availableAt": "2026-10-13T11:54:59.469Z",
+        "lockedAt": null,
+        "completedAt": "2026-10-13T11:54:29.469Z",
+        "lastFailedAt": null,
+        "lastError": null
+      },
+      "projection": {
+        "visibility": "visible",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "performance",
+          "sampleId": "shared-entity"
+        },
+        "currentEntity": {
+          "sample_id": "shared-entity",
+          "sequence": 2,
+          "state": "provisional"
+        },
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:54:59.469Z",
+      "source": "database"
+    },
+    "entity": [
+      {
+        "sample_id": "shared-entity",
+        "sequence": 2
+      }
+    ]
+  },
+  "equal": true
+}

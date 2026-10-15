@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54651",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "KEY_AMBIGUOUS",
+    "message": "存在多个当前键，请用 --key-id 明确选择。",
+    "details": null
+  }
+}

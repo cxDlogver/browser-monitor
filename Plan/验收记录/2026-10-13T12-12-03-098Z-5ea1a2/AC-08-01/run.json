@@ -1,0 +1,73 @@
+{
+  "caseId": "AC-08-01",
+  "startedAt": "2026-10-13T12:13:01.064Z",
+  "endedAt": "2026-10-13T12:13:02.685Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "ambiguous",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "collision",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:01.073Z",
+      "endedAt": "2026-10-13T12:13:01.628Z",
+      "elapsedMs": 555,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EjdZdh"
+    },
+    {
+      "name": "exact",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "collision",
+        "--occurred-at",
+        "2026-10-13T10:54:59.469Z",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:01.628Z",
+      "endedAt": "2026-10-13T12:13:02.161Z",
+      "elapsedMs": 532,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EjdZdh"
+    },
+    {
+      "name": "old",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "older",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:02.161Z",
+      "endedAt": "2026-10-13T12:13:02.677Z",
+      "elapsedMs": 516,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EjdZdh"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

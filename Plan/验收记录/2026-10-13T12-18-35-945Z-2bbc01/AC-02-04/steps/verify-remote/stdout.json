@@ -1,0 +1,7 @@
+{
+  "status": 401,
+  "body": {
+    "code": "session_expired"
+  },
+  "source": "independent request using the previous Session cookie; value not recorded"
+}

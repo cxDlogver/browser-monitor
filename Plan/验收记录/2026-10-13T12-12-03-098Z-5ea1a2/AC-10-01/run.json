@@ -1,0 +1,55 @@
+{
+  "caseId": "AC-10-01",
+  "startedAt": "2026-10-13T12:13:08.510Z",
+  "endedAt": "2026-10-13T12:13:11.488Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "normal",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--interval",
+        "1",
+        "--timeout",
+        "5",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55106"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:08.510Z",
+      "endedAt": "2026-10-13T12:13:10.999Z",
+      "elapsedMs": 2489,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-hjJPD1"
+    },
+    {
+      "name": "actual-noop",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "revision-old",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:11.002Z",
+      "endedAt": "2026-10-13T12:13:11.473Z",
+      "elapsedMs": 471,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-hjJPD1"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

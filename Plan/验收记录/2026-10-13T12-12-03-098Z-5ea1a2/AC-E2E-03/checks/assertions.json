@@ -1,0 +1,44 @@
+[
+  {
+    "name": "one create across recovery",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "partial lists generated JSON",
+    "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+    "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+    "verdict": "passed"
+  },
+  {
+    "name": "original success hash preserved",
+    "expected": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+    "observed": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+    "verdict": "passed"
+  },
+  {
+    "name": "new temp compatible",
+    "expected": {
+      "app": {
+        "name": "recovery",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:61815/ingest/key"
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "recovery",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:61815/ingest/key"
+      }
+    },
+    "verdict": "passed"
+  }
+]

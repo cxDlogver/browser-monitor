@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "get" "--project" "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e" "--base-url" "http://127.0.0.1:50232"

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "queue status",
+  "context": {
+    "baseUrl": "http://127.0.0.1:61820",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "SERVER_ERROR",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/queue",
+      "status": 503
+    }
+  }
+}

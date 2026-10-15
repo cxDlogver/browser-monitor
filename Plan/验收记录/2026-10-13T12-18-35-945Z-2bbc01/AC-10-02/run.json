@@ -1,0 +1,117 @@
+{
+  "caseId": "AC-10-02",
+  "startedAt": "2026-10-13T12:19:42.602Z",
+  "endedAt": "2026-10-13T12:19:44.711Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "failed",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61848"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:42.603Z",
+      "endedAt": "2026-10-13T12:19:43.038Z",
+      "elapsedMs": 436,
+      "exitCode": 7,
+      "expectedExitCode": 7,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SkSHOf"
+    },
+    {
+      "name": "missing",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61848"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:43.038Z",
+      "endedAt": "2026-10-13T12:19:43.469Z",
+      "elapsedMs": 430,
+      "exitCode": 7,
+      "expectedExitCode": 7,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SkSHOf"
+    },
+    {
+      "name": "ambiguous",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61848"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:43.469Z",
+      "endedAt": "2026-10-13T12:19:43.894Z",
+      "elapsedMs": 425,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SkSHOf"
+    },
+    {
+      "name": "invalid-timeout",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--timeout",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61848"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:43.894Z",
+      "endedAt": "2026-10-13T12:19:44.318Z",
+      "elapsedMs": 424,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SkSHOf"
+    },
+    {
+      "name": "invalid-interval",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--interval",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61848"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:44.318Z",
+      "endedAt": "2026-10-13T12:19:44.705Z",
+      "elapsedMs": 387,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SkSHOf"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

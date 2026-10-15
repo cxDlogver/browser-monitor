@@ -1,0 +1,48 @@
+{
+  "invocation": [
+    "events",
+    "list",
+    "--name",
+    "not-present-2026-10-13T11-31-09-545Z-9983c2",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events list",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "items": [],
+      "nextCursor": null,
+      "hasMore": false,
+      "range": {
+        "from": "2026-10-12T11:31:26.692Z",
+        "to": "2026-10-13T11:31:26.692Z"
+      },
+      "asOf": "2026-10-13T11:31:26.770Z",
+      "source": "database",
+      "limitations": [
+        "Keyset pagination is not a snapshot across separate page requests."
+      ]
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:26.770Z",
+      "query": {
+        "from": "2026-10-12T11:31:26.692Z",
+        "to": "2026-10-13T11:31:26.692Z",
+        "name": "not-present-2026-10-13T11-31-09-545Z-9983c2"
+      },
+      "elapsedMs": 88
+    }
+  },
+  "stderr": ""
+}

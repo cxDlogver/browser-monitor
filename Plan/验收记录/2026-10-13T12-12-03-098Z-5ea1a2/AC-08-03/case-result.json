@@ -1,0 +1,193 @@
+{
+  "caseId": "AC-08-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "合法忽略可以处理已提交，未新增领域行不被判成处理失败。",
+      "observed": {
+        "checks": [
+          {
+            "name": "noop-revision recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual committed no-op",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "event effect remains unknown",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          },
+          {
+            "name": "one entity higher revision",
+            "expected": [
+              {
+                "sample_id": "shared-entity",
+                "sequence": 2
+              }
+            ],
+            "observed": [
+              {
+                "sample_id": "shared-entity",
+                "sequence": 2
+              }
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "noop",
+            "exitCode": 0,
+            "elapsedMs": 499
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "d0ba764595649bc1a42c8bf2f2b6da1aa153297f93e1061f901826cc73f9bd86",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-noop-revision.json",
+          "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f10f677cf520c04cd688b2adece3d93bf965a9be3231465f2b5d27398c815fa5",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "83173fdfc25fd5758cfed5395ecea809405dc3d6f90285741c053ca48f37d692",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/noop/command.txt",
+          "sha256": "5479dd544f2244aa60c4bb7c12ea7e212d97372ad1e5c99e394997d8d98fbef7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/noop/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/noop/stdout.json",
+          "sha256": "0e27d9b7a89863b8470a4114e7cd52df011582a441404f418a95026e46083f95",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "实体按业务身份关联；当前实体可见不自动证明本事件改变实体，效果未知保持 unknown。",
+      "observed": {
+        "checks": [
+          {
+            "name": "noop-revision recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual committed no-op",
+            "expected": "committed",
+            "observed": "committed",
+            "verdict": "passed"
+          },
+          {
+            "name": "event effect remains unknown",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          },
+          {
+            "name": "one entity higher revision",
+            "expected": [
+              {
+                "sample_id": "shared-entity",
+                "sequence": 2
+              }
+            ],
+            "observed": [
+              {
+                "sample_id": "shared-entity",
+                "sequence": 2
+              }
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "noop",
+            "exitCode": 0,
+            "elapsedMs": 499
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "d0ba764595649bc1a42c8bf2f2b6da1aa153297f93e1061f901826cc73f9bd86",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-noop-revision.json",
+          "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f10f677cf520c04cd688b2adece3d93bf965a9be3231465f2b5d27398c815fa5",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "83173fdfc25fd5758cfed5395ecea809405dc3d6f90285741c053ca48f37d692",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/noop/command.txt",
+          "sha256": "5479dd544f2244aa60c4bb7c12ea7e212d97372ad1e5c99e394997d8d98fbef7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/noop/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/noop/stdout.json",
+          "sha256": "0e27d9b7a89863b8470a4114e7cd52df011582a441404f418a95026e46083f95",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

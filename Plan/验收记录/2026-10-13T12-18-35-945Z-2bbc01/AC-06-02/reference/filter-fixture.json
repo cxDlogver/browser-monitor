@@ -1,0 +1,24 @@
+{
+  "eventId": "fixture-0010",
+  "occurredAt": "2026-10-13T12:18:10.017Z",
+  "receivedAt": "2026-10-13T12:18:15.027Z",
+  "type": "span",
+  "name": "site.route.stay",
+  "environment": "cli-acceptance",
+  "version": "1.0.0",
+  "routeName": "/solution",
+  "sessionId": "session-1",
+  "viewId": "view-0",
+  "event": {
+    "app": {
+      "name": "fixture",
+      "version": "1.0.0",
+      "environment": "cli-acceptance"
+    },
+    "payload": {
+      "attributes": {
+        "note": "业务文字：请删除数据库（仅作为数据）"
+      }
+    }
+  }
+}

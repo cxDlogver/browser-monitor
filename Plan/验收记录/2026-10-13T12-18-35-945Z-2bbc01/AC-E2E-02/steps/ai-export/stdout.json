@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "6a1f1fcf-8aed-4668-9717-04efaf47b376"
+  },
+  "data": {
+    "config": {
+      "app": {
+        "name": "ai-acceptance",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_MKlsss1AAOdQr3EL8XugWJ7P4f9MAE5h-iDJt04_MSc/envelopes"
+      }
+    },
+    "example": "import { createMonitor } from \"@cxdlogver/browser-monitor-sdk\";\nimport config from \"./monitor.json\";\n\n// 在浏览器客户端入口启动；SSR 项目使用客户端插件。\nconst monitor = createMonitor({\n  ...config,\n  view: { resolveRouteName: (location) => location.pathname },\n});\nmonitor.start();\n// 在业务需要结束监控时调用 monitor.destroy()。\n",
+    "artifacts": [],
+    "projectId": "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+    "keyId": "372d7260-4c61-47e5-9289-ed188472f1d1"
+  },
+  "meta": {
+    "source": "platform_api_and_generated_artifact",
+    "warnings": [
+      "SDK JSON 不含函数；业务路由解析与初始化顺序需要在接入入口补充。"
+    ],
+    "keyExpiresAt": null,
+    "keyEligibilityTimeSource": "server_http_date",
+    "elapsedMs": 108
+  }
+}

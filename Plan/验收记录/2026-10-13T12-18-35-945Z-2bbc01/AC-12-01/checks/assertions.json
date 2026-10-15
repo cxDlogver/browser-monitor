@@ -1,0 +1,30 @@
+[
+  {
+    "name": "all stages pass",
+    "expected": [
+      "pass",
+      "pass",
+      "pass",
+      "pass"
+    ],
+    "observed": [
+      "pass",
+      "pass",
+      "pass",
+      "pass"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "auth401 API responsive",
+    "expected": [
+      "pass",
+      "unknown"
+    ],
+    "observed": [
+      "pass",
+      "unknown"
+    ],
+    "verdict": "passed"
+  }
+]

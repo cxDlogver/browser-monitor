@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "user": {
+      "id": "386aa0a4-ff65-4f79-9ef7-5cd127bf1f45",
+      "email": "cli-final-owner-5ffad800-491b-45e3-9efc-4e38cd0bc80b@example.test",
+      "displayName": "CLI final owner",
+      "sessionId": "a65221fe-5f77-4691-a64d-54a06d7f96a5"
+    }
+  }
+}

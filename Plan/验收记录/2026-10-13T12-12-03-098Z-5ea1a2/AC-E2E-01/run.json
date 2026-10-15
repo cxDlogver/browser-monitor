@@ -1,0 +1,221 @@
+{
+  "caseId": "AC-E2E-01",
+  "startedAt": "2026-10-13T12:16:13.568Z",
+  "endedAt": "2026-10-13T12:16:18.555Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "qhzhc-live-list",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--from",
+        "2026-10-13T11:39:06.419Z",
+        "--to",
+        "2026-10-13T11:39:08.419Z",
+        "--include-payload",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:13.662Z",
+      "endedAt": "2026-10-13T12:16:14.108Z",
+      "elapsedMs": 446,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "qhzhc-live-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:14.108Z",
+      "endedAt": "2026-10-13T12:16:14.556Z",
+      "elapsedMs": 448,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "qhzhc-live-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--occurred-at",
+        "2026-10-13T11:39:07.419Z",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:14.600Z",
+      "endedAt": "2026-10-13T12:16:15.105Z",
+      "elapsedMs": 505,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "qhzhc-live-wait",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--occurred-at",
+        "2026-10-13T11:39:07.419Z",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:15.105Z",
+      "endedAt": "2026-10-13T12:16:15.620Z",
+      "elapsedMs": 515,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "qhzhc-live-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:15.620Z",
+      "endedAt": "2026-10-13T12:16:16.091Z",
+      "elapsedMs": 470,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "official-live-list",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--from",
+        "2026-10-13T11:46:07.982Z",
+        "--to",
+        "2026-10-13T11:46:09.982Z",
+        "--include-payload",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:16.103Z",
+      "endedAt": "2026-10-13T12:16:16.575Z",
+      "elapsedMs": 472,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "official-live-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:16.575Z",
+      "endedAt": "2026-10-13T12:16:17.045Z",
+      "elapsedMs": 470,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "official-live-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--occurred-at",
+        "2026-10-13T11:46:08.982Z",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:17.050Z",
+      "endedAt": "2026-10-13T12:16:17.552Z",
+      "elapsedMs": 502,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "official-live-wait",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--occurred-at",
+        "2026-10-13T11:46:08.982Z",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:17.552Z",
+      "endedAt": "2026-10-13T12:16:18.037Z",
+      "elapsedMs": 485,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    },
+    {
+      "name": "official-live-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:16:18.037Z",
+      "endedAt": "2026-10-13T12:16:18.534Z",
+      "elapsedMs": 497,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-huHxe6"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

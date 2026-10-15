@@ -1,0 +1,377 @@
+{
+  "caseId": "AC-10-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "只有同一诊断中 processing 已提交且任务存在并 completed 才完成；仅原始存在或处理已提交仍不满足。",
+      "observed": {
+        "checks": [
+          {
+            "name": "only final snapshot completes",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "same snapshot evidence",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "noop-revision recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual no-op completes",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "normal",
+            "exitCode": 0,
+            "elapsedMs": 2528
+          },
+          {
+            "name": "actual-noop",
+            "exitCode": 0,
+            "elapsedMs": 484
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "ffa6f05c397ca8aa17d2ff080ce85855af914ea8d8005e3e808234bd8c236011",
+          "bytes": 785,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-noop-revision.json",
+          "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+          "bytes": 1872,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "79845ba9d418af4eadd6f91967b02ce029af8be3106139887c608d38c3003ed1",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-wait.json",
+          "sha256": "24bdbe340f81b54d8d5c405c36a5cd2e41776abc12062d0ca7f46a8f16800e92",
+          "bytes": 2504,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-wait.json",
+          "sha256": "fbcaab0392ac636914f35770d871a06d88ce43c921697be2e5b65f4848aff6ab",
+          "bytes": 2405,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "bbd53e2fe8bce05d2e85095b186f8be9493d64e97fd51e06d5d8c73fe81b6c8e",
+          "bytes": 1335,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "229e6b27432c8710867851d831bc758e9009ba6f649fa677e026f693d9474d4c",
+          "bytes": 1471,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/actual-noop/command.txt",
+          "sha256": "2cda240549585b6d18b3d4a0946bf523fbd29dc9033d71f7175531961ab29958",
+          "bytes": 152,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/actual-noop/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/actual-noop/stdout.json",
+          "sha256": "3220bde16ee19ba732c3c9900329ae3457939d91e5244b3ee12eff584660ae0d",
+          "bytes": 1972,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/command.txt",
+          "sha256": "6a3e7bf75e13c8b8a74b9691b16950e8a81a2091ccc6092e74a934464873ca17",
+          "bytes": 179,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/stdout.json",
+          "sha256": "0987ba0ddcdfae0a9908c9d738b68e962bd2172cdcc56bcd15240512a795fd51",
+          "bytes": 1198,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "合法 no-op 可完成，不要求新增领域行，也不额外等待聚合或缓存可见；返回耗时、次数和最后证据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "only final snapshot completes",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "same snapshot evidence",
+            "expected": [
+              "committed",
+              "completed"
+            ],
+            "observed": [
+              "committed",
+              "completed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "noop-revision recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual no-op completes",
+            "expected": "completed",
+            "observed": "completed",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-wait exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "normal",
+            "exitCode": 0,
+            "elapsedMs": 2528
+          },
+          {
+            "name": "actual-noop",
+            "exitCode": 0,
+            "elapsedMs": 484
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "ffa6f05c397ca8aa17d2ff080ce85855af914ea8d8005e3e808234bd8c236011",
+          "bytes": 785,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-noop-revision.json",
+          "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+          "bytes": 1872,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "79845ba9d418af4eadd6f91967b02ce029af8be3106139887c608d38c3003ed1",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-wait.json",
+          "sha256": "24bdbe340f81b54d8d5c405c36a5cd2e41776abc12062d0ca7f46a8f16800e92",
+          "bytes": 2504,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-wait.json",
+          "sha256": "fbcaab0392ac636914f35770d871a06d88ce43c921697be2e5b65f4848aff6ab",
+          "bytes": 2405,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "bbd53e2fe8bce05d2e85095b186f8be9493d64e97fd51e06d5d8c73fe81b6c8e",
+          "bytes": 1335,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "229e6b27432c8710867851d831bc758e9009ba6f649fa677e026f693d9474d4c",
+          "bytes": 1471,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/actual-noop/command.txt",
+          "sha256": "2cda240549585b6d18b3d4a0946bf523fbd29dc9033d71f7175531961ab29958",
+          "bytes": 152,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/actual-noop/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/actual-noop/stdout.json",
+          "sha256": "3220bde16ee19ba732c3c9900329ae3457939d91e5244b3ee12eff584660ae0d",
+          "bytes": 1972,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/command.txt",
+          "sha256": "6a3e7bf75e13c8b8a74b9691b16950e8a81a2091ccc6092e74a934464873ca17",
+          "bytes": 179,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/normal/stdout.json",
+          "sha256": "0987ba0ddcdfae0a9908c9d738b68e962bd2172cdcc56bcd15240512a795fd51",
+          "bytes": 1198,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

@@ -1,0 +1,72 @@
+{
+  "caseId": "AC-11-04",
+  "startedAt": "2026-10-13T12:21:02.565Z",
+  "endedAt": "2026-10-13T12:21:04.037Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "unknown-asof",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50504"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:02.565Z",
+      "endedAt": "2026-10-13T12:21:03.160Z",
+      "elapsedMs": 594,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NVGWO6"
+    },
+    {
+      "name": "untrusted-event",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50504"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:03.160Z",
+      "endedAt": "2026-10-13T12:21:03.589Z",
+      "elapsedMs": 429,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NVGWO6"
+    },
+    {
+      "name": "sdk-dsn",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50504"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:03.589Z",
+      "endedAt": "2026-10-13T12:21:04.026Z",
+      "elapsedMs": 437,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NVGWO6"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

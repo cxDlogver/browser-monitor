@@ -1,0 +1,50 @@
+[
+  {
+    "name": "two retries then stop",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "at most3",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "403 once",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "RetryAfter cannot extend30",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "no requests after deadline",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "total30",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "three requests within30",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "first two request deadlines10s",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

@@ -1,0 +1,132 @@
+{
+  "invocation": [
+    "events",
+    "diagnose",
+    "--event-id",
+    "event-mv6m7o46-p-fgojbyio",
+    "--occurred-at",
+    "2026-10-13T11:46:08.982Z",
+    "--include-payload"
+  ],
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events diagnose",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+    },
+    "data": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "event": {
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "occurredAt": "2026-10-13T11:46:08.982Z",
+        "receivedAt": "2026-10-13T11:46:11.176Z",
+        "type": "span",
+        "name": "site.route.stay",
+        "payload": {
+          "app": {
+            "name": "guanwang",
+            "version": "1.0.0",
+            "environment": "cli-acceptance"
+          },
+          "name": "site.route.stay",
+          "type": "span",
+          "context": {
+            "url": "http://localhost:3000/solution",
+            "viewId": "view-mv6m7ad4-2-5rocy26r",
+            "runtime": {
+              "sdk": {
+                "name": "@cxdlogver/browser-monitor-sdk",
+                "version": "0.3.0"
+              },
+              "online": true,
+              "language": "zh-CN",
+              "platform": "Win32",
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+            },
+            "routeName": "/solution",
+            "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+          },
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "payload": {
+            "name": "site.route.stay",
+            "type": "span",
+            "source": "custom",
+            "status": "ok",
+            "endedAt": 1791891968982,
+            "metrics": {
+              "visibleMs": {
+                "unit": "ms",
+                "value": 17821
+              }
+            },
+            "startedAt": 1791891951161,
+            "attributes": {
+              "path": "/solution",
+              "section": "/solution"
+            },
+            "durationMs": 17821.40000000596
+          },
+          "occurredAt": 1791891968982,
+          "correlation": {
+            "spanId": "adf2c42894e06be4",
+            "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+            "parentSpanId": "79b9f934eae822f7"
+          },
+          "protocolVersion": "3.0"
+        }
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:46:11.248Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "618792ee-7afe-4c67-92a6-475160b7c889",
+        "status": "completed",
+        "attempts": 1,
+        "availableAt": "2026-10-13T11:46:11.176Z",
+        "lockedAt": null,
+        "completedAt": "2026-10-13T11:46:11.263Z",
+        "lastFailedAt": null,
+        "lastError": null
+      },
+      "projection": {
+        "visibility": "visible",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "custom_signal",
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "occurredAt": "2026-10-13T11:46:08.982Z"
+        },
+        "currentEntity": {
+          "event_id": "event-mv6m7o46-p-fgojbyio",
+          "kind": "span",
+          "trace_id": "8bb60d85f54603bbfe5752f2b527c42b",
+          "span_id": "adf2c42894e06be4"
+        },
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:48:03.448Z",
+      "source": "database"
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:48:03.448Z",
+      "elapsedMs": 126
+    }
+  },
+  "stderr": ""
+}

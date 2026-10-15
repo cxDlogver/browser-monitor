@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "create" "--display-name" "CLI非交互-2026-10-13T12-12-03-098Z-5ea1a2" "--app-name" "ai-acceptance" "--base-url" "http://localhost:8080"

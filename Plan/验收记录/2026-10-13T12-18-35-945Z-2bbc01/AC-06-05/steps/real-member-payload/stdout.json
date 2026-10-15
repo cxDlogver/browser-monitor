@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  },
+  "data": {
+    "items": [
+      {
+        "eventId": "event-mv6lymu3-3-as5ip2jy",
+        "occurredAt": "2026-10-13T11:39:07.419Z",
+        "receivedAt": "2026-10-13T11:39:10.065Z",
+        "type": "view",
+        "name": "view.start",
+        "environment": "cli-acceptance",
+        "version": "1.0.0",
+        "sessionId": "session-mv6lymu2-1-4nyjjht5",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "routeName": "/dataVisualization",
+        "correlation": {},
+        "event": {
+          "app": {
+            "name": "qhzhc",
+            "version": "1.0.0",
+            "environment": "cli-acceptance"
+          },
+          "name": "view.start",
+          "type": "view",
+          "context": {
+            "url": "http://127.0.0.1:9527/",
+            "viewId": "view-mv6lymu3-2-k3gcygom",
+            "runtime": {
+              "sdk": {
+                "name": "@cxdlogver/browser-monitor-sdk",
+                "version": "0.3.0"
+              },
+              "online": true,
+              "language": "zh-CN",
+              "platform": "Win32",
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+            },
+            "routeName": "/dataVisualization",
+            "sessionId": "session-mv6lymu2-1-4nyjjht5"
+          },
+          "eventId": "event-mv6lymu3-3-as5ip2jy",
+          "payload": {
+            "url": "http://127.0.0.1:9527/",
+            "name": "view.start",
+            "type": "view",
+            "source": "initial",
+            "viewId": "view-mv6lymu3-2-k3gcygom",
+            "routeName": "/dataVisualization",
+            "startedAt": 1791891547419
+          },
+          "occurredAt": 1791891547419,
+          "correlation": {},
+          "protocolVersion": "3.0"
+        }
+      }
+    ],
+    "nextCursor": null,
+    "hasMore": false,
+    "range": {
+      "from": "2026-10-12T12:30:18.478Z",
+      "to": "2026-10-13T12:30:18.478Z"
+    },
+    "asOf": "2026-10-13T12:30:18.562Z",
+    "source": "database",
+    "limitations": [
+      "Keyset pagination is not a snapshot across separate page requests."
+    ]
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:30:18.562Z",
+    "query": {
+      "from": "2026-10-12T12:30:18.478Z",
+      "to": "2026-10-13T12:30:18.478Z",
+      "eventId": "event-mv6lymu3-3-as5ip2jy"
+    },
+    "elapsedMs": 93
+  }
+}

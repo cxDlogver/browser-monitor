@@ -1,0 +1,8 @@
+[
+  {
+    "name": "invalid input no resource request",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  }
+]

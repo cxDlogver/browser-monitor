@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:59834",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "--display-name 应为 1–120 个字符",
+    "details": null
+  }
+}

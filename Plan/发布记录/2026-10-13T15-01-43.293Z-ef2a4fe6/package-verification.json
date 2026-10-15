@@ -1,0 +1,188 @@
+{
+  "batchId": "2026-10-13T15-01-43.293Z-ef2a4fe6",
+  "target": "npm tarball and isolated global install",
+  "status": "passed",
+  "steps": [
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nvm\\v22.12.0\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "\n> @cxdlogver/browser-monitor-cli@0.1.0 build\n> tsc -p tsconfig.json\n\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nvm\\v22.12.0\\node_modules\\npm\\bin\\npm-cli.js",
+        "pack",
+        "--json",
+        "--ignore-scripts",
+        "--pack-destination",
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "[\n  {\n    \"id\": \"@cxdlogver/browser-monitor-cli@0.1.0\",\n    \"name\": \"@cxdlogver/browser-monitor-cli\",\n    \"version\": \"0.1.0\",\n    \"size\": 23467,\n    \"unpackedSize\": 69492,\n    \"shasum\": \"df8aa3bc05f45136574f7b3940ad530bedb4d17f\",\n    \"integrity\": \"sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==\",\n    \"filename\": \"cxdlogver-browser-monitor-cli-0.1.0.tgz\",\n    \"files\": [\n      {\n        \"path\": \"CHANGELOG.md\",\n        \"size\": 846,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"LICENSE\",\n        \"size\": 1066,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"README.md\",\n        \"size\": 10765,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"bin/bm.mjs\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands.js\",\n        \"size\": 25456,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/context.js\",\n        \"size\": 3804,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/contracts.js\",\n        \"size\": 3215,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/errors.js\",\n        \"size\": 1392,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/files.js\",\n        \"size\": 2182,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/http.js\",\n        \"size\": 7106,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 2325,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/input.js\",\n        \"size\": 7211,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/output.js\",\n        \"size\": 2412,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 1344,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 14,\n    \"bundled\": []\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nvm\\v22.12.0\\node_modules\\npm\\bin\\npm-cli.js",
+        "install",
+        "--global",
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\cxdlogver-browser-monitor-cli-0.1.0.tgz",
+        "--prefix",
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--registry=https://registry.npmjs.org/"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "\nadded 1 package in 1s\n",
+      "stderr": ""
+    },
+    {
+      "command": "bm.cmd",
+      "args": [
+        "--help"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "bm — 监控平台 CLI（Node.js >=22）\n\nauth login --email EMAIL [--password-stdin] | auth status | auth logout\nproject list | project get | project create --display-name NAME --app-name NAME\nproject use PROJECT_ID\norigins get | origins set --origin ORIGIN [--origin ORIGIN ...]（整体替换）\nsdk export --app-version VERSION --environment ENV [--key-id ID --out FILE --example-out FILE --overwrite]\nevents list [--from ISO --to ISO --limit 1..100 --cursor CURSOR]\n  [--type TYPE --name NAME --event-id ID --environment ENV --version VERSION]\n  [--route-name ROUTE --session-id ID --view-id ID --include-payload]\nevents diagnose --event-id ID [--occurred-at ISO --include-payload]\nevents wait --event-id ID [--occurred-at ISO --timeout SECONDS --interval SECONDS]\ndata summary | queue status | health\n\n公共参数：--base-url URL --project UUID --context-dir DIRECTORY --format json|table\n--request-timeout SECONDS（默认10） --command-timeout SECONDS（默认30）\n--max-output-bytes BYTES（默认1048576，最小4096）\n等待默认60秒/间隔2秒，间隔最小1秒；列表默认最近24小时/50条，最长180天。\n权限：项目读取与导出需成员身份；Origin 整体替换需 Owner；创建需已登录账号。\n写操作：project create 新建对象；origins set 整体替换；project use 保存本地选择；sdk export 生成文件。\nWRITE_OUTCOME_UNKNOWN 时用 get 回查，勿自动重写；已有文件需 --overwrite；AUTH_EXPIRED 时重新登录。\nBM_HOME 可指定凭据目录，默认用户目录/.browser-monitor；不要放入业务仓库。\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "health",
+        "--base-url",
+        "http://127.0.0.1:59857"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": true,\n  \"command\": \"health\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": null\n  },\n  \"data\": {\n    \"target\": \"http://127.0.0.1:59857\",\n    \"checkedAt\": \"2026-10-13T15:01:52.368Z\",\n    \"connectivity\": {\n      \"state\": \"pass\",\n      \"source\": \"http_responses\",\n      \"reason\": \"已收到平台响应\"\n    },\n    \"liveness\": {\n      \"state\": \"pass\",\n      \"source\": \"/health/live\",\n      \"reason\": \"平台确认\",\n      \"details\": {\n        \"status\": \"ok\"\n      }\n    },\n    \"readiness\": {\n      \"state\": \"pass\",\n      \"source\": \"/health/ready\",\n      \"reason\": \"平台确认\",\n      \"details\": {\n        \"status\": \"ok\"\n      }\n    },\n    \"managementApi\": {\n      \"state\": \"pass\",\n      \"authentication\": \"unknown\",\n      \"source\": \"/api/v1/auth/me\",\n      \"reason\": \"AUTH_REQUIRED\"\n    },\n    \"limitations\": [\n      \"基础健康不证明 Worker 正常或特定项目已经写入、处理。\"\n    ]\n  },\n  \"meta\": {\n    \"source\": \"health_api\",\n    \"warnings\": [],\n    \"elapsedMs\": 69\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "auth",
+        "login",
+        "--base-url",
+        "http://127.0.0.1:59857",
+        "--email",
+        "package-fixture@example.test",
+        "--password-stdin"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": true,\n  \"command\": \"auth login\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": null\n  },\n  \"data\": {\n    \"user\": {\n      \"id\": \"package-fixture-user\",\n      \"email\": \"package-fixture@example.test\",\n      \"displayName\": \"Package fixture\"\n    },\n    \"expiresAt\": \"2026-10-13T15:11:53.015Z\",\n    \"sessionSaved\": true\n  },\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": [],\n    \"expiresAt\": \"2026-10-13T15:11:53.015Z\",\n    \"elapsedMs\": 259\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "project",
+        "use",
+        "11111111-1111-4111-8111-111111111111",
+        "--base-url",
+        "http://127.0.0.1:59857"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": true,\n  \"command\": \"project use\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\"\n  },\n  \"data\": {\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\",\n    \"contextSaved\": true,\n    \"path\": \"F:\\\\CX_notes\\\\cx-learn-notes\\\\browser-monitor\\\\Plan\\\\发布记录\\\\2026-10-13T15-01-43.293Z-ef2a4fe6\\\\business-directory\\\\.browser-monitor.json\"\n  },\n  \"meta\": {\n    \"source\": \"platform_api_and_local_file\",\n    \"warnings\": [],\n    \"elapsedMs\": 49\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "project",
+        "get"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": true,\n  \"command\": \"project get\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\"\n  },\n  \"data\": {\n    \"id\": \"11111111-1111-4111-8111-111111111111\",\n    \"displayName\": \"Package install fixture\",\n    \"appName\": \"installed-cli\",\n    \"enabled\": true,\n    \"role\": \"owner\",\n    \"origins\": [\n      \"http://localhost:3000\"\n    ],\n    \"keys\": [\n      {\n        \"id\": \"22222222-2222-4222-8222-222222222222\",\n        \"active\": true,\n        \"expiresAt\": null,\n        \"dsn\": \"http://127.0.0.1:59857/ingest/package-fixture\"\n      }\n    ]\n  },\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": [],\n    \"elapsedMs\": 45\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "package-smoke",
+        "--out",
+        "monitor.json",
+        "--example-out",
+        "monitor.example.ts"
+      ],
+      "expectedExitCode": 0,
+      "observedExitCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": true,\n  \"command\": \"sdk export\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\"\n  },\n  \"data\": {\n    \"artifacts\": [\n      {\n        \"kind\": \"out\",\n        \"path\": \"F:\\\\CX_notes\\\\cx-learn-notes\\\\browser-monitor\\\\Plan\\\\发布记录\\\\2026-10-13T15-01-43.293Z-ef2a4fe6\\\\business-directory\\\\monitor.json\"\n      },\n      {\n        \"kind\": \"example-out\",\n        \"path\": \"F:\\\\CX_notes\\\\cx-learn-notes\\\\browser-monitor\\\\Plan\\\\发布记录\\\\2026-10-13T15-01-43.293Z-ef2a4fe6\\\\business-directory\\\\monitor.example.ts\"\n      }\n    ],\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\",\n    \"keyId\": \"22222222-2222-4222-8222-222222222222\"\n  },\n  \"meta\": {\n    \"source\": \"platform_api_and_generated_artifact\",\n    \"warnings\": [\n      \"SDK JSON 不含函数；业务路由解析与初始化顺序需要在接入入口补充。\"\n    ],\n    \"keyExpiresAt\": null,\n    \"keyEligibilityTimeSource\": \"server_http_date\",\n    \"elapsedMs\": 78\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "D:\\xiang\\CX_application\\1_Configuration_Files\\Front_Rear_END\\nodeJS\\node.exe",
+      "args": [
+        "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\global-prefix\\node_modules\\@cxdlogver\\browser-monitor-cli\\bin\\bm.mjs",
+        "events",
+        "list",
+        "--limit",
+        "101"
+      ],
+      "expectedExitCode": 2,
+      "observedExitCode": 2,
+      "stdout": "{\n  \"schemaVersion\": 1,\n  \"ok\": false,\n  \"command\": \"events list\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:59857\",\n    \"projectId\": \"11111111-1111-4111-8111-111111111111\"\n  },\n  \"data\": null,\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": []\n  },\n  \"error\": {\n    \"code\": \"INVALID_ARGUMENT\",\n    \"message\": \"--limit 超出有效范围\",\n    \"details\": null\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "package": {
+    "name": "@cxdlogver/browser-monitor-cli",
+    "version": "0.1.0",
+    "tarball": "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\发布记录\\2026-10-13T15-01-43.293Z-ef2a4fe6\\cxdlogver-browser-monitor-cli-0.1.0.tgz",
+    "integrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+    "files": [
+      "CHANGELOG.md",
+      "LICENSE",
+      "README.md",
+      "bin/bm.mjs",
+      "dist/commands.js",
+      "dist/context.js",
+      "dist/contracts.js",
+      "dist/errors.js",
+      "dist/files.js",
+      "dist/http.js",
+      "dist/index.js",
+      "dist/input.js",
+      "dist/output.js",
+      "package.json"
+    ]
+  },
+  "assertions": {
+    "packageAllowlist": true,
+    "integrity": true,
+    "installedContents": true,
+    "noRuntimeDependencies": true,
+    "globalCommand": true,
+    "healthJson": true,
+    "sessionFile": true,
+    "businessContext": true,
+    "sdkFiles": true,
+    "structuredError": true
+  }
+}

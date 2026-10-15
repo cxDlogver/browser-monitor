@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "installed-cli",
+    "version": "1.0.0",
+    "environment": "package-smoke"
+  },
+  "transport": {
+    "dsn": "http://127.0.0.1:59857/ingest/package-fixture"
+  }
+}

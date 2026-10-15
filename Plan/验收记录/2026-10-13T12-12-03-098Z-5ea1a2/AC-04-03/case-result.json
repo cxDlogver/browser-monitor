@@ -1,0 +1,209 @@
+{
+  "caseId": "AC-04-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "返回 WRITE_OUTCOME_UNKNOWN，未知 PUT 不自动重试。",
+      "observed": {
+        "checks": [
+          {
+            "name": "unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "only one PUT",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual readback",
+            "expected": [
+              "http://localhost:3000"
+            ],
+            "observed": [
+              "http://localhost:3000"
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "set-lost",
+            "exitCode": 5,
+            "elapsedMs": 429
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 403
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "409b02ee8cebcd4980dea0e2e88204cd55acbe2a00ce2de864bef8b00cbce2d0",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "10d72ec14651f5bbed78eeb25c1a4b0fffdcc6eefb85126917efaa2f7c929ad4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "2bc7cc24e9254b66302f763e8d3330f8c1ce660a0b12fc92baf0313e6196e560",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "480a4649656dda5712ca52809436b9c3a04adf6c6d621bbdc57b226eae27cb42",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "7329c6019d6cca8755c5d0fc6f03365dcfbb20145bf1edf304fa5724f50e2399",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "11722d0a71a48da327d044c4509952f97d3997c89fe306216f66323f9d49d129",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "fc9ab9385f7e10ad11e85a5813bcd601c4863668cfbbed4b79acf4175209f6d0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/command.txt",
+          "sha256": "30efd4659d20534f6c65fb6ec0552bd1bf4c27e0acd7f9f5b17cb4dfb1f8049a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/stdout.json",
+          "sha256": "3cdeebd981ad645cee695a4258e7da1094362bdf7bfd1cb6c40c4fdba0780782",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "后续读取给出实际保存集合，能够据此恢复流程而不猜测写入是否发生。",
+      "observed": {
+        "checks": [
+          {
+            "name": "unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "only one PUT",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual readback",
+            "expected": [
+              "http://localhost:3000"
+            ],
+            "observed": [
+              "http://localhost:3000"
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "set-lost",
+            "exitCode": 5,
+            "elapsedMs": 429
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 403
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "409b02ee8cebcd4980dea0e2e88204cd55acbe2a00ce2de864bef8b00cbce2d0",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "10d72ec14651f5bbed78eeb25c1a4b0fffdcc6eefb85126917efaa2f7c929ad4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "2bc7cc24e9254b66302f763e8d3330f8c1ce660a0b12fc92baf0313e6196e560",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "480a4649656dda5712ca52809436b9c3a04adf6c6d621bbdc57b226eae27cb42",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "7329c6019d6cca8755c5d0fc6f03365dcfbb20145bf1edf304fa5724f50e2399",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "11722d0a71a48da327d044c4509952f97d3997c89fe306216f66323f9d49d129",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "fc9ab9385f7e10ad11e85a5813bcd601c4863668cfbbed4b79acf4175209f6d0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/command.txt",
+          "sha256": "30efd4659d20534f6c65fb6ec0552bd1bf4c27e0acd7f9f5b17cb4dfb1f8049a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set-lost/stdout.json",
+          "sha256": "3cdeebd981ad645cee695a4258e7da1094362bdf7bfd1cb6c40c4fdba0780782",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

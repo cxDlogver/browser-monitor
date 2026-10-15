@@ -1,0 +1,37 @@
+{
+  "invocation": [
+    "project",
+    "create",
+    "--display-name",
+    "实时走航车项目-CLI验收",
+    "--app-name",
+    "qhzhc"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "project create",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": null
+    },
+    "data": {
+      "id": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "displayName": "实时走航车项目-CLI验收",
+      "appName": "qhzhc",
+      "role": "owner",
+      "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes",
+      "confirmation": "server_response",
+      "independentlyReadBack": false
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "elapsedMs": 106
+    }
+  },
+  "stderr": ""
+}

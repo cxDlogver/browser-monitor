@@ -1,0 +1,32 @@
+schemaVersion	1
+ok	true
+command	"queue status"
+context.baseUrl	"http://127.0.0.1:49607"
+context.projectId	"00000000-0000-4000-8000-000000000001"
+data.projectId	"00000000-0000-4000-8000-000000000001"
+data.pendingTotal	3
+data.readyPending	1
+data.delayedPending	1
+data.pendingUnclassified	1
+data.processingTotal	3
+data.processingActive	1
+data.processingStale	1
+data.processingUnclassified	1
+data.failed	21
+data.deadLetters	1
+data.processedLastMinute	2
+data.lockTimeoutSeconds	300
+data.recentFailures	[{"eventId":"failed-0","error":"failure","failedAt":null},{"eventId":"failed-1","error":"failure","failedAt":null},{"eventId":"failed-2","error":"failure","failedAt":null},{"eventId":"failed-3","error":"failure","failedAt":null},{"eventId":"failed-4","error":"failure","failedAt":null},{"eventId":"failed-5","error":"failure","failedAt":null},{"eventId":"failed-6","error":"failure","failedAt":null},{"eventId":"failed-7","error":"failure","failedAt":null},{"eventId":"failed-8","error":"failure","failedAt":null},{"eventId":"failed-9","error":"failure","failedAt":null},{"eventId":"failed-10","error":"failure","failedAt":null},{"eventId":"failed-11","error":"failure","failedAt":null},{"eventId":"failed-12","error":"failure","failedAt":null},{"eventId":"failed-13","error":"failure","failedAt":null},{"eventId":"failed-14","error":"failure","failedAt":null},{"eventId":"failed-15","error":"failure","failedAt":null},{"eventId":"failed-16","error":"failure","failedAt":null},{"eventId":"failed-17","error":"failure","failedAt":null},{"eventId":"failed-18","error":"failure","failedAt":null},{"eventId":"failed-19","error":"failure","failedAt":null}]
+data.recentFailuresLimit	20
+data.recentFailuresHasMore	true
+data.source	"database"
+data.asOf	"2026-10-13T12:14:21.840Z"
+data.ingestion.accepted	999
+data.ingestion.source	"redis"
+data.ingestion.asOf	null
+data.otherTasks.labAudits.pending	2
+data.limitations	["deadLetters can overlap failed; active lock does not prove a live worker; auxiliary sources are not an atomic database snapshot"]
+meta.source	"database_and_labeled_auxiliary_sources"
+meta.warnings	[]
+meta.asOf	"2026-10-13T12:14:21.840Z"
+meta.elapsedMs	39

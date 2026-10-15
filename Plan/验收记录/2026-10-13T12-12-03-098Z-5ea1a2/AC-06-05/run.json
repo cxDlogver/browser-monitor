@@ -1,0 +1,108 @@
+{
+  "caseId": "AC-06-05",
+  "startedAt": "2026-10-13T12:12:54.815Z",
+  "endedAt": "2026-10-13T12:12:57.628Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "summary",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "fixture-0000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54852"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:54.815Z",
+      "endedAt": "2026-10-13T12:12:55.220Z",
+      "elapsedMs": 405,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tvWKg4"
+    },
+    {
+      "name": "payload",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "fixture-0000",
+        "--include-payload",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54852"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:55.220Z",
+      "endedAt": "2026-10-13T12:12:55.626Z",
+      "elapsedMs": 407,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tvWKg4"
+    },
+    {
+      "name": "empty",
+      "invocation": [
+        "events",
+        "list",
+        "--name",
+        "absent",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54852"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:55.627Z",
+      "endedAt": "2026-10-13T12:12:56.100Z",
+      "elapsedMs": 474,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tvWKg4"
+    },
+    {
+      "name": "denied",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54852"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:56.100Z",
+      "endedAt": "2026-10-13T12:12:56.508Z",
+      "elapsedMs": 408,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tvWKg4"
+    },
+    {
+      "name": "server-fault",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54852"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:56.509Z",
+      "endedAt": "2026-10-13T12:12:57.606Z",
+      "elapsedMs": 1098,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tvWKg4"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

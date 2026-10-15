@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  },
+  "data": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "event": {
+      "eventId": "event-mv6lymu3-3-as5ip2jy",
+      "occurredAt": "2026-10-13T11:39:07.419Z",
+      "receivedAt": "2026-10-13T11:39:10.065Z",
+      "type": "view",
+      "name": "view.start"
+    },
+    "raw": {
+      "recordState": "present"
+    },
+    "processing": {
+      "state": "committed",
+      "processedAt": "2026-10-13T11:39:10.287Z",
+      "evidence": "telemetry_events.processed_at"
+    },
+    "task": {
+      "recordState": "present",
+      "taskId": "92e5e213-ce09-4e80-97ed-c432aa73473b",
+      "status": "completed",
+      "attempts": 1,
+      "availableAt": "2026-10-13T11:39:10.065Z",
+      "lockedAt": null,
+      "completedAt": "2026-10-13T11:39:10.304Z",
+      "lastFailedAt": null,
+      "lastError": null
+    },
+    "projection": {
+      "visibility": "visible",
+      "eventEffect": "unknown",
+      "identity": {
+        "kind": "view",
+        "viewId": "view-mv6lymu3-2-k3gcygom"
+      },
+      "currentEntity": {
+        "view_id": "view-mv6lymu3-2-k3gcygom",
+        "started_at": "2026-10-13T11:39:07.419Z",
+        "ended_at": "2026-10-13T11:42:35.212Z"
+      },
+      "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+    },
+    "history": {
+      "limitations": [],
+      "completedTaskRetentionDays": 7
+    },
+    "asOf": "2026-10-13T12:22:57.258Z",
+    "source": "database"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:22:57.258Z",
+    "elapsedMs": 118
+  }
+}

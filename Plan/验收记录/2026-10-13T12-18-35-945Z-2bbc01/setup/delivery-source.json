@@ -1,0 +1,178 @@
+{
+  "cliVersion": "0.1.0",
+  "node": "v22.12.0",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sha256": "cb5e2e73a19b60636f43fd937e3a772a3ac49f2205a8ed57fbf5c16e584f9b90"
+    },
+    {
+      "path": "cli/bin/bm.mjs",
+      "sha256": "fd79e8ff23e3b506b8679b0cefae0f7de963626dc79dde7b32d5825fa20828b5"
+    },
+    {
+      "path": "cli/package.json",
+      "sha256": "0a1eecb85dd4020032168db71e787a7da4f659554d058764dcbbd81145b68647"
+    },
+    {
+      "path": "cli/scripts/acceptance-data.mjs",
+      "sha256": "b3f4cc204b57448a76e27ae2ae81583ddd3a799f9528bd7587f45ab13fe08ff4"
+    },
+    {
+      "path": "cli/scripts/acceptance-kit.mjs",
+      "sha256": "d8584231199cec114c48e9231c713fb2fbcee877ff1b76a57fd78b630e6fe9e6"
+    },
+    {
+      "path": "cli/scripts/acceptance-management.mjs",
+      "sha256": "0d1e61b26b1535d91f2af54d79565903ac571d53a2b1ea4ded1b1c116df6cfd6"
+    },
+    {
+      "path": "cli/scripts/acceptance-protocol.mjs",
+      "sha256": "98c55fae7afb75acf2d960ce477abc679cbf34a5fa5585a757583f422e5f17da"
+    },
+    {
+      "path": "cli/scripts/audit-delivery.mjs",
+      "sha256": "6f702829dca73c6ab7bde0c183d9cc701a457d708b31fc2e633a76ba3e353143"
+    },
+    {
+      "path": "cli/scripts/capture-business.mjs",
+      "sha256": "8f596b15ab6ef925cf0e19209b69b4d97731260552d593e79f2ff6aba59d4703"
+    },
+    {
+      "path": "cli/scripts/complete-acceptance.mjs",
+      "sha256": "fe3e9546da3291ea2e42a8c0fa31760cc06cac6b487e30d096d0163a0e55e519"
+    },
+    {
+      "path": "cli/scripts/prepare-business.mjs",
+      "sha256": "38273c61886991d8050f963263ef6fd9c743913f0238273e55234885d625b84f"
+    },
+    {
+      "path": "cli/scripts/start-business-local.mjs",
+      "sha256": "ad13fb301d12fa1ca3c3af24d14ef025ff63f9bb76f6e86f1b291b6ac76650db"
+    },
+    {
+      "path": "cli/scripts/start-qhzhc-backend.mjs",
+      "sha256": "c4dc6b3479809631e66c9248a663601fda8f457d2cef39e0866dd335edddbad9"
+    },
+    {
+      "path": "cli/scripts/update-plan-records.mjs",
+      "sha256": "0f4d06c8ce41df98caf3e70d7fd2156882b5940f9a5919bf80d965d668de2f67"
+    },
+    {
+      "path": "cli/scripts/verify-acceptance.mjs",
+      "sha256": "ed3731995b52f8c32d63e0a4e830a38e86117caf5d76c9ef737ab1dc9282fb9c"
+    },
+    {
+      "path": "cli/scripts/verify-diagnostics.mjs",
+      "sha256": "88d982c533540bfe2d171ffcf2ec5985c89dadbe5fccfc149035bb3207fe1e68"
+    },
+    {
+      "path": "cli/scripts/verify-local.mjs",
+      "sha256": "104c6ec3d155f26e1fa1114e60e90439687adccdb6e813f9f1c7ed155030ac12"
+    },
+    {
+      "path": "cli/src/commands.ts",
+      "sha256": "2f83c44b1632f96b476360c8b6203078fbd7b7368e6ab2da0c89082c911d35f7"
+    },
+    {
+      "path": "cli/src/context.ts",
+      "sha256": "499d47e7ef151728f220bd2d88e11fc412e005966de869f0820eb52edf8773db"
+    },
+    {
+      "path": "cli/src/contracts.ts",
+      "sha256": "4f730341501dc4ac2947b92d005215c1630de2dd651ab9f0895b4f04a80a5569"
+    },
+    {
+      "path": "cli/src/errors.ts",
+      "sha256": "5577b833d8d01d0965985e39520d263df147238826bfcd82a6053d6d4b29d732"
+    },
+    {
+      "path": "cli/src/files.ts",
+      "sha256": "ec2ef1db90d2c99246a687583e21ead9e71dcee5bbd56764b196ca10ecda6678"
+    },
+    {
+      "path": "cli/src/http.ts",
+      "sha256": "d2ffe0a673a4e13bf794f55677fade3509e61d97a4b3a0c07d6585a45e468719"
+    },
+    {
+      "path": "cli/src/index.ts",
+      "sha256": "c3f8efbcd9e98d699366df4a36182b8673030250dc95dd98e284b9ae42041be9"
+    },
+    {
+      "path": "cli/src/input.ts",
+      "sha256": "a43b0fcb9786ed81dbb30a32b06bcfd4858da0324befc16972ea11a3b5709920"
+    },
+    {
+      "path": "cli/src/output.ts",
+      "sha256": "5deb2a91417ad7747a08d0911dd7547e82a5fd6c3dd97b0f737e596d15cd9e3b"
+    },
+    {
+      "path": "cli/tests/cli.spec.ts",
+      "sha256": "3af0a79f47c3e0dabde678d58bedaa0cbe32fe14ae1f71c54eae2fb294fd7721"
+    },
+    {
+      "path": "cli/tests/infra.compose.yml",
+      "sha256": "a4c6221508b0174bf9eadc205553d32fae765a8c9b78285e66521cf566f77625"
+    },
+    {
+      "path": "cli/tests/input-output.spec.ts",
+      "sha256": "21ff27277e00ad6e54e7469c6733838173be800982909955db3955a3816edf5b"
+    },
+    {
+      "path": "package.json",
+      "sha256": "093a561198edd45314f2c62b9eace1e5dafeba3f6bdf760cd3610e20a15e65cf"
+    },
+    {
+      "path": "platform/apps/api/src/app.module.ts",
+      "sha256": "b72337cf2e9119c52b3408905c4a0a224abaea92e3ccd5ec9cdee0d6d839cf5d"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.controller.ts",
+      "sha256": "d75d8c6b2ed06d34259aa5230d9a46df2be093db9d17b04548a3371b6347dabb"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.module.ts",
+      "sha256": "7e165c85cfe6becddf0a2d68e1711e738321883a6582337e1238296287581e46"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.service.ts",
+      "sha256": "8988dae1d13999e8ca927846649762950764b773375a563d6a767263cdf98b77"
+    },
+    {
+      "path": "platform/apps/worker/src/outbox-worker.ts",
+      "sha256": "1393934a30ff66da12ff0faebfad24a462079ca7898db1e7c885bc0abab36578"
+    },
+    {
+      "path": "platform/infra/Dockerfile.audit-worker",
+      "sha256": "9d8c78bc46e306c5d6075277b9c9ebae258f117e567b4ff2e4485b5ff81e1e34"
+    },
+    {
+      "path": "platform/infra/Dockerfile.backend",
+      "sha256": "97e7ac31f61064af7a3fd5563fb3e90de8f5bc8b1d7d7d7ca00304e0680c10f6"
+    },
+    {
+      "path": "platform/infra/Dockerfile.web",
+      "sha256": "e4420cae92a3068ff6d7267ab74999d788ef968f55d5a6f8fe7f99082eb699e0"
+    },
+    {
+      "path": "platform/packages/database/migrations/0007_diagnostics.sql",
+      "sha256": "c51da2b27c0d95b3ab9eacbef529312b0b9148aeb5dd73aa22774004b852fc45"
+    },
+    {
+      "path": "platform/packages/database/src/index.ts",
+      "sha256": "06ce2b6b7b54cf9a3b7831d9386fc9a439f975fb8719d256c32960e5c269ca8e"
+    },
+    {
+      "path": "platform/packages/database/src/schema.ts",
+      "sha256": "87c3a8962c2f3ec3d9e55807584a0ad5e1d1aad171411e21ba9c80879b3fb0b3"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "d50186ea707e5453b7a58c5187d97b5a28ca66db38d0bb9f0b267f763a7e96e9"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha256": "2ab543162a18fc0861d6e466313df24c88b06b6d3aef2b8d03b7d3a76babe6b0"
+    }
+  ]
+}

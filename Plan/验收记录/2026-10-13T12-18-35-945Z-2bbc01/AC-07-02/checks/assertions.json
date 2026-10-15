@@ -1,0 +1,50 @@
+[
+  {
+    "name": "zero-summary recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "valid zero/null",
+    "expected": [
+      0,
+      null
+    ],
+    "observed": [
+      0,
+      null
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "new count",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "fresh asOf",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "unknown retention not guessed",
+    "expected": {
+      "state": "unknown",
+      "dropAfter": null
+    },
+    "observed": {
+      "state": "unknown",
+      "dropAfter": null
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "fault no old count",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  }
+]

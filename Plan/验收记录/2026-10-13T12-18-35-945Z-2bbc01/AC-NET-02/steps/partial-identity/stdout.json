@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50130",
+    "projectId": null
+  },
+  "data": {
+    "id": "00000000-0000-4000-8000-000000000009",
+    "confirmation": "incomplete"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "WRITE_OUTCOME_UNKNOWN",
+    "message": "创建响应缺少可靠确认。请回查，勿自动重建。",
+    "details": null
+  }
+}

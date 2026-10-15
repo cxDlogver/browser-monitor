@@ -1,0 +1,60 @@
+{
+  "caseId": "AC-10-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "c69c63f91271248d024f227a4b23c0cd956c14ea0967f1208d021ac40d399090",
+      "bytes": 769
+    },
+    {
+      "path": "checks/default-wait-timeline.json",
+      "sha256": "ec079acd4b16f87cff55b767c360926f5d573fcc3040ed571607222a9c5116fe",
+      "bytes": 15075
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "2837e880e5e08ed1552213a061aba8d6e2b4fa0f0fb13f786361470636854338",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "bccdfe3f896a61a3615af816afe982f9a0f4ee3ab909e53c1f1aee57f86b1b9a",
+      "bytes": 895
+    },
+    {
+      "path": "run.json",
+      "sha256": "af4a01d775c60b2f6b25bbe5334e9108ffaa0d24e7c740c343dc322f841f73d7",
+      "bytes": 1460
+    },
+    {
+      "path": "steps/default-budget/command.txt",
+      "sha256": "703a5aecad0251b6151037e4d8433a37a11c4859472bda6b3ea4402a5fd1025f",
+      "bytes": 146
+    },
+    {
+      "path": "steps/default-budget/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/default-budget/stdout.json",
+      "sha256": "7bb269021edad412f993ba09a732e30702a23a828d0f0bf840a2a0dd003d6d52",
+      "bytes": 1238
+    },
+    {
+      "path": "steps/short-budget/command.txt",
+      "sha256": "74f5c4005b9cd244f7e72d34f5f75b0a61801be9a88e591f60dc3590ef0c22d1",
+      "bytes": 204
+    },
+    {
+      "path": "steps/short-budget/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/short-budget/stdout.json",
+      "sha256": "a6eb66aa9f44cdac9e632004e965d11dbb69c29279c4c728ccacabdfdb2a09b3",
+      "bytes": 1338
+    }
+  ]
+}

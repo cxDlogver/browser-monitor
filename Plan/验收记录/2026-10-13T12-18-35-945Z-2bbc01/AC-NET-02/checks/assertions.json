@@ -1,0 +1,26 @@
+[
+  {
+    "name": "create unknown",
+    "expected": "WRITE_OUTCOME_UNKNOWN",
+    "observed": "WRITE_OUTCOME_UNKNOWN",
+    "verdict": "passed"
+  },
+  {
+    "name": "origins unknown",
+    "expected": "WRITE_OUTCOME_UNKNOWN",
+    "observed": "WRITE_OUTCOME_UNKNOWN",
+    "verdict": "passed"
+  },
+  {
+    "name": "one each write",
+    "expected": 2,
+    "observed": 2,
+    "verdict": "passed"
+  },
+  {
+    "name": "known ID preserved",
+    "expected": "00000000-0000-4000-8000-000000000009",
+    "observed": "00000000-0000-4000-8000-000000000009",
+    "verdict": "passed"
+  }
+]

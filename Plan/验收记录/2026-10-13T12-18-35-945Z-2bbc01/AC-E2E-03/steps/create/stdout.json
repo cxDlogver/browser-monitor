@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50232",
+    "projectId": null
+  },
+  "data": {
+    "id": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+    "displayName": "恢复夹具",
+    "appName": "recovery",
+    "enabled": true,
+    "role": "owner",
+    "origins": [
+      "http://localhost:9000"
+    ],
+    "keys": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "active": true,
+        "expiresAt": null,
+        "dsn": "http://127.0.0.1:50232/ingest/key"
+      }
+    ],
+    "dsn": "http://127.0.0.1:50232/ingest/key",
+    "confirmation": "server_response",
+    "independentlyReadBack": false
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 47
+  }
+}

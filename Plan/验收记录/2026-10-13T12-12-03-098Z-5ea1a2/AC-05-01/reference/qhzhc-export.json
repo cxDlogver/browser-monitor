@@ -1,0 +1,49 @@
+{
+  "invocation": [
+    "sdk",
+    "export",
+    "--app-version",
+    "1.0.0",
+    "--environment",
+    "cli-acceptance",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "sdk export",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "config": {
+        "app": {
+          "name": "qhzhc",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "transport": {
+          "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+        }
+      },
+      "example": "import { createMonitor } from \"@cxdlogver/browser-monitor-sdk\";\nimport config from \"./monitor.json\";\n\n// 在浏览器客户端入口启动；SSR 项目使用客户端插件。\nconst monitor = createMonitor({\n  ...config,\n  view: { resolveRouteName: (location) => location.pathname },\n});\nmonitor.start();\n// 在业务需要结束监控时调用 monitor.destroy()。\n",
+      "artifacts": [],
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "keyId": "f5aa2f20-b5d5-4507-a38d-326dc04e6392"
+    },
+    "meta": {
+      "source": "platform_api_and_generated_artifact",
+      "warnings": [
+        "SDK JSON 不含函数；业务路由解析与初始化顺序需要在接入入口补充。"
+      ],
+      "keyExpiresAt": null,
+      "elapsedMs": 80
+    }
+  },
+  "stderr": ""
+}

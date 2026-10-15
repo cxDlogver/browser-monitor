@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "create" "--display-name" "valid" "--app-name" "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "--base-url" "http://127.0.0.1:54586"

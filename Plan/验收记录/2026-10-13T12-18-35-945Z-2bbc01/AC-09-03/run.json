@@ -1,0 +1,49 @@
+{
+  "caseId": "AC-09-03",
+  "startedAt": "2026-10-13T12:19:37.845Z",
+  "endedAt": "2026-10-13T12:19:39.409Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61820"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:37.845Z",
+      "endedAt": "2026-10-13T12:19:38.250Z",
+      "elapsedMs": 405,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-hDzFPX"
+    },
+    {
+      "name": "failed",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61820"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:38.260Z",
+      "endedAt": "2026-10-13T12:19:39.399Z",
+      "elapsedMs": 1138,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-hDzFPX"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

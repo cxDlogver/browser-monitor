@@ -1,0 +1,79 @@
+{
+  "caseId": "AC-01-01",
+  "startedAt": "2026-10-13T12:12:05.923Z",
+  "endedAt": "2026-10-13T12:12:08.889Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "default",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:55039"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:05.933Z",
+      "endedAt": "2026-10-13T12:12:06.590Z",
+      "elapsedMs": 657,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-xJU8AN"
+    },
+    {
+      "name": "override",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:55039"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:06.591Z",
+      "endedAt": "2026-10-13T12:12:07.457Z",
+      "elapsedMs": 866,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-xJU8AN"
+    },
+    {
+      "name": "missing",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:55046"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:07.467Z",
+      "endedAt": "2026-10-13T12:12:08.343Z",
+      "elapsedMs": 877,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-xJU8AN"
+    },
+    {
+      "name": "explicit",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:55046",
+        "--project",
+        "00000000-0000-4000-8000-000000000003"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:08.344Z",
+      "endedAt": "2026-10-13T12:12:08.867Z",
+      "elapsedMs": 524,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-xJU8AN"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

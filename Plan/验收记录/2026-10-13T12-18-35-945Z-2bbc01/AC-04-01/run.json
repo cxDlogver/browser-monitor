@@ -1,0 +1,73 @@
+{
+  "caseId": "AC-04-01",
+  "startedAt": "2026-10-13T12:19:00.854Z",
+  "endedAt": "2026-10-13T12:19:02.202Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "get-before",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59874"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:00.855Z",
+      "endedAt": "2026-10-13T12:19:01.274Z",
+      "elapsedMs": 419,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ADd2Tv"
+    },
+    {
+      "name": "set",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://LOCALHOST:80",
+        "--origin",
+        "http://localhost/",
+        "--origin",
+        "https://EXAMPLE.test:443",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59874"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:01.274Z",
+      "endedAt": "2026-10-13T12:19:01.743Z",
+      "elapsedMs": 469,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ADd2Tv"
+    },
+    {
+      "name": "get-after",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59874"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:01.743Z",
+      "endedAt": "2026-10-13T12:19:02.179Z",
+      "elapsedMs": 436,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ADd2Tv"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

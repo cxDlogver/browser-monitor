@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "events" "diagnose" "--event-id" "raw-missing" "--project" "97ddfeeb-cad3-4fd1-9653-31047e809bca" "--base-url" "http://localhost:8080"

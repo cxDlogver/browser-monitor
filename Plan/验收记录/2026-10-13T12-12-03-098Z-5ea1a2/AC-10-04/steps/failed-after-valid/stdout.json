@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events wait",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49598",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "reason": "query_failed",
+    "polls": 2,
+    "elapsedMs": 1057,
+    "lastObservation": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "event": {
+        "eventId": "event",
+        "occurredAt": "2026-10-13T00:00:00.000Z"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "notObserved",
+        "processedAt": null
+      },
+      "task": {
+        "recordState": "present",
+        "status": "pending",
+        "completedAt": null
+      },
+      "projection": {
+        "visibility": "missing",
+        "eventEffect": "unknown"
+      },
+      "history": {
+        "limitations": []
+      },
+      "source": "database",
+      "asOf": "2026-10-13T12:14:19.925Z"
+    },
+    "lastObservationAsOf": "2026-10-13T12:14:19.925Z",
+    "lastQueryFailure": {
+      "code": "PROJECT_UNAVAILABLE",
+      "details": {
+        "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event?includePayload=false",
+        "status": 403
+      }
+    }
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PROJECT_UNAVAILABLE",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event?includePayload=false",
+      "status": 403
+    }
+  }
+}

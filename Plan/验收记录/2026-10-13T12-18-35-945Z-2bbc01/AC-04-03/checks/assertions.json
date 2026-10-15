@@ -1,0 +1,24 @@
+[
+  {
+    "name": "unknown",
+    "expected": "WRITE_OUTCOME_UNKNOWN",
+    "observed": "WRITE_OUTCOME_UNKNOWN",
+    "verdict": "passed"
+  },
+  {
+    "name": "only one PUT",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual readback",
+    "expected": [
+      "http://localhost:3000"
+    ],
+    "observed": [
+      "http://localhost:3000"
+    ],
+    "verdict": "passed"
+  }
+]

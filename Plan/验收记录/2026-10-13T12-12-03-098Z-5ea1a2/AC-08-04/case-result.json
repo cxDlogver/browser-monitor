@@ -1,0 +1,313 @@
+{
+  "caseId": "AC-08-04",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "任务缺失明确 missing 与历史限制，不推导过去 completed；原始缺失不断言从未接收。",
+      "observed": {
+        "checks": [
+          {
+            "name": "history-missing recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "taskMissing retained facts",
+            "expected": [
+              "present",
+              "missing",
+              "committed"
+            ],
+            "observed": [
+              "present",
+              "missing",
+              "committed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "rawMissing retained facts",
+            "expected": [
+              "missing",
+              "present",
+              "unknown"
+            ],
+            "observed": [
+              "missing",
+              "present",
+              "unknown"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "allMissing retained facts",
+            "expected": [
+              "missing",
+              "missing",
+              "unknown"
+            ],
+            "observed": [
+              "missing",
+              "missing",
+              "unknown"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "unknown projection",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "taskMissing",
+            "exitCode": 0,
+            "elapsedMs": 470
+          },
+          {
+            "name": "rawMissing",
+            "exitCode": 0,
+            "elapsedMs": 482
+          },
+          {
+            "name": "allMissing",
+            "exitCode": 0,
+            "elapsedMs": 482
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "da29b7a7a495ec3c9deef70ded99f42848d4e4a32d08490107566271a9e0fb25",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-history-missing.json",
+          "sha256": "ea0774ffec1fdeaa782ef2ee48cbbfcedbdaa24af714f88ba131ffc693011ea7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fc06e0477e0f4b0b10a154fd3acb55fac8b0376af14feb3794d317c105dce63b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "9c9f0e850b8db5511273699394a1c301e96b11557ff26126c2fbf40cde4ff0a7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/allMissing/command.txt",
+          "sha256": "f07084da26547ea2660b71a7648a158a29a6816a975b03f6a75999d44bfb44a2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/allMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/allMissing/stdout.json",
+          "sha256": "5e3d5992dc7c25cad1e0ca8bea6fcaf55b11320ec9d72b2a2bac8bd758712509",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/command.txt",
+          "sha256": "655ba0a8b9ce7af9cd015f1f9c4650a0126cefc37cc2114cc4f1ee7e1e61b038",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/stdout.json",
+          "sha256": "e2ce96dbd88fd0fd37be312822fb5e045707bb4d6350d3153a7ae3969f4e1929",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/command.txt",
+          "sha256": "b9d5de63f0a266cbc43284740f493dd924a4d740ac561b0916048e5f85a1b4d7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/stdout.json",
+          "sha256": "ecd27f83fdc03542976fce5284ebe5e10bcdd21d449a9bb94a5f777f091523fa",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "仍可取得的独立证据保留，无法关联领域时返回 unknown；缺失与查询故障不同。",
+      "observed": {
+        "checks": [
+          {
+            "name": "history-missing recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "taskMissing retained facts",
+            "expected": [
+              "present",
+              "missing",
+              "committed"
+            ],
+            "observed": [
+              "present",
+              "missing",
+              "committed"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "rawMissing retained facts",
+            "expected": [
+              "missing",
+              "present",
+              "unknown"
+            ],
+            "observed": [
+              "missing",
+              "present",
+              "unknown"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "allMissing retained facts",
+            "expected": [
+              "missing",
+              "missing",
+              "unknown"
+            ],
+            "observed": [
+              "missing",
+              "missing",
+              "unknown"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "unknown projection",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "taskMissing",
+            "exitCode": 0,
+            "elapsedMs": 470
+          },
+          {
+            "name": "rawMissing",
+            "exitCode": 0,
+            "elapsedMs": 482
+          },
+          {
+            "name": "allMissing",
+            "exitCode": 0,
+            "elapsedMs": 482
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "da29b7a7a495ec3c9deef70ded99f42848d4e4a32d08490107566271a9e0fb25",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-history-missing.json",
+          "sha256": "ea0774ffec1fdeaa782ef2ee48cbbfcedbdaa24af714f88ba131ffc693011ea7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fc06e0477e0f4b0b10a154fd3acb55fac8b0376af14feb3794d317c105dce63b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "9c9f0e850b8db5511273699394a1c301e96b11557ff26126c2fbf40cde4ff0a7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/allMissing/command.txt",
+          "sha256": "f07084da26547ea2660b71a7648a158a29a6816a975b03f6a75999d44bfb44a2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/allMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/allMissing/stdout.json",
+          "sha256": "5e3d5992dc7c25cad1e0ca8bea6fcaf55b11320ec9d72b2a2bac8bd758712509",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/command.txt",
+          "sha256": "655ba0a8b9ce7af9cd015f1f9c4650a0126cefc37cc2114cc4f1ee7e1e61b038",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/rawMissing/stdout.json",
+          "sha256": "e2ce96dbd88fd0fd37be312822fb5e045707bb4d6350d3153a7ae3969f4e1929",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/command.txt",
+          "sha256": "b9d5de63f0a266cbc43284740f493dd924a4d740ac561b0916048e5f85a1b4d7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/taskMissing/stdout.json",
+          "sha256": "ecd27f83fdc03542976fce5284ebe5e10bcdd21d449a9bb94a5f777f091523fa",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

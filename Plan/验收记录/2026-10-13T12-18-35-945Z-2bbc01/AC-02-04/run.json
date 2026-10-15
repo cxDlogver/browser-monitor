@@ -1,0 +1,112 @@
+{
+  "caseId": "AC-02-04",
+  "startedAt": "2026-10-13T12:18:50.040Z",
+  "endedAt": "2026-10-13T12:30:21.325Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "logout",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://127.0.0.1:49401"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:50.040Z",
+      "endedAt": "2026-10-13T12:18:50.702Z",
+      "elapsedMs": 662,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SlU7dR"
+    },
+    {
+      "name": "verify-remote",
+      "invocation": [
+        "auth",
+        "status",
+        "--base-url",
+        "http://127.0.0.1:49401"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:50.703Z",
+      "endedAt": "2026-10-13T12:18:51.124Z",
+      "elapsedMs": 421,
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SlU7dR"
+    },
+    {
+      "name": "logout-unreachable",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://127.0.0.1:49401"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:51.126Z",
+      "endedAt": "2026-10-13T12:18:51.778Z",
+      "elapsedMs": 652,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SlU7dR"
+    },
+    {
+      "name": "login-save-failed",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:49401"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:18:51.780Z",
+      "endedAt": "2026-10-13T12:18:52.375Z",
+      "elapsedMs": 595,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-SlU7dR"
+    },
+    {
+      "name": "real-logout",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:04.150Z",
+      "endedAt": "2026-10-13T12:28:04.736Z",
+      "elapsedMs": 586,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-logout",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:20.694Z",
+      "endedAt": "2026-10-13T12:30:21.310Z",
+      "elapsedMs": 616,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

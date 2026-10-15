@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:53594",
+    "projectId": null
+  },
+  "data": {
+    "items": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "displayName": "CLI重复名称夹具",
+        "appName": "fixture",
+        "enabled": true,
+        "role": "owner",
+        "origins": [
+          "http://localhost:9000"
+        ],
+        "keys": [
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "active": true,
+            "expiresAt": null,
+            "dsn": "http://127.0.0.1:53594/ingest/key"
+          }
+        ]
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "displayName": "CLI重复名称夹具",
+        "appName": "fixture",
+        "enabled": true,
+        "role": "owner",
+        "origins": [
+          "http://localhost:9000"
+        ],
+        "keys": [
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "active": true,
+            "expiresAt": null,
+            "dsn": "http://127.0.0.1:53594/ingest/key"
+          }
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 659
+  }
+}

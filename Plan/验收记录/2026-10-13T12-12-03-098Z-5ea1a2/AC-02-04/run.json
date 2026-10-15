@@ -1,0 +1,78 @@
+{
+  "caseId": "AC-02-04",
+  "startedAt": "2026-10-13T12:12:19.973Z",
+  "endedAt": "2026-10-13T12:12:22.227Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "logout",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://127.0.0.1:54542"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:19.973Z",
+      "endedAt": "2026-10-13T12:12:20.572Z",
+      "elapsedMs": 599,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2UUulV"
+    },
+    {
+      "name": "verify-remote",
+      "invocation": [
+        "auth",
+        "status",
+        "--base-url",
+        "http://127.0.0.1:54542"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:20.573Z",
+      "endedAt": "2026-10-13T12:12:20.983Z",
+      "elapsedMs": 411,
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2UUulV"
+    },
+    {
+      "name": "logout-unreachable",
+      "invocation": [
+        "auth",
+        "logout",
+        "--base-url",
+        "http://127.0.0.1:54542"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:20.985Z",
+      "endedAt": "2026-10-13T12:12:21.620Z",
+      "elapsedMs": 635,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2UUulV"
+    },
+    {
+      "name": "login-save-failed",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:54542"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:12:21.622Z",
+      "endedAt": "2026-10-13T12:12:22.213Z",
+      "elapsedMs": 591,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2UUulV"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

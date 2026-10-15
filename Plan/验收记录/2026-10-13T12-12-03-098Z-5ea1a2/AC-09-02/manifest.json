@@ -1,0 +1,55 @@
+{
+  "caseId": "AC-09-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "e217d737b02c899089d7520697a93d5d48018b19655da41bf226737c9c9243f8",
+      "bytes": 956
+    },
+    {
+      "path": "reference/database-historical-error-time.json",
+      "sha256": "7e466c0d1b49582d0fbd31b94843b6c9b836c593b94238f79b2e8c2742c890e7",
+      "bytes": 516
+    },
+    {
+      "path": "reference/database-queue-boundaries.json",
+      "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+      "bytes": 2807
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "de001a577992a84a6170082ef1b2b81add3b07b258deeec3d7439cc5a6e74d9b",
+      "bytes": 240
+    },
+    {
+      "path": "reference/queue-database-reference.json",
+      "sha256": "c5310d4c42d4862cc4442ff6bda76d62d1a3d7b12a6be36b91ed7848cdfb11f1",
+      "bytes": 10476
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "124b00cdfa19bdc3133409d5f6c237f682f7b88275edb7b7d69903bdaa2a690e",
+      "bytes": 404
+    },
+    {
+      "path": "run.json",
+      "sha256": "c500434919f49e278b699ad6bbc08a904e39ae49df113b90d0c822ef64866672",
+      "bytes": 785
+    },
+    {
+      "path": "steps/queue/command.txt",
+      "sha256": "08d0b200e92846135c4dad0c767e7552cfec78d4a8aefe9185b4b29e800168b4",
+      "bytes": 126
+    },
+    {
+      "path": "steps/queue/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/queue/stdout.json",
+      "sha256": "1e88b02a15e8a1f4b4d3cae33ede803dd067178e51f0491a4ce9ecccf491f5f5",
+      "bytes": 3251
+    }
+  ]
+}

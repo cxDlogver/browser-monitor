@@ -1,0 +1,29 @@
+{
+  "source": "actual_database_queries_with_controlled_snapshot_clock",
+  "snapshotClock": "2026-10-13T11:54:59.469Z",
+  "expected": {
+    "count": 10,
+    "latest": "2026-10-13T11:54:59.710Z",
+    "differsFromRedis": 999
+  },
+  "observed": {
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+    "retainedRawEventCount": 10,
+    "latestReceivedAt": "2026-10-13T11:54:59.710Z",
+    "retentionPolicy": {
+      "raw": {
+        "state": "configured",
+        "dropAfter": "30 days",
+        "scheduled": true,
+        "source": "timescaledb_information.jobs"
+      },
+      "completedTasks": {
+        "days": 7,
+        "source": "worker_housekeeping_policy"
+      }
+    },
+    "asOf": "2026-10-13T11:54:59.469Z",
+    "source": "database"
+  },
+  "equal": true
+}

@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "list" "--base-url" "http://127.0.0.1:61976"

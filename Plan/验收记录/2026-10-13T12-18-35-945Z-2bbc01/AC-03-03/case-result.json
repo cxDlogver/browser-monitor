@@ -1,0 +1,363 @@
+{
+  "caseId": "AC-03-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "响应丢失返回 WRITE_OUTCOME_UNKNOWN / 退出码 5，创建写请求只有一次，不自动重试或依据同名项宣称成功。",
+      "observed": {
+        "checks": [
+          {
+            "name": "write outcome unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "exactly one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "known ID retained",
+            "expected": "00000000-0000-4000-8000-000000000003",
+            "observed": "00000000-0000-4000-8000-000000000003",
+            "verdict": "passed"
+          },
+          {
+            "name": "still one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-lost",
+            "exitCode": 5,
+            "elapsedMs": 432
+          },
+          {
+            "name": "readback",
+            "exitCode": 0,
+            "elapsedMs": 459
+          },
+          {
+            "name": "use-failed",
+            "exitCode": 8,
+            "elapsedMs": 447
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "3307e6285c5cc1bac9e6478a297df1a35bc30d90209b3e5b2a5dd5844d341e20",
+          "bytes": 541,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "7529811ee635d0e1b3b87f7d68d04f975bb68dda46e384178e6291daea4554a7",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "13dc3faa8d8dba40e74815ed01db7696e255bab471860a7b9db87f0e75820a46",
+          "bytes": 1176,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/saved-project.json",
+          "sha256": "5453d9190d24e2ba8cae4712bd0f6da7e20f784a3444642f060d4eeb771c08db",
+          "bytes": 369,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0c4b559b13a43e1bc361ad506b74be1361fb80101518e30dbd38e0e65cf93636",
+          "bytes": 1793,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/create-lost/command.txt",
+          "sha256": "eda949089f86164e6efc73a485829c2d9c1184e89c96d0ed6fe92f3107a4997a",
+          "bytes": 130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create-lost/stdout.json",
+          "sha256": "eeb51d8375f83223580bbe801ccba77843abd87f92a76f4f678cfec76085f985",
+          "bytes": 489,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/command.txt",
+          "sha256": "77518b4a63a6b26a9352cee4437b62707becc0f009d892598803602923a9c6bf",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/stdout.json",
+          "sha256": "906b9331a1e415ec3cbf5e23006963c340d17080ddf153da47f3f6440b4653e3",
+          "bytes": 685,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/command.txt",
+          "sha256": "aa6e5fd2fa5b88191662ad414ba42fd6d42ebdf53db333fce8a76b54abd94026",
+          "bytes": 113,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/stdout.json",
+          "sha256": "65cc978748e9baf585ddb4af91d4e7697569794e5c76a3216aeb39952d73676c",
+          "bytes": 474,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "后续回查或本地选择失败保留已创建身份，不重建或删除成功项目。",
+      "observed": {
+        "checks": [
+          {
+            "name": "write outcome unknown",
+            "expected": "WRITE_OUTCOME_UNKNOWN",
+            "observed": "WRITE_OUTCOME_UNKNOWN",
+            "verdict": "passed"
+          },
+          {
+            "name": "exactly one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "known ID retained",
+            "expected": "00000000-0000-4000-8000-000000000003",
+            "observed": "00000000-0000-4000-8000-000000000003",
+            "verdict": "passed"
+          },
+          {
+            "name": "still one create",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create-lost",
+            "exitCode": 5,
+            "elapsedMs": 432
+          },
+          {
+            "name": "readback",
+            "exitCode": 0,
+            "elapsedMs": 459
+          },
+          {
+            "name": "use-failed",
+            "exitCode": 8,
+            "elapsedMs": 447
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "3307e6285c5cc1bac9e6478a297df1a35bc30d90209b3e5b2a5dd5844d341e20",
+          "bytes": 541,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "7529811ee635d0e1b3b87f7d68d04f975bb68dda46e384178e6291daea4554a7",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "13dc3faa8d8dba40e74815ed01db7696e255bab471860a7b9db87f0e75820a46",
+          "bytes": 1176,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/saved-project.json",
+          "sha256": "5453d9190d24e2ba8cae4712bd0f6da7e20f784a3444642f060d4eeb771c08db",
+          "bytes": 369,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0c4b559b13a43e1bc361ad506b74be1361fb80101518e30dbd38e0e65cf93636",
+          "bytes": 1793,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/create-lost/command.txt",
+          "sha256": "eda949089f86164e6efc73a485829c2d9c1184e89c96d0ed6fe92f3107a4997a",
+          "bytes": 130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create-lost/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create-lost/stdout.json",
+          "sha256": "eeb51d8375f83223580bbe801ccba77843abd87f92a76f4f678cfec76085f985",
+          "bytes": 489,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/command.txt",
+          "sha256": "77518b4a63a6b26a9352cee4437b62707becc0f009d892598803602923a9c6bf",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/readback/stdout.json",
+          "sha256": "906b9331a1e415ec3cbf5e23006963c340d17080ddf153da47f3f6440b4653e3",
+          "bytes": 685,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/command.txt",
+          "sha256": "aa6e5fd2fa5b88191662ad414ba42fd6d42ebdf53db333fce8a76b54abd94026",
+          "bytes": 113,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/use-failed/stdout.json",
+          "sha256": "65cc978748e9baf585ddb4af91d4e7697569794e5c76a3216aeb39952d73676c",
+          "bytes": 474,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

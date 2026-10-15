@@ -1,0 +1,7 @@
+{
+  "setCookieAttributes": [
+    "HttpOnly",
+    "Path=/"
+  ],
+  "expiryAttribute": false
+}

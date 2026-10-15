@@ -1,0 +1,391 @@
+{
+  "caseId": "AC-03-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "同名项目可以分别读取，名称不被当作可靠唯一身份或自动复用依据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "same names distinct IDs",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid creates send no writes",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "no added objects",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "duplicate-list",
+            "exitCode": 0,
+            "elapsedMs": 439
+          },
+          {
+            "name": "get-a",
+            "exitCode": 0,
+            "elapsedMs": 432
+          },
+          {
+            "name": "get-b",
+            "exitCode": 0,
+            "elapsedMs": 426
+          },
+          {
+            "name": "invalid-blank",
+            "exitCode": 2,
+            "elapsedMs": 396
+          },
+          {
+            "name": "invalid-long",
+            "exitCode": 2,
+            "elapsedMs": 392
+          },
+          {
+            "name": "invalid-app-long",
+            "exitCode": 2,
+            "elapsedMs": 415
+          },
+          {
+            "name": "invalid-app-invalid",
+            "exitCode": 2,
+            "elapsedMs": 364
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "58c2412e7d56f43e53a1d72f69a75409cfcd82dde90e7315a358b775538a9733",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "9891be770c7e17447947eee9ac0e0f6bcc52820b6a4444c8c62352c81a2351fa",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "451fbff9a9772147f586e1ac6bc5eb68363ab57a9b88e25ce8cce92e4162018d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0bef2acdf63de8a396e7c8e7f1f1d77b0e9108ecb31fe35e121f3fac319a9beb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/duplicate-list/command.txt",
+          "sha256": "43b7664c75a4e79adda1e40b274d6c3177c0faf384cf6e86bbdf66bbd027ac76",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/duplicate-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/duplicate-list/stdout.json",
+          "sha256": "ec05d7fc7fa75f60030f6659fafecc037d1f95bb7a1d2103d7a30ef33478c904",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/command.txt",
+          "sha256": "82ade4de0f047c1d974269a50360843cd6ea5a7bafe3ba116cc31c2465205f65",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/stdout.json",
+          "sha256": "7d6245f027b5d9aa0b6c5657df4e294b7d93faa2901f0085213b70dae05737a1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/command.txt",
+          "sha256": "55f2854972af042efc89bdb7394f2cd8efba403e6754ea0553263d5101de5ccf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/stdout.json",
+          "sha256": "5cc534b723f1b8a1ebaa8e0c518102e48226a8dce4356b3e84351f159ebc45f2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/command.txt",
+          "sha256": "0cd8cef14c16f199571a0bb8c6511d426c1b40d0db660df1cc5bf2ad82a729ee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/stdout.json",
+          "sha256": "98ab507d478e5411c8721b7ea67ca5361503538787aae63d76b1c4c44d360f9b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/command.txt",
+          "sha256": "84fd994ff8f3d50dbc4a720dd24c316cda66170692792d93fc94063c0511ef8f",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/stdout.json",
+          "sha256": "a08c2357088d4987585a1d33d2e0ea5008143e1ecd22cf1e23cf96d5e5f36ca4",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/command.txt",
+          "sha256": "b0c9b299193d55cebc55e400723ff7b99544a95de7e9c77955877379b752a876",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/stdout.json",
+          "sha256": "7482d7248542f0f1d555735b87c7445cd21f1dc70515c007bdfffad95028a30c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/command.txt",
+          "sha256": "f50c1a1118c0ee4c9d52e6bfcb3a043ec79c7cebb2ebd4c1b492d02456555dd9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/stdout.json",
+          "sha256": "7482d7248542f0f1d555735b87c7445cd21f1dc70515c007bdfffad95028a30c",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "输入校验明确拒绝无效值，未发出创建写请求，平台对象清单没有增加。",
+      "observed": {
+        "checks": [
+          {
+            "name": "same names distinct IDs",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid creates send no writes",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "no added objects",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "duplicate-list",
+            "exitCode": 0,
+            "elapsedMs": 439
+          },
+          {
+            "name": "get-a",
+            "exitCode": 0,
+            "elapsedMs": 432
+          },
+          {
+            "name": "get-b",
+            "exitCode": 0,
+            "elapsedMs": 426
+          },
+          {
+            "name": "invalid-blank",
+            "exitCode": 2,
+            "elapsedMs": 396
+          },
+          {
+            "name": "invalid-long",
+            "exitCode": 2,
+            "elapsedMs": 392
+          },
+          {
+            "name": "invalid-app-long",
+            "exitCode": 2,
+            "elapsedMs": 415
+          },
+          {
+            "name": "invalid-app-invalid",
+            "exitCode": 2,
+            "elapsedMs": 364
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "58c2412e7d56f43e53a1d72f69a75409cfcd82dde90e7315a358b775538a9733",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "9891be770c7e17447947eee9ac0e0f6bcc52820b6a4444c8c62352c81a2351fa",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "451fbff9a9772147f586e1ac6bc5eb68363ab57a9b88e25ce8cce92e4162018d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0bef2acdf63de8a396e7c8e7f1f1d77b0e9108ecb31fe35e121f3fac319a9beb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/duplicate-list/command.txt",
+          "sha256": "43b7664c75a4e79adda1e40b274d6c3177c0faf384cf6e86bbdf66bbd027ac76",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/duplicate-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/duplicate-list/stdout.json",
+          "sha256": "ec05d7fc7fa75f60030f6659fafecc037d1f95bb7a1d2103d7a30ef33478c904",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/command.txt",
+          "sha256": "82ade4de0f047c1d974269a50360843cd6ea5a7bafe3ba116cc31c2465205f65",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-a/stdout.json",
+          "sha256": "7d6245f027b5d9aa0b6c5657df4e294b7d93faa2901f0085213b70dae05737a1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/command.txt",
+          "sha256": "55f2854972af042efc89bdb7394f2cd8efba403e6754ea0553263d5101de5ccf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-b/stdout.json",
+          "sha256": "5cc534b723f1b8a1ebaa8e0c518102e48226a8dce4356b3e84351f159ebc45f2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/command.txt",
+          "sha256": "0cd8cef14c16f199571a0bb8c6511d426c1b40d0db660df1cc5bf2ad82a729ee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-invalid/stdout.json",
+          "sha256": "98ab507d478e5411c8721b7ea67ca5361503538787aae63d76b1c4c44d360f9b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/command.txt",
+          "sha256": "84fd994ff8f3d50dbc4a720dd24c316cda66170692792d93fc94063c0511ef8f",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-app-long/stdout.json",
+          "sha256": "a08c2357088d4987585a1d33d2e0ea5008143e1ecd22cf1e23cf96d5e5f36ca4",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/command.txt",
+          "sha256": "b0c9b299193d55cebc55e400723ff7b99544a95de7e9c77955877379b752a876",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-blank/stdout.json",
+          "sha256": "7482d7248542f0f1d555735b87c7445cd21f1dc70515c007bdfffad95028a30c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/command.txt",
+          "sha256": "f50c1a1118c0ee4c9d52e6bfcb3a043ec79c7cebb2ebd4c1b492d02456555dd9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-long/stdout.json",
+          "sha256": "7482d7248542f0f1d555735b87c7445cd21f1dc70515c007bdfffad95028a30c",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

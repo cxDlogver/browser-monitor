@@ -1,0 +1,29 @@
+{
+  "caseId": "AC-09-01",
+  "startedAt": "2026-10-13T12:13:05.957Z",
+  "endedAt": "2026-10-13T12:13:06.388Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55060"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:05.962Z",
+      "endedAt": "2026-10-13T12:13:06.380Z",
+      "elapsedMs": 418,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-JPyW95"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

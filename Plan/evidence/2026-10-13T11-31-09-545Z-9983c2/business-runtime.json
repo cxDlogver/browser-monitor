@@ -1,0 +1,180 @@
+{
+  "evidence": "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\evidence\\2026-10-13T11-31-09-545Z-9983c2",
+  "workDirectory": "C:\\WINDOWS\\TEMP\\bm-business-3il8JP",
+  "baseUrl": "http://localhost:8080",
+  "profiles": [
+    {
+      "id": "qhzhc",
+      "label": "实时走航车项目",
+      "repository": "F:/CX_notes/cx-learn-notes/qhzhc-realtime-platform",
+      "packageName": "qhzhc-project",
+      "displayName": "实时走航车项目-CLI验收",
+      "appName": "qhzhc",
+      "appVersion": "1.0.0",
+      "environment": "cli-acceptance",
+      "origin": "http://127.0.0.1:9527",
+      "entryUrl": "http://127.0.0.1:9527/#/dataVisualization",
+      "routeName": "/dataVisualization",
+      "configFile": "QHZHC_Web/src/config/monitor.local.json",
+      "businessEvents": [
+        {
+          "id": "qhzhc.visualization.view-start",
+          "primary": true,
+          "type": "view",
+          "name": "view.start",
+          "businessAction": "已登录后进入或重新加载 /#/dataVisualization，确认客户端 SDK 已启动",
+          "trigger": "受监控的可视化页面建立新视图",
+          "routeName": "/dataVisualization",
+          "emissionTiming": "新视图开始时；occurredAt 为该视图开始时刻",
+          "expectedPayload": {
+            "type": "view",
+            "name": "view.start",
+            "routeName": "/dataVisualization"
+          },
+          "identityFields": [
+            "projectId",
+            "eventId",
+            "occurredAt",
+            "context.sessionId",
+            "context.viewId"
+          ],
+          "evidence": "动作记录及实际采集信封身份与 CLI 返回对齐，不预设总事件数量"
+        },
+        {
+          "id": "qhzhc.visualization.view-end",
+          "primary": false,
+          "type": "view",
+          "name": "view.end",
+          "businessAction": "从可视化页面通过应用路由离开",
+          "trigger": "上一受监控视图结束",
+          "routeName": "/dataVisualization",
+          "emissionTiming": "视图结束时",
+          "identityRule": "与对应 view.start 使用同一 viewId"
+        }
+      ],
+      "optionalProbe": {
+        "nameTemplate": "cli.acceptance.qhzhc.{runId}",
+        "action": "visualization-ready"
+      },
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "keyId": "f5aa2f20-b5d5-4507-a38d-326dc04e6392",
+      "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes",
+      "config": {
+        "app": {
+          "name": "qhzhc",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "transport": {
+          "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+        }
+      }
+    },
+    {
+      "id": "official",
+      "label": "官网项目",
+      "repository": "F:/CX_notes/cx-learn-notes/official-network",
+      "packageName": "official-network",
+      "displayName": "官网项目-CLI验收",
+      "appName": "guanwang",
+      "appVersion": "1.0.0",
+      "environment": "cli-acceptance",
+      "origin": "http://localhost:3000",
+      "entryUrl": "http://localhost:3000/solution",
+      "routeName": "/solution",
+      "configFile": "app/config/monitor.local.json",
+      "businessEvents": [
+        {
+          "id": "official.solution.route-stay",
+          "primary": true,
+          "type": "span",
+          "name": "site.route.stay",
+          "businessAction": "客户端进入 /solution 后停留，再通过应用路由切换到 /",
+          "trigger": "离开 /solution 一级栏目时结束该栏目 Span",
+          "routeName": "/solution",
+          "emissionTiming": "Span end 时形成上报；occurredAt 为结束时刻，startedAt/endedAt 描述整段",
+          "expectedPayload": {
+            "type": "span",
+            "name": "site.route.stay",
+            "source": "custom",
+            "attributes": {
+              "section": "/solution",
+              "path": "/solution"
+            }
+          },
+          "metrics": {
+            "visibleMs": {
+              "unit": "ms",
+              "valueRule": "实际数值，非负；不固定精确时长"
+            }
+          },
+          "identityFields": [
+            "projectId",
+            "eventId",
+            "occurredAt",
+            "context.sessionId",
+            "context.viewId",
+            "correlation.traceId",
+            "correlation.spanId"
+          ],
+          "evidence": "保留起始页面上下文，实际采集身份与 CLI 返回一致；核对字段与单位，不验收计时算法精度"
+        },
+        {
+          "id": "official.site.visit",
+          "primary": false,
+          "type": "span",
+          "name": "site.visit",
+          "businessAction": "完成一次进站后离开页面",
+          "trigger": "pagehide 结算整站访问 Trace",
+          "emissionTiming": "访问结束时；采用 SDK Span 信封，名称为 site.visit",
+          "identityRule": "与子 site.route.stay 使用同一 traceId"
+        }
+      ],
+      "optionalProbe": {
+        "nameTemplate": "cli.acceptance.official.{runId}",
+        "action": "solution-ready"
+      },
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "keyId": "cef0b6f0-44f4-47d2-be92-a822bb55b5cc",
+      "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes",
+      "config": {
+        "app": {
+          "name": "guanwang",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "transport": {
+          "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+        }
+      }
+    }
+  ],
+  "services": [
+    {
+      "name": "api",
+      "pid": 41688,
+      "owned": true
+    },
+    {
+      "name": "worker",
+      "pid": 40432,
+      "owned": true
+    },
+    {
+      "name": "qhzhc-server",
+      "pid": 18196,
+      "owned": true
+    },
+    {
+      "name": "qhzhc-web",
+      "pid": 36960,
+      "owned": true
+    },
+    {
+      "name": "official",
+      "pid": 38908,
+      "owned": true
+    }
+  ],
+  "launcherPid": 31116
+}

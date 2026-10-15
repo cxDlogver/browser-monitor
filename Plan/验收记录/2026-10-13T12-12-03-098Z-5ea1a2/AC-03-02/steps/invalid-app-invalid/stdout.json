@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54586",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "应用标识仅允许字母、数字、点、下划线和连字符",
+    "details": null
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "caseId": "AC-08-02",
+  "startedAt": "2026-10-13T12:13:02.742Z",
+  "endedAt": "2026-10-13T12:13:03.848Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "pending",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "committed-pending",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:02.747Z",
+      "endedAt": "2026-10-13T12:13:03.320Z",
+      "elapsedMs": 573,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-vNsQrL"
+    },
+    {
+      "name": "failed",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "committed-failed",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:03.321Z",
+      "endedAt": "2026-10-13T12:13:03.840Z",
+      "elapsedMs": 519,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-vNsQrL"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

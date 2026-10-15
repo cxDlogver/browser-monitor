@@ -1,0 +1,64 @@
+{
+  "caseId": "AC-11-01",
+  "startedAt": "2026-10-13T12:14:21.089Z",
+  "endedAt": "2026-10-13T12:14:22.346Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "json",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49607"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:21.090Z",
+      "endedAt": "2026-10-13T12:14:21.517Z",
+      "elapsedMs": 427,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-X61kKO"
+    },
+    {
+      "name": "table",
+      "invocation": [
+        "queue",
+        "status",
+        "--format",
+        "table",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49607"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:21.517Z",
+      "endedAt": "2026-10-13T12:14:21.938Z",
+      "elapsedMs": 421,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-X61kKO"
+    },
+    {
+      "name": "help",
+      "invocation": [
+        "--help",
+        "--base-url",
+        "http://127.0.0.1:49607"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:21.939Z",
+      "endedAt": "2026-10-13T12:14:22.338Z",
+      "elapsedMs": 399,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-X61kKO"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

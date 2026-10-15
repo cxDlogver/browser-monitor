@@ -1,0 +1,1 @@
+{"schemaVersion":1,"ok":false,"command":"events list","context":{"baseUrl":"http://127.0.0.1:49649","projectId":"00000000-0000-4000-8000-000000000001"},"data":null,"meta":{"source":"database","warnings":[],"measuredBytes":2702655,"maxOutputBytes":1048576},"error":{"code":"OUTPUT_TOO_LARGE","message":"完整输出超过预算。请缩小页数、关闭 payload 或调整输出预算。","details":null}}

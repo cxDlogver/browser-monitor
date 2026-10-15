@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events wait",
+  "context": {
+    "baseUrl": "http://127.0.0.1:55152",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "reason": "query_failed",
+    "polls": 1,
+    "elapsedMs": 80,
+    "lastObservation": null,
+    "lastObservationAsOf": null,
+    "lastQueryFailure": {
+      "code": "AMBIGUOUS_EVENT",
+      "details": {
+        "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event?includePayload=false",
+        "status": 400,
+        "candidates": [
+          "2026-10-13T00:00:00Z",
+          "2026-10-12T00:00:00Z"
+        ]
+      }
+    }
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "AMBIGUOUS_EVENT",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event?includePayload=false",
+      "status": 400,
+      "candidates": [
+        "2026-10-13T00:00:00Z",
+        "2026-10-12T00:00:00Z"
+      ]
+    }
+  }
+}

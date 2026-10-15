@@ -1,0 +1,51 @@
+{
+  "caseId": "AC-04-03",
+  "startedAt": "2026-10-13T12:19:04.792Z",
+  "endedAt": "2026-10-13T12:19:05.708Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "set-lost",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59898"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:04.792Z",
+      "endedAt": "2026-10-13T12:19:05.214Z",
+      "elapsedMs": 421,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2ghNjd"
+    },
+    {
+      "name": "get-after",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59898"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:05.214Z",
+      "endedAt": "2026-10-13T12:19:05.693Z",
+      "elapsedMs": 479,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-2ghNjd"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

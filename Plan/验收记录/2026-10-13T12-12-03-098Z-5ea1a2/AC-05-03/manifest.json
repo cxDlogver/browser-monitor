@@ -1,0 +1,90 @@
+{
+  "caseId": "AC-05-03",
+  "artifacts": [
+    {
+      "path": "artifacts/sdk-config.json",
+      "sha256": "11796be8d0ba102265e121945417fd1eeca488a90a5a962fc7262d5134afee22",
+      "bytes": 161
+    },
+    {
+      "path": "checks/assertions.json",
+      "sha256": "64bc541efe11decd6b007ecc8d1c4e20d2591a7690c0fdab38f0b352e0891d0e",
+      "bytes": 700
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "44f31ff534283f474ee458ff7b744c067ff62ca43bf02bc1f08f566a8d6c93e1",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "0c4a5d230b2df825886ec8da7d102d185ee02f4aaf4f50999dc34f59ab32aa0f",
+      "bytes": 768
+    },
+    {
+      "path": "run.json",
+      "sha256": "ca6684be46bd3cfe946c55393b25f80a537e767311015b5b8e3029206708b717",
+      "bytes": 2801
+    },
+    {
+      "path": "steps/exists/command.txt",
+      "sha256": "dd91e81a0fa71e69b58bd5564b3486a7e7972ca4149547f5ad5ec27e61572c6c",
+      "bytes": 190
+    },
+    {
+      "path": "steps/exists/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/exists/stdout.json",
+      "sha256": "fecfe8d6a1dcb29984e2937f047c0366bf73fae90649744d2d9e7c195b440a68",
+      "bytes": 464
+    },
+    {
+      "path": "steps/overwrite/command.txt",
+      "sha256": "16b6fc13f6397287ba599c54053412b652dbd629344ed55b07d6c806d4c6e197",
+      "bytes": 204
+    },
+    {
+      "path": "steps/overwrite/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/overwrite/stdout.json",
+      "sha256": "0b0e6d2158cdee799ceb8c3535637f7584410d88b9644f115f586a0c8a3c6b88",
+      "bytes": 1129
+    },
+    {
+      "path": "steps/partial/command.txt",
+      "sha256": "39a61cc24441f5ee73c5eecccb2e73650015db59300159b0ab4f33a41ae97299",
+      "bytes": 232
+    },
+    {
+      "path": "steps/partial/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/partial/stdout.json",
+      "sha256": "7e26f73a30bc59c0c21a7c6e00153f14b70a2ebc6cbe2a656bb0f1f0c4752c94",
+      "bytes": 792
+    },
+    {
+      "path": "steps/same-path/command.txt",
+      "sha256": "a09170668243bf258d7b354121d3e53ac364c20eb04233efdde1dd7f3e19e4dd",
+      "bytes": 209
+    },
+    {
+      "path": "steps/same-path/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/same-path/stdout.json",
+      "sha256": "f416b94819f664fb0b82961aefacc7e55104ed6290a38ffee60c7cd9fdd36c93",
+      "bytes": 394
+    }
+  ]
+}

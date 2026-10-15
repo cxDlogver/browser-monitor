@@ -1,0 +1,161 @@
+--- before/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\src\config\monitor.local.json
++++ after/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\src\config\monitor.local.json
+@@ integration before / after @@
+-
++{
++  "app": {
++    "name": "qhzhc",
++    "version": "1.0.0",
++    "environment": "cli-acceptance"
++  },
++  "transport": {
++    "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
++  }
++}
++
+--- before/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\src\main.ts
++++ after/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\src\main.ts
+@@ integration before / after @@
+-import Vue from "vue";
+-import axios from "axios";
+-import * as echarts from "echarts";
+-import ElementUI from "element-ui";
+-import "element-ui/lib/theme-chalk/index.css";
+-import "qweather-icons/font/qweather-icons.css";
+-import App from "./App.vue";
+-import router from "./router";
+-import store from "./store";
+-import { monitorPlugin } from "@/plugins/monitor";
+-import "./assets/css/reset.scss";
+-import "./assets/icon/iconfont.css";
+-import "./assets/weather-icon/iconfont.css";
+-import "@/assets/weather-icon/iconfont.js";
+-import "./assets/css/text.css";
+-import "./assets/css/global.scss";
+-import "./assets/css/map-runtime-fixes.scss";
+-
+-Vue.config.productionTip = false;
+-Vue.prototype.$axios = axios;
+-Vue.prototype.$echarts = echarts;
+-Vue.use(ElementUI);
+-// 监控在 Vue.use 阶段注册路由钩子，早于 vue-router 的首次导航，
+-// 因此直接刷新进入采集页也能被 afterEach 捕获。
+-Vue.use(monitorPlugin, {
+-  router,
+-  enabled: process.env.VUE_APP_MONITOR_ENABLED === "true",
+-  dsn: process.env.VUE_APP_MONITOR_DSN ?? "",
+-  appName: process.env.VUE_APP_MONITOR_APP_NAME ?? "qhzhc",
+-  release: process.env.VUE_APP_MONITOR_RELEASE ?? "1.0.0",
+-  environment: "production",
+-});
+-
+-new Vue({
+-  router,
+-  store,
+-  render: (createElement) => createElement(App),
+-  beforeCreate() {
+-    Vue.prototype.$bus = this;
+-  },
+-}).$mount("#app");
+-
++import Vue from "vue";
++import axios from "axios";
++import * as echarts from "echarts";
++import ElementUI from "element-ui";
++import "element-ui/lib/theme-chalk/index.css";
++import "qweather-icons/font/qweather-icons.css";
++import App from "./App.vue";
++import router from "./router";
++import store from "./store";
++import { monitorPlugin } from "@/plugins/monitor";
++import monitorConfig from "@/config/monitor.local.json";
++import "./assets/css/reset.scss";
++import "./assets/icon/iconfont.css";
++import "./assets/weather-icon/iconfont.css";
++import "@/assets/weather-icon/iconfont.js";
++import "./assets/css/text.css";
++import "./assets/css/global.scss";
++import "./assets/css/map-runtime-fixes.scss";
++
++Vue.config.productionTip = false;
++Vue.prototype.$axios = axios;
++Vue.prototype.$echarts = echarts;
++Vue.use(ElementUI);
++// 监控在 Vue.use 阶段注册路由钩子，早于 vue-router 的首次导航，
++// 因此直接刷新进入采集页也能被 afterEach 捕获。
++Vue.use(monitorPlugin, {
++  router,
++  enabled: process.env.VUE_APP_MONITOR_ENABLED === "true",
++  dsn: monitorConfig.transport.dsn,
++  appName: monitorConfig.app.name,
++  release: monitorConfig.app.version,
++  environment: monitorConfig.app.environment,
++});
++
++new Vue({
++  router,
++  store,
++  render: (createElement) => createElement(App),
++  beforeCreate() {
++    Vue.prototype.$bus = this;
++  },
++}).$mount("#app");
++
+--- before/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\tsconfig.json
++++ after/F:\CX_notes\cx-learn-notes\qhzhc-realtime-platform\QHZHC_Web\tsconfig.json
+@@ integration before / after @@
+-{
+-  "compilerOptions": {
+-    "target": "ES2020",
+-    "module": "ESNext",
+-    "strict": true,
+-    "jsx": "preserve",
+-    "importHelpers": true,
+-    "moduleResolution": "Node",
+-    "skipLibCheck": true,
+-    "esModuleInterop": true,
+-    "allowSyntheticDefaultImports": true,
+-    "sourceMap": true,
+-    "baseUrl": ".",
+-    "paths": {
+-      "@/*": ["src/*"]
+-    },
+-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+-  },
+-  "include": [
+-    "src/**/*.ts",
+-    "src/**/*.tsx",
+-    "src/**/*.vue",
+-    "tests/**/*.ts"
+-  ],
+-  "exclude": ["node_modules", "dist", "public/static"]
+-}
+-
++{
++  "compilerOptions": {
++    "target": "ES2020",
++    "module": "ESNext",
++    "strict": true,
++    "jsx": "preserve",
++    "importHelpers": true,
++    "moduleResolution": "Node",
++    "resolveJsonModule": true,
++    "skipLibCheck": true,
++    "esModuleInterop": true,
++    "allowSyntheticDefaultImports": true,
++    "sourceMap": true,
++    "baseUrl": ".",
++    "paths": {
++      "@/*": ["src/*"]
++    },
++    "lib": ["ES2020", "DOM", "DOM.Iterable"]
++  },
++  "include": [
++    "src/**/*.ts",
++    "src/**/*.tsx",
++    "src/**/*.vue",
++    "tests/**/*.ts"
++  ],
++  "exclude": ["node_modules", "dist", "public/static"]
++}
++

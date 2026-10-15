@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "auth login",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49401",
+    "projectId": null
+  },
+  "data": {
+    "user": {
+      "id": "user",
+      "email": "fixture@example.test",
+      "displayName": "fixture"
+    },
+    "expiresAt": "2026-10-13T13:18:52.166Z",
+    "sessionSaved": false
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PARTIAL_SUCCESS",
+    "message": "已建立远端会话，但本地保存失败。",
+    "details": null
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "auth status",
+  "context": {
+    "baseUrl": "http://127.0.0.1:55075",
+    "projectId": null
+  },
+  "data": {
+    "user": {
+      "id": "user",
+      "email": "fixture@example.test",
+      "displayName": null
+    },
+    "expiresAt": null,
+    "verified": true
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 47
+  }
+}

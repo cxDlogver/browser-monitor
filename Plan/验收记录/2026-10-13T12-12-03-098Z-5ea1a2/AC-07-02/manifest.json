@@ -1,0 +1,75 @@
+{
+  "caseId": "AC-07-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "2fec382107022aebc27affc2b57dffe5b31c84bf99c4b997da562c9f98d14b9a",
+      "bytes": 829
+    },
+    {
+      "path": "reference/database-zero-summary.json",
+      "sha256": "b5f630721431821c093019bbfab52e9852c18404d74c8d7ec224c359ab55a21f",
+      "bytes": 693
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "a57138f422dfcc2d0fda3b55a3e503047d70ab96e2636e396c8708d0e0fae9ab",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "7338ca27498477b83ebd1cf0ab345726ad17fb1b1c2792ccdecf41e813750657",
+      "bytes": 1998
+    },
+    {
+      "path": "run.json",
+      "sha256": "660e5f2ffa0b75eb0e5e07a20e8573e8d6d88d79f59273a6220ddae46afe0e9d",
+      "bytes": 1726
+    },
+    {
+      "path": "steps/failed/command.txt",
+      "sha256": "cdf579355c28d0ba709d8990c596fe067d1161b0a152c78133712f1194fb0dfc",
+      "bytes": 126
+    },
+    {
+      "path": "steps/failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/failed/stdout.json",
+      "sha256": "09eaa1723da694bc1bfd8868a475e08b7e10929ffdb86c85586f0bf092b7fb9b",
+      "bytes": 500
+    },
+    {
+      "path": "steps/refreshed/command.txt",
+      "sha256": "cdf579355c28d0ba709d8990c596fe067d1161b0a152c78133712f1194fb0dfc",
+      "bytes": 126
+    },
+    {
+      "path": "steps/refreshed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/refreshed/stdout.json",
+      "sha256": "36d4c4ef11c8e6ea0aecfc3ce102427422907e5adcc8989a49a4a2566e07d814",
+      "bytes": 646
+    },
+    {
+      "path": "steps/zero/command.txt",
+      "sha256": "cdf579355c28d0ba709d8990c596fe067d1161b0a152c78133712f1194fb0dfc",
+      "bytes": 126
+    },
+    {
+      "path": "steps/zero/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/zero/stdout.json",
+      "sha256": "f41ab983e64184a96b77b758a6410842a445aaeaeb53da632881a7651f2b13a6",
+      "bytes": 624
+    }
+  ]
+}

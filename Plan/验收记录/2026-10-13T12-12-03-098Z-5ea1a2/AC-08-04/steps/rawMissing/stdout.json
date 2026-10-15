@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca"
+  },
+  "data": {
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+    "event": {
+      "eventId": "raw-missing",
+      "occurredAt": "2026-10-13T11:54:59.466Z",
+      "receivedAt": null,
+      "type": "performance",
+      "name": "LCP"
+    },
+    "raw": {
+      "recordState": "missing"
+    },
+    "processing": {
+      "state": "unknown",
+      "processedAt": null,
+      "evidence": null
+    },
+    "task": {
+      "recordState": "present",
+      "taskId": "690e8c21-a3dd-462e-8490-a9f80506aef7",
+      "status": "pending",
+      "attempts": 0,
+      "availableAt": "2026-10-13T11:54:59.469Z",
+      "lockedAt": null,
+      "completedAt": null,
+      "lastFailedAt": null,
+      "lastError": null
+    },
+    "projection": {
+      "visibility": "missing",
+      "eventEffect": "unknown",
+      "identity": {
+        "kind": "performance",
+        "sampleId": "metric-fixture-1"
+      },
+      "currentEntity": null,
+      "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+    },
+    "history": {
+      "limitations": [
+        "Raw record missing: never received, retention cleanup and deletion cannot be distinguished."
+      ],
+      "completedTaskRetentionDays": 7
+    },
+    "asOf": "2026-10-13T12:13:05.307Z",
+    "source": "database"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:13:05.307Z",
+    "elapsedMs": 97
+  }
+}

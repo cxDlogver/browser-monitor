@@ -1,0 +1,65 @@
+{
+  "caseId": "AC-07-02",
+  "startedAt": "2026-10-13T12:12:58.986Z",
+  "endedAt": "2026-10-13T12:13:01.009Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "zero",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:58.992Z",
+      "endedAt": "2026-10-13T12:12:59.453Z",
+      "elapsedMs": 461,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-nbKI3C"
+    },
+    {
+      "name": "refreshed",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:59.453Z",
+      "endedAt": "2026-10-13T12:12:59.882Z",
+      "elapsedMs": 428,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-nbKI3C"
+    },
+    {
+      "name": "failed",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:59.882Z",
+      "endedAt": "2026-10-13T12:13:01.000Z",
+      "elapsedMs": 1118,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-nbKI3C"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

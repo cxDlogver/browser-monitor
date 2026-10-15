@@ -1,0 +1,70 @@
+{
+  "caseId": "AC-09-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "f5e151ef7b746b24fcb1e71698c5ebb43143c564e8d914d627bd667cf80fe1f7",
+      "bytes": 750
+    },
+    {
+      "path": "reference/database-queue-boundaries.json",
+      "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+      "bytes": 2807
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "efb370b16a1835a944d5a6387474c51b9995426665324a4bdcd07fe7ef505d4d",
+      "bytes": 240
+    },
+    {
+      "path": "reference/official-business-queue.json",
+      "sha256": "7beb89aabd7520bd70a77e93389a4c1c8bfc1aeeb0fc4e8e81a883151b160f57",
+      "bytes": 2196
+    },
+    {
+      "path": "reference/qhzhc-business-queue.json",
+      "sha256": "43a60a7e44c587cda691ad83f8c02b19050548f565754e6f5d93392b7088a226",
+      "bytes": 11172
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "0369fe4a8cf59a1a83c5fdb7a521324a69b187cabea23ac410148e25e3c1f4d5",
+      "bytes": 1605
+    },
+    {
+      "path": "run.json",
+      "sha256": "485aa3ce49c45825c92783f17d517602ccac416005822326c035adface3a339e",
+      "bytes": 1255
+    },
+    {
+      "path": "steps/failed/command.txt",
+      "sha256": "3045a8547d94920010b3d9e5c14016273ca28c2ab9c61d5917a79d3a3f537208",
+      "bytes": 126
+    },
+    {
+      "path": "steps/failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/failed/stdout.json",
+      "sha256": "f31384c454cca047ccd408f9657ebf4172af51f1ab1bb5ab2f749f5263920176",
+      "bytes": 501
+    },
+    {
+      "path": "steps/queue/command.txt",
+      "sha256": "3045a8547d94920010b3d9e5c14016273ca28c2ab9c61d5917a79d3a3f537208",
+      "bytes": 126
+    },
+    {
+      "path": "steps/queue/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/queue/stdout.json",
+      "sha256": "2c319137409b43659ba4398585c2b36307a13143fe2a69a60eaf448e3c5bae39",
+      "bytes": 3251
+    }
+  ]
+}

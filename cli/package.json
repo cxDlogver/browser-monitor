@@ -1,0 +1,43 @@
+{
+  "name": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "description": "CLI for managing Browser Monitor projects, exporting SDK configuration, and diagnosing telemetry data and tasks.",
+  "keywords": ["browser-monitor", "monitoring", "telemetry", "cli", "ai"],
+  "author": "cxDlogver",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "bm": "./bin/bm.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": ["bin/bm.mjs", "dist/*.js", "README.md", "CHANGELOG.md", "LICENSE"],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxDlogver/browser-monitor.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/cxDlogver/browser-monitor/issues"
+  },
+  "homepage": "https://github.com/cxDlogver/browser-monitor#readme",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsc -p tsconfig.json && vitest run",
+    "test:package": "node scripts/verify-package.mjs",
+    "check": "npm run typecheck && npm test",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run check && npm run test:package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

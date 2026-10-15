@@ -1,0 +1,48 @@
+[
+  {
+    "name": "default 50",
+    "expected": 50,
+    "observed": 50,
+    "verdict": "passed"
+  },
+  {
+    "name": "default 24h",
+    "expected": 86400000,
+    "observed": 86400000,
+    "verdict": "passed"
+  },
+  {
+    "name": "limit sent",
+    "expected": "50",
+    "observed": "50",
+    "verdict": "passed"
+  },
+  {
+    "name": "max 100",
+    "expected": 100,
+    "observed": 100,
+    "verdict": "passed"
+  },
+  {
+    "name": "time-boundary recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "to excluded",
+    "expected": false,
+    "observed": false,
+    "verdict": "passed"
+  },
+  {
+    "name": "receivedAt does not change range",
+    "expected": [
+      "from"
+    ],
+    "observed": [
+      "from"
+    ],
+    "verdict": "passed"
+  }
+]

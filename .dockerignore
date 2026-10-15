@@ -22,5 +22,6 @@ coverage/
 
 # Documentation and editor configuration are not required by runtime images.
 **/docs/
+Plan/
 .vscode/
 .idea/

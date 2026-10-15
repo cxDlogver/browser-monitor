@@ -1,0 +1,161 @@
+{
+  "caseId": "AC-11-05",
+  "startedAt": "2026-10-13T12:21:04.103Z",
+  "endedAt": "2026-10-13T12:21:07.591Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "missing-list",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:04.104Z",
+      "endedAt": "2026-10-13T12:21:04.516Z",
+      "elapsedMs": 412,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "invalid-list",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:04.516Z",
+      "endedAt": "2026-10-13T12:21:05.040Z",
+      "elapsedMs": 524,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "missing-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:05.040Z",
+      "endedAt": "2026-10-13T12:21:05.511Z",
+      "elapsedMs": 471,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "invalid-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:05.511Z",
+      "endedAt": "2026-10-13T12:21:05.921Z",
+      "elapsedMs": 410,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "missing-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:05.921Z",
+      "endedAt": "2026-10-13T12:21:06.314Z",
+      "elapsedMs": 394,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "invalid-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:06.314Z",
+      "endedAt": "2026-10-13T12:21:06.712Z",
+      "elapsedMs": 398,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "missing-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:06.712Z",
+      "endedAt": "2026-10-13T12:21:07.164Z",
+      "elapsedMs": 452,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    },
+    {
+      "name": "invalid-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:07.164Z",
+      "endedAt": "2026-10-13T12:21:07.583Z",
+      "elapsedMs": 419,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-whQnR7"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

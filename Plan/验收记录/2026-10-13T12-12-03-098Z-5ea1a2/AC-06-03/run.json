@@ -1,0 +1,127 @@
+{
+  "caseId": "AC-06-03",
+  "startedAt": "2026-10-13T12:12:47.990Z",
+  "endedAt": "2026-10-13T12:12:50.652Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "page-1",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:47.995Z",
+      "endedAt": "2026-10-13T12:12:48.440Z",
+      "elapsedMs": 445,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    },
+    {
+      "name": "page-2",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDc3NyIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjQ4LjI5OVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NDguMjk5WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:48.440Z",
+      "endedAt": "2026-10-13T12:12:48.887Z",
+      "elapsedMs": 447,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    },
+    {
+      "name": "page-3",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDc3NyIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjQ4LjI5OVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NDguMjk5WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwOTgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:48.887Z",
+      "endedAt": "2026-10-13T12:12:49.331Z",
+      "elapsedMs": 443,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    },
+    {
+      "name": "page-4",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDc3NyIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjQ4LjI5OVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NDguMjk5WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAxNDgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:49.331Z",
+      "endedAt": "2026-10-13T12:12:49.743Z",
+      "elapsedMs": 413,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    },
+    {
+      "name": "changing-page-1",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:49.744Z",
+      "endedAt": "2026-10-13T12:12:50.178Z",
+      "elapsedMs": 434,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    },
+    {
+      "name": "changing-page-2",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1NDc3NyIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjEyOjUwLjA0NFoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTI6NTAuMDQ0WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54777"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:50.178Z",
+      "endedAt": "2026-10-13T12:12:50.629Z",
+      "elapsedMs": 451,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-12zSb5"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

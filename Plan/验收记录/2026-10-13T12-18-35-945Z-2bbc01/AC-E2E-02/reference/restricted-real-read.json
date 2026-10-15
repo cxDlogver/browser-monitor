@@ -1,0 +1,92 @@
+{
+  "invocation": [
+    "project",
+    "get",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "project get",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "id": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "displayName": "实时走航车项目-CLI验收",
+      "appName": "qhzhc",
+      "enabled": true,
+      "role": "member",
+      "keys": [
+        {
+          "id": "f5aa2f20-b5d5-4507-a38d-326dc04e6392",
+          "label": "default",
+          "active": true,
+          "expiresAt": null,
+          "createdAt": "2026-10-13T11:31:14.191Z",
+          "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+        }
+      ],
+      "origins": [
+        "http://127.0.0.1:9527"
+      ],
+      "members": [
+        {
+          "id": "22eca7f1-3beb-4b9b-b3c5-d5bf14faa9b9",
+          "email": "cli-2026-10-13t11-31-09-545z-9983c2@example.test",
+          "displayName": "CLI acceptance",
+          "role": "owner"
+        },
+        {
+          "id": "c66fdd64-8c39-4d16-8e85-f7c522a83b88",
+          "email": "member-cli-2026-10-13t11-31-09-545z-9983c2@example.test",
+          "displayName": "CLI member",
+          "role": "member"
+        }
+      ],
+      "thresholds": {
+        "id": "0f574205-ddb3-4640-8650-ed67e08b1895",
+        "version": 1,
+        "config": {
+          "CLS": {
+            "good": 0.1,
+            "poor": 0.25,
+            "direction": "lower-is-better"
+          },
+          "FCP": {
+            "good": 1800,
+            "poor": 3000,
+            "direction": "lower-is-better"
+          },
+          "FPS": {
+            "good": 50,
+            "poor": 30,
+            "direction": "higher-is-better"
+          },
+          "INP": {
+            "good": 200,
+            "poor": 500,
+            "direction": "lower-is-better"
+          },
+          "LCP": {
+            "good": 2500,
+            "poor": 4000,
+            "direction": "lower-is-better"
+          }
+        },
+        "project_id": null
+      }
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "elapsedMs": 87
+    }
+  },
+  "stderr": ""
+}

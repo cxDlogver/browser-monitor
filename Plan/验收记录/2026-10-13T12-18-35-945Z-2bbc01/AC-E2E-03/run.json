@@ -1,0 +1,144 @@
+{
+  "caseId": "AC-E2E-03",
+  "startedAt": "2026-10-13T12:22:59.928Z",
+  "endedAt": "2026-10-13T12:23:02.515Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "create",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "恢复夹具",
+        "--app-name",
+        "recovery",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:59.929Z",
+      "endedAt": "2026-10-13T12:23:00.337Z",
+      "elapsedMs": 408,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    },
+    {
+      "name": "origins-failed",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:23:00.337Z",
+      "endedAt": "2026-10-13T12:23:00.767Z",
+      "elapsedMs": 431,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    },
+    {
+      "name": "origins-recovered",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:23:00.767Z",
+      "endedAt": "2026-10-13T12:23:01.253Z",
+      "elapsedMs": 486,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    },
+    {
+      "name": "final-project",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:23:01.253Z",
+      "endedAt": "2026-10-13T12:23:01.672Z",
+      "elapsedMs": 418,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    },
+    {
+      "name": "export-partial",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--out",
+        "original.json",
+        "--example-out",
+        "blocked",
+        "--overwrite",
+        "--project",
+        "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:23:01.673Z",
+      "endedAt": "2026-10-13T12:23:02.080Z",
+      "elapsedMs": 408,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    },
+    {
+      "name": "example-recovered",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--out",
+        "recovery-temp.json",
+        "--example-out",
+        "recovered.ts",
+        "--project",
+        "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+        "--base-url",
+        "http://127.0.0.1:50232"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:23:02.081Z",
+      "endedAt": "2026-10-13T12:23:02.490Z",
+      "elapsedMs": 409,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

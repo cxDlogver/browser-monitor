@@ -1,0 +1,7 @@
+{
+  "entry": "cli/scripts/verify-acceptance.mjs",
+  "runtime": "v22.12.0",
+  "stdinIsTTY": false,
+  "inputMode": "saved platform-isolated Session",
+  "scope": "CLI project/origins/sdk/reads; actual business input prepared separately"
+}

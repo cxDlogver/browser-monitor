@@ -1,0 +1,16 @@
+[
+  {
+    "profile": "qhzhc",
+    "manifestVersion": "0.3.0",
+    "resolvedSdk": "F:\\CX_notes\\cx-learn-notes\\node_modules\\.pnpm\\@cxdlogver+browser-monitor-sdk@0.3.0\\node_modules\\@cxdlogver\\browser-monitor-sdk\\package.json",
+    "protocolVersion": "3.0.0",
+    "registryIntegrityVerifiedInLock": true
+  },
+  {
+    "profile": "official",
+    "manifestVersion": "0.3.0",
+    "resolvedSdk": "F:\\CX_notes\\cx-learn-notes\\node_modules\\.pnpm\\@cxdlogver+browser-monitor-sdk@0.3.0\\node_modules\\@cxdlogver\\browser-monitor-sdk\\package.json",
+    "protocolVersion": "3.0.0",
+    "registryIntegrityVerifiedInLock": true
+  }
+]

@@ -1,0 +1,169 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.backend
+#1 transferring dockerfile: 1.21kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-bookworm-slim
+#2 ...
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-bookworm-slim
+#2 DONE 3.7s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 590B done
+#4 DONE 0.0s
+
+#5 [ 1/18] FROM docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+#5 resolve docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 416.18kB 0.1s done
+#6 DONE 0.1s
+
+#7 [ 2/18] RUN corepack enable
+#7 CACHED
+
+#8 [ 3/18] WORKDIR /workspace
+#8 CACHED
+
+#9 [ 4/18] COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+#9 DONE 0.1s
+
+#10 [ 5/18] COPY cli/package.json ./cli/package.json
+#10 DONE 0.0s
+
+#11 [ 6/18] COPY cli/bin ./cli/bin
+#11 DONE 0.0s
+
+#12 [ 7/18] COPY protocol/package.json ./protocol/package.json
+#12 DONE 0.0s
+
+#13 [ 8/18] COPY sdk/package.json ./sdk/package.json
+#13 DONE 0.0s
+
+#14 [ 9/18] COPY platform/package.json ./platform/package.json
+#14 DONE 0.1s
+
+#15 [10/18] COPY platform/apps/api/package.json ./platform/apps/api/package.json
+#15 DONE 0.1s
+
+#16 [11/18] COPY platform/apps/worker/package.json ./platform/apps/worker/package.json
+#16 DONE 0.0s
+
+#17 [12/18] COPY platform/apps/web/package.json ./platform/apps/web/package.json
+#17 DONE 0.0s
+
+#18 [13/18] COPY platform/packages/database/package.json ./platform/packages/database/package.json
+#18 DONE 0.1s
+
+#19 [14/18] COPY platform/packages/shared/package.json ./platform/packages/shared/package.json
+#19 DONE 0.0s
+
+#20 [15/18] RUN pnpm install --frozen-lockfile
+#20 0.528 ! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-10.28.2.tgz
+#20 3.993 Scope: all 10 workspace projects
+#20 4.060 Lockfile is up to date, resolution step is skipped
+#20 4.121 Progress: resolved 1, reused 0, downloaded 0, added 0
+#20 4.221 Packages: +509
+#20 4.221 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#20 5.122 Progress: resolved 509, reused 0, downloaded 0, added 0
+#20 6.125 Progress: resolved 509, reused 0, downloaded 35, added 35
+#20 6.315  WARN  Tarball download average speed 29 KiB/s (size 34 KiB) is below 50 KiB/s: https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz (GET)
+#20 6.567  WARN  Tarball download average speed 11 KiB/s (size 13 KiB) is below 50 KiB/s: https://registry.npmjs.org/@csstools/css-calc/-/css-calc-3.4.0.tgz (GET)
+#20 7.125 Progress: resolved 509, reused 0, downloaded 72, added 72
+#20 7.501 
+#20 7.501    ╭───────────────────────────────────────────────╮
+#20 7.501    │                                               │
+#20 7.501    │     Update available! 10.28.2 → 12.11.2.      │
+#20 7.501    │     Changelog: https://pnpm.io/v/12.11.2      │
+#20 7.501    │   To update, run: corepack use pnpm@12.11.2   │
+#20 7.501    │                                               │
+#20 7.501    ╰───────────────────────────────────────────────╯
+#20 7.501 
+#20 8.126 Progress: resolved 509, reused 0, downloaded 163, added 164
+#20 9.126 Progress: resolved 509, reused 0, downloaded 257, added 258
+#20 10.13 Progress: resolved 509, reused 0, downloaded 327, added 328
+#20 11.13 Progress: resolved 509, reused 0, downloaded 409, added 398
+#20 12.13 Progress: resolved 509, reused 0, downloaded 494, added 494
+#20 12.71 Progress: resolved 509, reused 0, downloaded 508, added 509, done
+#20 13.04 
+#20 13.04 devDependencies:
+#20 13.04 + @cxdlogver/browser-monitor-cli 0.1.0 <- cli
+#20 13.04 
+#20 13.10 ╭ Warning ─────────────────────────────────────────────────────────────────────╮
+#20 13.10 │                                                                              │
+#20 13.10 │   Ignored build scripts: esbuild@0.27.7, esbuild@0.28.2.                     │
+#20 13.10 │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+#20 13.10 │   to run scripts.                                                            │
+#20 13.10 │                                                                              │
+#20 13.10 ╰──────────────────────────────────────────────────────────────────────────────╯
+#20 13.18 Done in 9.5s using pnpm v10.28.2
+#20 DONE 13.8s
+
+#21 [16/18] COPY protocol ./protocol
+#21 DONE 0.5s
+
+#22 [17/18] COPY platform ./platform
+#22 DONE 0.1s
+
+#23 [18/18] RUN pnpm --filter @cxdlogver/browser-monitor-protocol build  && pnpm --filter @browser-monitor/shared build  && pnpm --filter @browser-monitor/database build  && pnpm --filter @browser-monitor/api build  && pnpm --filter @browser-monitor/worker build
+#23 0.563 
+#23 0.563 > @cxdlogver/browser-monitor-protocol@3.0.0 build /workspace/protocol
+#23 0.563 > tsup
+#23 0.563 
+#23 0.933 CLI Building entry: src/constants.ts, src/fixtures.ts, src/index.ts
+#23 0.933 CLI Using tsconfig: tsconfig.json
+#23 0.933 CLI tsup v8.5.1
+#23 0.934 CLI Using tsup config: /workspace/protocol/tsup.config.ts
+#23 0.940 CLI Target: es2022
+#23 0.941 CLI Cleaning output folder
+#23 0.942 ESM Build start
+#23 0.958 ESM dist/constants.js     726.00 B
+#23 0.958 ESM dist/fixtures.js      1.46 KB
+#23 0.958 ESM dist/index.js         10.25 KB
+#23 0.958 ESM dist/constants.js.map 1.12 KB
+#23 0.958 ESM dist/fixtures.js.map  3.30 KB
+#23 0.958 ESM dist/index.js.map     21.00 KB
+#23 0.959 ESM ⚡️ Build success in 16ms
+#23 1.239 DTS Build start
+#23 3.908 DTS ⚡️ Build success in 2670ms
+#23 3.908 DTS dist/index.d.ts            1.91 KB
+#23 3.908 DTS dist/fixtures.d.ts         4.27 KB
+#23 3.908 DTS dist/constants.d.ts        900.00 B
+#23 3.908 DTS dist/schemas-q9RZ5PDG.d.ts 139.19 KB
+#23 4.309 
+#23 4.309 > @browser-monitor/shared@0.1.0 build /workspace/platform/packages/shared
+#23 4.309 > tsc -p tsconfig.build.json
+#23 4.309 
+#23 6.022 
+#23 6.022 > @browser-monitor/database@0.1.0 build /workspace/platform/packages/database
+#23 6.022 > tsc -p tsconfig.build.json
+#23 6.022 
+#23 8.275 
+#23 8.275 > @browser-monitor/api@0.1.0 build /workspace/platform/apps/api
+#23 8.275 > tsc -p tsconfig.build.json
+#23 8.275 
+#23 12.93 
+#23 12.93 > @browser-monitor/worker@0.1.0 build /workspace/platform/apps/worker
+#23 12.93 > tsc -p tsconfig.build.json
+#23 12.93 
+#23 DONE 14.7s
+
+#24 exporting to image
+#24 exporting layers
+#24 exporting layers 19.8s done
+#24 exporting manifest sha256:76e63b600ea59fa6afc90ee016d374c5e95b00a7be93583acc85afcfe1870825 0.0s done
+#24 exporting config sha256:68fed54e9cebd1883c1991536fd47f8f5659b7b85ae461332922211d31012b0b 0.0s done
+#24 exporting attestation manifest sha256:c6bb5ea6898f16efd78c63a8c49f124997ad74e8782eaa74b028861c5fa6849c 0.0s done
+#24 exporting manifest list sha256:21fd3ead7e95f2fb28fa2575fdd984281970c940c987041f3d465918097ba830 0.0s done
+#24 naming to docker.io/library/browser-monitor-cli-dev-check:20261013 done
+#24 unpacking to docker.io/library/browser-monitor-cli-dev-check:20261013
+#24 unpacking to docker.io/library/browser-monitor-cli-dev-check:20261013 12.4s done
+#24 DONE 32.4s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/qh5i09jdcbgc0bvhe10tvy8nu

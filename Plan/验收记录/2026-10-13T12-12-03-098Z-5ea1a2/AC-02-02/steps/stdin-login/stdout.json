@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "auth login",
+  "context": {
+    "baseUrl": "http://127.0.0.1:55106",
+    "projectId": null
+  },
+  "data": {
+    "user": {
+      "id": "user",
+      "email": "fixture@example.test",
+      "displayName": "fixture"
+    },
+    "expiresAt": "2026-10-13T13:12:15.622Z",
+    "sessionSaved": true
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "expiresAt": "2026-10-13T13:12:15.622Z",
+    "elapsedMs": 286
+  }
+}

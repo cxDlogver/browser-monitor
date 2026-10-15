@@ -1,0 +1,67 @@
+{
+  "caseId": "AC-07-01",
+  "startedAt": "2026-10-13T12:12:57.689Z",
+  "endedAt": "2026-10-13T12:12:58.929Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54938"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:57.698Z",
+      "endedAt": "2026-10-13T12:12:58.103Z",
+      "elapsedMs": 406,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-CXKTMu"
+    },
+    {
+      "name": "filtered-list",
+      "invocation": [
+        "events",
+        "list",
+        "--name",
+        "absent",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54938"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:58.104Z",
+      "endedAt": "2026-10-13T12:12:58.509Z",
+      "elapsedMs": 406,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-CXKTMu"
+    },
+    {
+      "name": "summary-after",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54938"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:58.509Z",
+      "endedAt": "2026-10-13T12:12:58.918Z",
+      "elapsedMs": 408,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-CXKTMu"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

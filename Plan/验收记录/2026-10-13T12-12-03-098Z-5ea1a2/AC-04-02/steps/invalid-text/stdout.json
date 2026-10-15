@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "origins set",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54621",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "无效 URL：not-a-url",
+    "details": null
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54938",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "items": [],
+    "hasMore": false,
+    "nextCursor": null,
+    "range": {
+      "from": "2026-10-12T12:12:58.379Z",
+      "to": "2026-10-13T12:12:58.379Z"
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:12:58.421Z",
+    "limitations": [
+      "No cross-page snapshot guarantee"
+    ]
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:12:58.421Z",
+    "query": {
+      "from": "2026-10-12T12:12:58.379Z",
+      "to": "2026-10-13T12:12:58.379Z",
+      "name": "absent"
+    },
+    "elapsedMs": 47
+  }
+}

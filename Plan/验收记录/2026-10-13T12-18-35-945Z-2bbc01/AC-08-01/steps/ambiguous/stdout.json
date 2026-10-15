@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "AMBIGUOUS_EVENT",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/97ddfeeb-cad3-4fd1-9653-31047e809bca/diagnostics/events/collision?includePayload=false",
+      "status": 400,
+      "candidates": [
+        "2026-10-13T11:24:59.469Z",
+        "2026-10-13T10:54:59.469Z"
+      ],
+      "candidatesTruncated": false
+    }
+  }
+}

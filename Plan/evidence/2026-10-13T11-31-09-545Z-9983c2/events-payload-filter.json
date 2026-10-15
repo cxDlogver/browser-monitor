@@ -1,0 +1,124 @@
+{
+  "invocation": [
+    "events",
+    "list",
+    "--event-id",
+    "942122f2-596e-4275-8aa9-61ee1e022dbf",
+    "--type",
+    "performance",
+    "--name",
+    "LCP",
+    "--environment",
+    "cli-acceptance",
+    "--version",
+    "1.0.0",
+    "--route-name",
+    "/dataVisualization",
+    "--session-id",
+    "session-fixture-1",
+    "--view-id",
+    "view-fixture-1",
+    "--include-payload",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events list",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "items": [
+        {
+          "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "receivedAt": "2026-10-13T11:31:18.551Z",
+          "type": "performance",
+          "name": "LCP",
+          "environment": "cli-acceptance",
+          "version": "1.0.0",
+          "sessionId": "session-fixture-1",
+          "viewId": "view-fixture-1",
+          "routeName": "/dataVisualization",
+          "correlation": {},
+          "event": {
+            "app": {
+              "name": "qhzhc",
+              "version": "1.0.0",
+              "environment": "cli-acceptance"
+            },
+            "name": "LCP",
+            "type": "performance",
+            "context": {
+              "url": "https://example.test/home",
+              "viewId": "view-fixture-1",
+              "runtime": {
+                "sdk": {
+                  "name": "@cxdlogver/browser-monitor-sdk",
+                  "version": "0.3.0"
+                }
+              },
+              "routeName": "/dataVisualization",
+              "sessionId": "session-fixture-1"
+            },
+            "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+            "payload": {
+              "kind": "core-web-vital",
+              "name": "LCP",
+              "type": "performance",
+              "unit": "ms",
+              "delta": 1800,
+              "state": "provisional",
+              "value": 1800,
+              "source": "web-vitals",
+              "sampleId": "metric-fixture-1",
+              "sequence": 0,
+              "clientRating": "good",
+              "navigationId": 0,
+              "navigationType": "navigate"
+            },
+            "occurredAt": 1791891078536,
+            "correlation": {},
+            "protocolVersion": "3.0"
+          }
+        }
+      ],
+      "nextCursor": null,
+      "hasMore": false,
+      "range": {
+        "from": "2026-10-12T11:31:26.225Z",
+        "to": "2026-10-13T11:31:26.225Z"
+      },
+      "asOf": "2026-10-13T11:31:26.301Z",
+      "source": "database",
+      "limitations": [
+        "Keyset pagination is not a snapshot across separate page requests."
+      ]
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:26.301Z",
+      "query": {
+        "from": "2026-10-12T11:31:26.225Z",
+        "to": "2026-10-13T11:31:26.225Z",
+        "type": "performance",
+        "name": "LCP",
+        "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+        "environment": "cli-acceptance",
+        "version": "1.0.0",
+        "routeName": "/dataVisualization",
+        "sessionId": "session-fixture-1",
+        "viewId": "view-fixture-1"
+      },
+      "elapsedMs": 86
+    }
+  },
+  "stderr": ""
+}

@@ -1,0 +1,70 @@
+{
+  "caseId": "AC-10-01",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "ffa6f05c397ca8aa17d2ff080ce85855af914ea8d8005e3e808234bd8c236011",
+      "bytes": 785
+    },
+    {
+      "path": "reference/database-noop-revision.json",
+      "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+      "bytes": 1872
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "9a6501aeca8191751c599dec73afbad52e644b25d0b6d0331b8acfc53a571b94",
+      "bytes": 240
+    },
+    {
+      "path": "reference/official-business-wait.json",
+      "sha256": "24bdbe340f81b54d8d5c405c36a5cd2e41776abc12062d0ca7f46a8f16800e92",
+      "bytes": 2504
+    },
+    {
+      "path": "reference/qhzhc-business-wait.json",
+      "sha256": "fbcaab0392ac636914f35770d871a06d88ce43c921697be2e5b65f4848aff6ab",
+      "bytes": 2405
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "0da3aec84b810bad3500f41a01086092e01f9b4b67e00b178c3337b26342e0f2",
+      "bytes": 1336
+    },
+    {
+      "path": "run.json",
+      "sha256": "39be2dae110ab6a07654d45e1c70635e9d45b4233d1ec4f3052d02c5bf269b46",
+      "bytes": 1412
+    },
+    {
+      "path": "steps/actual-noop/command.txt",
+      "sha256": "2cda240549585b6d18b3d4a0946bf523fbd29dc9033d71f7175531961ab29958",
+      "bytes": 152
+    },
+    {
+      "path": "steps/actual-noop/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/actual-noop/stdout.json",
+      "sha256": "325aa8e1e65f213bce3c4d6ef7a474ffe707b468ed7f102e97bbec70d1a70d3b",
+      "bytes": 1972
+    },
+    {
+      "path": "steps/normal/command.txt",
+      "sha256": "3bd7bf0110f749101e14dd23005fe5927b5778ca1d7183fd02c39c025617a801",
+      "bytes": 179
+    },
+    {
+      "path": "steps/normal/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/normal/stdout.json",
+      "sha256": "2ddf8c920e4ab1617f53c711662153546386c7cf2a7116bfdf4f785e0229f661",
+      "bytes": 1198
+    }
+  ]
+}

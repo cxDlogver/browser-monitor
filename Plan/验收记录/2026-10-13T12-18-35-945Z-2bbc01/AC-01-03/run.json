@@ -1,0 +1,92 @@
+{
+  "caseId": "AC-01-03",
+  "startedAt": "2026-10-13T12:18:40.950Z",
+  "endedAt": "2026-10-13T12:18:43.241Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "missing",
+      "invocation": [
+        "data",
+        "summary",
+        "--base-url",
+        "http://127.0.0.1:52253"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:40.950Z",
+      "endedAt": "2026-10-13T12:18:41.357Z",
+      "elapsedMs": 407,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-HBMWeg"
+    },
+    {
+      "name": "broken",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:52253"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:41.359Z",
+      "endedAt": "2026-10-13T12:18:41.747Z",
+      "elapsedMs": 388,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-HBMWeg"
+    },
+    {
+      "name": "list",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:52253"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:41.750Z",
+      "endedAt": "2026-10-13T12:18:42.191Z",
+      "elapsedMs": 441,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-HBMWeg\\empty"
+    },
+    {
+      "name": "auth-status",
+      "invocation": [
+        "auth",
+        "status",
+        "--base-url",
+        "http://127.0.0.1:52253"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:42.191Z",
+      "endedAt": "2026-10-13T12:18:42.629Z",
+      "elapsedMs": 438,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-HBMWeg\\empty"
+    },
+    {
+      "name": "health",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:52253"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:42.629Z",
+      "endedAt": "2026-10-13T12:18:43.234Z",
+      "elapsedMs": 605,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-HBMWeg\\empty"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

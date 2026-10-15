@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events wait",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50420",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "reason": "deadline_reached",
+    "polls": 1,
+    "elapsedMs": 108,
+    "lastObservation": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "event": {
+        "eventId": "event",
+        "occurredAt": "2026-10-13T00:00:00.000Z"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "notObserved",
+        "processedAt": null
+      },
+      "task": {
+        "recordState": "present",
+        "status": "pending",
+        "completedAt": null
+      },
+      "projection": {
+        "visibility": "missing",
+        "eventEffect": "unknown"
+      },
+      "history": {
+        "limitations": []
+      },
+      "source": "database",
+      "asOf": "2026-10-13T12:20:57.013Z"
+    },
+    "lastObservationAsOf": "2026-10-13T12:20:57.013Z",
+    "lastQueryFailure": null
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "WAIT_TIMEOUT",
+    "message": "等待到期，尚未取得完整完成证据。",
+    "details": null
+  }
+}

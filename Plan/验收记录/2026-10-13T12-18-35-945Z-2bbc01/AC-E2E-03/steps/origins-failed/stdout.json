@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "origins set",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50232",
+    "projectId": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "SERVER_ERROR",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e/origins",
+      "status": 503
+    }
+  }
+}

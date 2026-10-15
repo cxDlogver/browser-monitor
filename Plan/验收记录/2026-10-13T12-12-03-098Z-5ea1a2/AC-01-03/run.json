@@ -1,0 +1,90 @@
+{
+  "caseId": "AC-01-03",
+  "startedAt": "2026-10-13T12:12:10.814Z",
+  "endedAt": "2026-10-13T12:12:13.237Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "missing",
+      "invocation": [
+        "data",
+        "summary",
+        "--base-url",
+        "http://127.0.0.1:55075"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:10.815Z",
+      "endedAt": "2026-10-13T12:12:11.313Z",
+      "elapsedMs": 499,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-O4c2da"
+    },
+    {
+      "name": "broken",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:55075"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:11.315Z",
+      "endedAt": "2026-10-13T12:12:11.702Z",
+      "elapsedMs": 387,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-O4c2da"
+    },
+    {
+      "name": "list",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:55075"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:11.705Z",
+      "endedAt": "2026-10-13T12:12:12.174Z",
+      "elapsedMs": 469,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-O4c2da\\empty"
+    },
+    {
+      "name": "auth-status",
+      "invocation": [
+        "auth",
+        "status",
+        "--base-url",
+        "http://127.0.0.1:55075"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:12.174Z",
+      "endedAt": "2026-10-13T12:12:12.633Z",
+      "elapsedMs": 459,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-O4c2da\\empty"
+    },
+    {
+      "name": "health",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:55075"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:12.633Z",
+      "endedAt": "2026-10-13T12:12:13.227Z",
+      "elapsedMs": 594,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-O4c2da\\empty"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

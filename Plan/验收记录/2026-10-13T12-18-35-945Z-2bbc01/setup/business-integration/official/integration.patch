@@ -1,0 +1,108 @@
+--- before/F:\CX_notes\cx-learn-notes\official-network\app\config\monitor.local.json
++++ after/F:\CX_notes\cx-learn-notes\official-network\app\config\monitor.local.json
+@@ -1,1 +1,10 @@
+-
++{
++  "app": {
++    "name": "guanwang",
++    "version": "1.0.0",
++    "environment": "cli-acceptance"
++  },
++  "transport": {
++    "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
++  }
++}
+--- before/F:\CX_notes\cx-learn-notes\official-network\app\plugins\monitor.client.ts
++++ after/F:\CX_notes\cx-learn-notes\official-network\app\plugins\monitor.client.ts
+@@ -1,47 +1,44 @@
+-import { createMonitor } from '@cxdlogver/browser-monitor-sdk'
+-import { useRouter } from 'vue-router'
+-
+-import { resolveSectionName } from '~/utils/monitor/route-section'
+-import { createStayTracker } from '~/utils/monitor/stay-tracking'
+-
+-/**
+- * 官网监控 SDK 接入。
+- *
+- * 约定：
+- * - 文件名以 `.client.ts` 结尾，Nuxt 只会在浏览器端执行，避免 SSR 阶段访问 window/document。
+- * - app.name 必须与监控平台上创建项目时填写的 appName 完全一致，否则上报会被逐条拒绝
+- *   （app_name_mismatch）。
+- * - resolveRouteName 把具体 URL 归并成「一级路由」：平台自定义信号只能按 route_name 分组，
+- *   归一到一级路由后性能看板与停留时长看板分组粒度一致，动态路径也不会打散维度。
+- * - dsn 即平台上项目的写入地址，形如 /api/v3/ingest/<publicKey>/envelopes。
+- *
+- * 注册顺序有硬约束：先注册停留埋点的 DOM 与路由监听，再 monitor.start()，最后 begin()。
+- * SDK 的 pagehide 监听在 start() 内才注册，先注册的我们的监听会先执行，从而抢在 SDK
+- * 自动取消未结束句柄之前完成末段停留结算（否则 visibleMs 会丢失）。
+- */
+-export default defineNuxtPlugin(() => {
+-  const monitor = createMonitor({
+-    app: {
+-      name: 'guanwang',
+-      version: '1.0.0',
+-      environment: 'production',
+-    },
+-    view: {
+-      resolveRouteName: ({ pathname }) => resolveSectionName(pathname),
+-    },
+-    transport: {
+-      dsn: 'http://localhost:8080/api/v3/ingest/bm_pk_UGFgVgU2w1f45kvrzAwnP3dxMVVwLemg_YFd_mweucQ/envelopes',
+-    },
+-  })
+-
+-  const stayTracker = createStayTracker(monitor, { router: useRouter() })
+-
+-  monitor.start()
+-  stayTracker.begin()
+-
+-  return {
+-    provide: {
+-      monitor,
+-    },
+-  }
+-})
++import { createMonitor } from '@cxdlogver/browser-monitor-sdk'
++import { useRouter } from 'vue-router'
++
++import monitorConfig from '~/config/monitor.local.json'
++import { resolveSectionName } from '~/utils/monitor/route-section'
++import { createStayTracker } from '~/utils/monitor/stay-tracking'
++
++/**
++ * 官网监控 SDK 接入。
++ *
++ * 约定：
++ * - 文件名以 `.client.ts` 结尾，Nuxt 只会在浏览器端执行，避免 SSR 阶段访问 window/document。
++ * - app.name 必须与监控平台上创建项目时填写的 appName 完全一致，否则上报会被逐条拒绝
++ *   （app_name_mismatch）。
++ * - resolveRouteName 把具体 URL 归并成「一级路由」：平台自定义信号只能按 route_name 分组，
++ *   归一到一级路由后性能看板与停留时长看板分组粒度一致，动态路径也不会打散维度。
++ * - dsn 即平台上项目的写入地址，形如 /api/v3/ingest/<publicKey>/envelopes。
++ *
++ * 注册顺序有硬约束：先注册停留埋点的 DOM 与路由监听，再 monitor.start()，最后 begin()。
++ * SDK 的 pagehide 监听在 start() 内才注册，先注册的我们的监听会先执行，从而抢在 SDK
++ * 自动取消未结束句柄之前完成末段停留结算（否则 visibleMs 会丢失）。
++ */
++export default defineNuxtPlugin(() => {
++  const monitor = createMonitor({
++    app: monitorConfig.app,
++    view: {
++      resolveRouteName: ({ pathname }) => resolveSectionName(pathname),
++    },
++    transport: {
++      dsn: monitorConfig.transport.dsn,
++    },
++  })
++
++  const stayTracker = createStayTracker(monitor, { router: useRouter() })
++
++  monitor.start()
++  stayTracker.begin()
++
++  return {
++    provide: {
++      monitor,
++    },
++  }
++})

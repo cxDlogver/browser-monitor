@@ -1,0 +1,340 @@
+{
+  "caseId": "AC-06-05",
+  "startedAt": "2026-10-13T12:19:25.708Z",
+  "endedAt": "2026-10-13T12:30:20.389Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "summary",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "fixture-0000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57905"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:25.708Z",
+      "endedAt": "2026-10-13T12:19:26.121Z",
+      "elapsedMs": 413,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-wRKjqx"
+    },
+    {
+      "name": "payload",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "fixture-0000",
+        "--include-payload",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57905"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:26.121Z",
+      "endedAt": "2026-10-13T12:19:26.553Z",
+      "elapsedMs": 432,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-wRKjqx"
+    },
+    {
+      "name": "empty",
+      "invocation": [
+        "events",
+        "list",
+        "--name",
+        "absent",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57905"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:26.553Z",
+      "endedAt": "2026-10-13T12:19:27.002Z",
+      "elapsedMs": 449,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-wRKjqx"
+    },
+    {
+      "name": "denied",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57905"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:27.002Z",
+      "endedAt": "2026-10-13T12:19:27.432Z",
+      "elapsedMs": 429,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-wRKjqx"
+    },
+    {
+      "name": "server-fault",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57905"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:27.432Z",
+      "endedAt": "2026-10-13T12:19:28.567Z",
+      "elapsedMs": 1136,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-wRKjqx"
+    },
+    {
+      "name": "real-member-login",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "cli-permission-42543931-141b-447d-9971-92311885049f@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:28:01.036Z",
+      "endedAt": "2026-10-13T12:28:01.697Z",
+      "elapsedMs": 661,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-member-payload",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--include-payload",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:01.699Z",
+      "endedAt": "2026-10-13T12:28:02.136Z",
+      "elapsedMs": 438,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-foreign-events",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:02.137Z",
+      "endedAt": "2026-10-13T12:28:02.561Z",
+      "elapsedMs": 424,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-foreign-diagnostics",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:02.561Z",
+      "endedAt": "2026-10-13T12:28:02.982Z",
+      "elapsedMs": 421,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-foreign-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:02.982Z",
+      "endedAt": "2026-10-13T12:28:03.398Z",
+      "elapsedMs": 417,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-member-write-denied",
+      "invocation": [
+        "origins",
+        "set",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--origin",
+        "http://localhost:3002",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:28:03.398Z",
+      "endedAt": "2026-10-13T12:28:03.847Z",
+      "elapsedMs": 449,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-yfdOD0"
+    },
+    {
+      "name": "real-member-login",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "cli-permission-9210acc4-0eab-4f8b-acf7-df7e31ef4d21@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:30:17.507Z",
+      "endedAt": "2026-10-13T12:30:18.209Z",
+      "elapsedMs": 702,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    },
+    {
+      "name": "real-member-payload",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--include-payload",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:18.210Z",
+      "endedAt": "2026-10-13T12:30:18.651Z",
+      "elapsedMs": 442,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    },
+    {
+      "name": "real-foreign-events",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:18.652Z",
+      "endedAt": "2026-10-13T12:30:19.084Z",
+      "elapsedMs": 432,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    },
+    {
+      "name": "real-foreign-diagnostics",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:19.084Z",
+      "endedAt": "2026-10-13T12:30:19.515Z",
+      "elapsedMs": 430,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    },
+    {
+      "name": "real-foreign-queue",
+      "invocation": [
+        "queue",
+        "status",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:19.515Z",
+      "endedAt": "2026-10-13T12:30:19.944Z",
+      "elapsedMs": 430,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    },
+    {
+      "name": "real-member-write-denied",
+      "invocation": [
+        "origins",
+        "set",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--origin",
+        "http://localhost:3002",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:30:19.944Z",
+      "endedAt": "2026-10-13T12:30:20.380Z",
+      "elapsedMs": 436,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-final-f0fJcZ"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

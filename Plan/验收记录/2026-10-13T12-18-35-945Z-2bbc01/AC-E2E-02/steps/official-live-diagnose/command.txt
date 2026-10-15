@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "events" "diagnose" "--event-id" "event-mv6m7o46-p-fgojbyio" "--occurred-at" "2026-10-13T11:46:08.982Z" "--project" "9d0d0f78-cefc-46d5-9543-7682587db457" "--base-url" "http://localhost:8080"

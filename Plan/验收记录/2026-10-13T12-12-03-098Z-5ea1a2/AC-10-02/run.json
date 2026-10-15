@@ -1,0 +1,115 @@
+{
+  "caseId": "AC-10-02",
+  "startedAt": "2026-10-13T12:13:11.545Z",
+  "endedAt": "2026-10-13T12:13:13.681Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "failed",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55152"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:11.545Z",
+      "endedAt": "2026-10-13T12:13:12.000Z",
+      "elapsedMs": 455,
+      "exitCode": 7,
+      "expectedExitCode": 7,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-pCiWJh"
+    },
+    {
+      "name": "missing",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55152"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:12.000Z",
+      "endedAt": "2026-10-13T12:13:12.431Z",
+      "elapsedMs": 430,
+      "exitCode": 7,
+      "expectedExitCode": 7,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-pCiWJh"
+    },
+    {
+      "name": "ambiguous",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55152"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:12.431Z",
+      "endedAt": "2026-10-13T12:13:12.891Z",
+      "elapsedMs": 461,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-pCiWJh"
+    },
+    {
+      "name": "invalid-timeout",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--timeout",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55152"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:12.891Z",
+      "endedAt": "2026-10-13T12:13:13.280Z",
+      "elapsedMs": 389,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-pCiWJh"
+    },
+    {
+      "name": "invalid-interval",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--interval",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55152"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:13.280Z",
+      "endedAt": "2026-10-13T12:13:13.673Z",
+      "elapsedMs": 393,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-pCiWJh"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

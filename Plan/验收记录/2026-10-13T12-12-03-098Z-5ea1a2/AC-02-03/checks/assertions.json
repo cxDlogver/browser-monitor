@@ -1,0 +1,48 @@
+[
+  {
+    "name": "A uses own cookie",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "B uses own cookie",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "no redirected auth request",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "CSRF attached",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "missing-csrf rejected",
+    "expected": 403,
+    "observed": 403,
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid-csrf rejected",
+    "expected": 403,
+    "observed": 403,
+    "verdict": "passed"
+  },
+  {
+    "name": "denied writes preserve set",
+    "expected": [
+      "http://localhost:3000"
+    ],
+    "observed": [
+      "http://localhost:3000"
+    ],
+    "verdict": "passed"
+  }
+]

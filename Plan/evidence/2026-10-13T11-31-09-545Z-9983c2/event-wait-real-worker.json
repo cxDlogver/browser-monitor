@@ -1,0 +1,90 @@
+{
+  "invocation": [
+    "events",
+    "wait",
+    "--event-id",
+    "942122f2-596e-4275-8aa9-61ee1e022dbf",
+    "--occurred-at",
+    "2026-10-13T11:31:18.536Z",
+    "--timeout",
+    "10",
+    "--interval",
+    "1",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events wait",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "reason": "completed",
+      "polls": 2,
+      "elapsedMs": 1148,
+      "lastObservation": {
+        "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "event": {
+          "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "receivedAt": "2026-10-13T11:31:18.551Z",
+          "type": "performance",
+          "name": "LCP"
+        },
+        "raw": {
+          "recordState": "present"
+        },
+        "processing": {
+          "state": "committed",
+          "processedAt": "2026-10-13T11:31:19.334Z",
+          "evidence": "telemetry_events.processed_at"
+        },
+        "task": {
+          "recordState": "present",
+          "taskId": "438dd846-8359-470b-ac95-b1d5fc0d2c9b",
+          "status": "completed",
+          "attempts": 1,
+          "availableAt": "2026-10-13T11:31:18.551Z",
+          "lockedAt": null,
+          "completedAt": "2026-10-13T11:31:19.363Z",
+          "lastFailedAt": null,
+          "lastError": null
+        },
+        "projection": {
+          "visibility": "visible",
+          "eventEffect": "unknown",
+          "identity": {
+            "kind": "performance",
+            "sampleId": "metric-fixture-1"
+          },
+          "currentEntity": {
+            "sample_id": "metric-fixture-1",
+            "sequence": 0,
+            "state": "provisional"
+          },
+          "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+        },
+        "history": {
+          "limitations": [],
+          "completedTaskRetentionDays": 7
+        },
+        "asOf": "2026-10-13T11:31:20.169Z",
+        "source": "database"
+      },
+      "lastObservationAsOf": "2026-10-13T11:31:20.169Z"
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:20.169Z",
+      "elapsedMs": 1148
+    }
+  },
+  "stderr": ""
+}

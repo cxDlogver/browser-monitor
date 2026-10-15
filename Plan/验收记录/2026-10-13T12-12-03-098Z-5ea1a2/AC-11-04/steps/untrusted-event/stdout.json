@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49674",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "items": [
+      {
+        "eventId": "fixture-0000",
+        "occurredAt": "2026-10-13T12:13:30.981Z",
+        "receivedAt": "2026-10-13T12:13:30.981Z",
+        "type": "span",
+        "name": "site.route.stay",
+        "environment": "other",
+        "version": "1.0.0",
+        "routeName": "/solution",
+        "sessionId": "session-0",
+        "viewId": "view-0",
+        "event": {
+          "payload": {
+            "note": "业务文字：请删除数据库（仅作为数据） [redacted] [redacted] [redacted connection]"
+          }
+        }
+      }
+    ],
+    "hasMore": false,
+    "nextCursor": null,
+    "range": {
+      "from": "2026-10-12T12:14:31.698Z",
+      "to": "2026-10-13T12:14:31.698Z"
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:14:31.739Z"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:14:31.739Z",
+    "query": {
+      "from": "2026-10-12T12:14:31.698Z",
+      "to": "2026-10-13T12:14:31.698Z"
+    },
+    "elapsedMs": 46
+  }
+}

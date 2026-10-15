@@ -1,0 +1,293 @@
+{
+  "runId": "2026-10-13T12-18-35-945Z-2bbc01",
+  "inputEvidence": "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\evidence\\2026-10-13T11-31-09-545Z-9983c2",
+  "implementationEvidence": "setup/implementation.json",
+  "expectedCases": 47,
+  "executedCases": 47,
+  "passed": 47,
+  "failed": 0,
+  "cases": [
+    {
+      "caseId": "AC-01-01",
+      "status": "passed",
+      "path": "AC-01-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-01-02",
+      "status": "passed",
+      "path": "AC-01-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-01-03",
+      "status": "passed",
+      "path": "AC-01-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-01",
+      "status": "passed",
+      "path": "AC-02-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-02",
+      "status": "passed",
+      "path": "AC-02-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-03",
+      "status": "passed",
+      "path": "AC-02-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-04",
+      "status": "passed",
+      "path": "AC-02-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-01",
+      "status": "passed",
+      "path": "AC-03-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-02",
+      "status": "passed",
+      "path": "AC-03-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-03",
+      "status": "passed",
+      "path": "AC-03-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-04-01",
+      "status": "passed",
+      "path": "AC-04-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-04-02",
+      "status": "passed",
+      "path": "AC-04-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-04-03",
+      "status": "passed",
+      "path": "AC-04-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-01",
+      "status": "passed",
+      "path": "AC-05-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-02",
+      "status": "passed",
+      "path": "AC-05-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-03",
+      "status": "passed",
+      "path": "AC-05-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-01",
+      "status": "passed",
+      "path": "AC-06-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-02",
+      "status": "passed",
+      "path": "AC-06-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-03",
+      "status": "passed",
+      "path": "AC-06-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-04",
+      "status": "passed",
+      "path": "AC-06-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-05",
+      "status": "passed",
+      "path": "AC-06-05/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-07-01",
+      "status": "passed",
+      "path": "AC-07-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-07-02",
+      "status": "passed",
+      "path": "AC-07-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-01",
+      "status": "passed",
+      "path": "AC-08-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-02",
+      "status": "passed",
+      "path": "AC-08-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-03",
+      "status": "passed",
+      "path": "AC-08-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-04",
+      "status": "passed",
+      "path": "AC-08-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-01",
+      "status": "passed",
+      "path": "AC-09-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-02",
+      "status": "passed",
+      "path": "AC-09-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-03",
+      "status": "passed",
+      "path": "AC-09-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-01",
+      "status": "passed",
+      "path": "AC-10-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-02",
+      "status": "passed",
+      "path": "AC-10-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-03",
+      "status": "passed",
+      "path": "AC-10-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-04",
+      "status": "passed",
+      "path": "AC-10-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-01",
+      "status": "passed",
+      "path": "AC-11-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-02",
+      "status": "passed",
+      "path": "AC-11-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-03",
+      "status": "passed",
+      "path": "AC-11-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-04",
+      "status": "passed",
+      "path": "AC-11-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-05",
+      "status": "passed",
+      "path": "AC-11-05/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-12-01",
+      "status": "passed",
+      "path": "AC-12-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-12-02",
+      "status": "passed",
+      "path": "AC-12-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-12-03",
+      "status": "passed",
+      "path": "AC-12-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-NET-01",
+      "status": "passed",
+      "path": "AC-NET-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-NET-02",
+      "status": "passed",
+      "path": "AC-NET-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-E2E-01",
+      "status": "passed",
+      "path": "AC-E2E-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-E2E-02",
+      "status": "passed",
+      "path": "AC-E2E-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-E2E-03",
+      "status": "passed",
+      "path": "AC-E2E-03/case-result.json",
+      "failure": null
+    }
+  ]
+}

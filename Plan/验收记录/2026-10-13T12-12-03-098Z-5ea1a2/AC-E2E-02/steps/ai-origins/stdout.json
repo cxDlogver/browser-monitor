@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "origins set",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "870d7d0e-d35e-4225-915f-1ef58fb45dc8"
+  },
+  "data": {
+    "origins": [
+      "http://localhost:3000"
+    ],
+    "confirmation": "server_response",
+    "semantics": "replace_entire_set"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 118
+  }
+}

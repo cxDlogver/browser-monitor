@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "auth logout",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": null
+  },
+  "data": {
+    "localCleared": true,
+    "remoteRevocation": "confirmed"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 277
+  }
+}

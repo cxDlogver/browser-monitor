@@ -1,0 +1,28 @@
+[
+  {
+    "name": "denied preserves context",
+    "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:52242\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+    "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:52242\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+    "verdict": "passed"
+  },
+  {
+    "name": "nonsecret context fields",
+    "expected": [
+      "baseUrl",
+      "projectId",
+      "schemaVersion"
+    ],
+    "observed": [
+      "baseUrl",
+      "projectId",
+      "schemaVersion"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "relative path uses cwd",
+    "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-0U7P9b\\call-directory\\monitor.json",
+    "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-0U7P9b\\call-directory\\monitor.json",
+    "verdict": "passed"
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "invocation": [
+    "auth",
+    "login",
+    "--email",
+    "member-cli-2026-10-13t11-31-09-545z-9983c2@example.test",
+    "--password-stdin"
+  ],
+  "stdin": "[provided securely]",
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "auth login",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": null
+    },
+    "data": {
+      "user": {
+        "id": "c66fdd64-8c39-4d16-8e85-f7c522a83b88",
+        "email": "member-cli-2026-10-13t11-31-09-545z-9983c2@example.test",
+        "displayName": "CLI member"
+      },
+      "expiresAt": "2026-10-20T11:31:29.000Z",
+      "sessionSaved": true
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "expiresAt": "2026-10-20T11:31:29.000Z",
+      "elapsedMs": 373
+    }
+  },
+  "stderr": ""
+}

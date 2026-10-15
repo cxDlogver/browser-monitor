@@ -1,0 +1,57 @@
+{
+  "caseId": "AC-10-01",
+  "startedAt": "2026-10-13T12:19:39.477Z",
+  "endedAt": "2026-10-13T12:19:42.518Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "normal",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--interval",
+        "1",
+        "--timeout",
+        "5",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:61829"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:39.477Z",
+      "endedAt": "2026-10-13T12:19:42.005Z",
+      "elapsedMs": 2528,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-dxkfGU"
+    },
+    {
+      "name": "actual-noop",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "revision-old",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:42.009Z",
+      "endedAt": "2026-10-13T12:19:42.492Z",
+      "elapsedMs": 484,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-dxkfGU"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

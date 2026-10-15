@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:59946",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "配置与示例不能写到同一文件",
+    "details": null
+  }
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/projects",
+    "query": {},
+    "body": null,
+    "cookiePresent": true,
+    "cookieMatches": true,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:15:41.363Z",
+    "monotonicMs": 218331.0336,
+    "responseClosedMs": 228302.2156,
+    "durationMs": 9971.182
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/projects",
+    "query": {},
+    "body": null,
+    "cookiePresent": true,
+    "cookieMatches": true,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:15:51.542Z",
+    "monotonicMs": 228510.56,
+    "responseClosedMs": 238510.5417,
+    "durationMs": 9999.981700000004
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/projects",
+    "query": {},
+    "body": null,
+    "cookiePresent": true,
+    "cookieMatches": true,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:16:01.952Z",
+    "monotonicMs": 238920.1387,
+    "responseClosedMs": 248298.2448,
+    "durationMs": 9378.106099999975
+  }
+]

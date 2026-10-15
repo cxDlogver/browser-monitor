@@ -1,0 +1,53 @@
+{
+  "caseId": "AC-08-02",
+  "startedAt": "2026-10-13T12:19:33.626Z",
+  "endedAt": "2026-10-13T12:19:34.591Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "pending",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "committed-pending",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:33.631Z",
+      "endedAt": "2026-10-13T12:19:34.104Z",
+      "elapsedMs": 472,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-6TxfXv"
+    },
+    {
+      "name": "failed",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "committed-failed",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:34.104Z",
+      "endedAt": "2026-10-13T12:19:34.585Z",
+      "elapsedMs": 481,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-6TxfXv"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

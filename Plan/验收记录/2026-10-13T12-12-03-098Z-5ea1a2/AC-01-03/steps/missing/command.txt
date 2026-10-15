@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "data" "summary" "--base-url" "http://127.0.0.1:55075"

@@ -1,0 +1,23 @@
+{
+  "project": {
+    "id": "771de9c0-1d91-4d07-919c-d4f05fd8e393",
+    "displayName": "恢复夹具",
+    "appName": "recovery",
+    "enabled": true,
+    "role": "owner",
+    "origins": [
+      "http://localhost:9000"
+    ],
+    "keys": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "active": true,
+        "expiresAt": null,
+        "dsn": "http://127.0.0.1:61815/ingest/key"
+      }
+    ]
+  },
+  "origins": [
+    "http://localhost:3000"
+  ]
+}

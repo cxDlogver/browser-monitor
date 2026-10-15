@@ -1,0 +1,217 @@
+{
+  "caseId": "AC-06-04",
+  "startedAt": "2026-10-13T12:19:21.765Z",
+  "endedAt": "2026-10-13T12:19:25.614Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "first",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:21.765Z",
+      "endedAt": "2026-10-13T12:19:22.203Z",
+      "elapsedMs": 438,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-malformed",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "invalid",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:22.203Z",
+      "endedAt": "2026-10-13T12:19:22.583Z",
+      "elapsedMs": 380,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-filter",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1Nzg3NSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjE5OjIyLjA3MFoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTk6MjIuMDcwWiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--name",
+        "changed",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:22.583Z",
+      "endedAt": "2026-10-13T12:19:22.950Z",
+      "elapsedMs": 366,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-project",
+      "invocation": [
+        "events",
+        "list",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1Nzg3NSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjE5OjIyLjA3MFoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MTk6MjIuMDcwWiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwNDgifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:22.950Z",
+      "endedAt": "2026-10-13T12:19:23.318Z",
+      "elapsedMs": 369,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-time-format",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T00:00:00",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:23.318Z",
+      "endedAt": "2026-10-13T12:19:23.703Z",
+      "elapsedMs": 384,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-reversed",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T00:00:00Z",
+        "--to",
+        "2026-10-12T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:23.703Z",
+      "endedAt": "2026-10-13T12:19:24.083Z",
+      "elapsedMs": 381,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-span",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2025-01-01T00:00:00Z",
+        "--to",
+        "2026-10-13T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:24.084Z",
+      "endedAt": "2026-10-13T12:19:24.495Z",
+      "elapsedMs": 412,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-limit",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "101",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:24.495Z",
+      "endedAt": "2026-10-13T12:19:24.873Z",
+      "elapsedMs": 378,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-zero",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:24.873Z",
+      "endedAt": "2026-10-13T12:19:25.238Z",
+      "elapsedMs": 365,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    },
+    {
+      "name": "invalid-invalid-calendar",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-02-30T00:00:00Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:57875"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:25.238Z",
+      "endedAt": "2026-10-13T12:19:25.604Z",
+      "elapsedMs": 366,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-eTuuen"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

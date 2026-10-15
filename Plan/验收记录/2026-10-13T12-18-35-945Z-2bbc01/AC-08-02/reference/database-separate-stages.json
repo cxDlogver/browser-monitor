@@ -1,0 +1,102 @@
+{
+  "source": "actual_database_queries_with_controlled_snapshot_clock",
+  "snapshotClock": "2026-10-13T11:54:59.469Z",
+  "expected": {
+    "processing": "committed",
+    "pending": "pending",
+    "failed": "failed"
+  },
+  "observed": {
+    "pending": {
+      "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+      "event": {
+        "eventId": "committed-pending",
+        "occurredAt": "2026-10-13T11:54:59.469Z",
+        "receivedAt": "2026-10-13T11:54:59.638Z",
+        "type": "performance",
+        "name": "LCP"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:54:59.469Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "5c8b849d-e14a-4fbe-b2d9-0d681b2d166f",
+        "status": "pending",
+        "attempts": 0,
+        "availableAt": "2026-10-13T11:55:09.469Z",
+        "lockedAt": null,
+        "completedAt": null,
+        "lastFailedAt": "2026-10-13T11:54:59.469Z",
+        "lastError": "post-commit retry"
+      },
+      "projection": {
+        "visibility": "missing",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "performance",
+          "sampleId": "metric-fixture-1"
+        },
+        "currentEntity": null,
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:54:59.469Z",
+      "source": "database"
+    },
+    "failed": {
+      "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+      "event": {
+        "eventId": "committed-failed",
+        "occurredAt": "2026-10-13T11:54:59.468Z",
+        "receivedAt": "2026-10-13T11:54:59.641Z",
+        "type": "performance",
+        "name": "LCP"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:54:59.469Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "0efbb5b5-6efb-4856-b858-909ff9a31bad",
+        "status": "failed",
+        "attempts": 0,
+        "availableAt": "2026-10-13T11:54:59.469Z",
+        "lockedAt": null,
+        "completedAt": null,
+        "lastFailedAt": "2026-10-13T11:54:59.469Z",
+        "lastError": "terminal failure"
+      },
+      "projection": {
+        "visibility": "missing",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "performance",
+          "sampleId": "metric-fixture-1"
+        },
+        "currentEntity": null,
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:54:59.469Z",
+      "source": "database"
+    }
+  },
+  "equal": true
+}

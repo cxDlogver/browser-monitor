@@ -1,0 +1,74 @@
+[
+  {
+    "name": "create keeps context",
+    "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+    "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+    "verdict": "passed"
+  },
+  {
+    "name": "readback ID",
+    "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "verdict": "passed"
+  },
+  {
+    "name": "list includes new ID",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "use changes context",
+    "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-create original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-get original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-create original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-get original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc selected saved ID",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc actual saved name",
+    "expected": "实时走航车项目-CLI验收",
+    "observed": "实时走航车项目-CLI验收",
+    "verdict": "passed"
+  },
+  {
+    "name": "official selected saved ID",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official actual saved name",
+    "expected": "官网项目-CLI验收",
+    "observed": "官网项目-CLI验收",
+    "verdict": "passed"
+  }
+]

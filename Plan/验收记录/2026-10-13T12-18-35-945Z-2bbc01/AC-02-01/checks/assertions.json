@@ -1,0 +1,20 @@
+[
+  {
+    "name": "session saved",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "no password persisted",
+    "expected": false,
+    "observed": false,
+    "verdict": "passed"
+  },
+  {
+    "name": "ACL excludes inherited broad access",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

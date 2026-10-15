@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "source": "audited local tarball",
+  "prefix": "D:/xiang/CX_repo/nodejs/node_global",
+  "package": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "installExitCode": 0,
+  "globalCommand": {
+    "invocation": [
+      "bm",
+      "--help"
+    ],
+    "exitCode": 0
+  },
+  "whereBm": [
+    "D:/xiang/CX_repo/nodejs/node_global/bm",
+    "D:/xiang/CX_repo/nodejs/node_global/bm.cmd"
+  ],
+  "globalList": {
+    "name": "node_global",
+    "dependencies": {
+      "@cxdlogver/browser-monitor-cli": {
+        "version": "0.1.0",
+        "overridden": false
+      }
+    }
+  }
+}

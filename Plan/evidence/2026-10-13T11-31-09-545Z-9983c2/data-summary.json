@@ -1,0 +1,46 @@
+{
+  "invocation": [
+    "data",
+    "summary",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "data summary",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "retainedRawEventCount": 1,
+      "latestReceivedAt": "2026-10-13T11:31:18.551Z",
+      "retentionPolicy": {
+        "raw": {
+          "state": "configured",
+          "dropAfter": "30 days",
+          "scheduled": true,
+          "source": "timescaledb_information.jobs"
+        },
+        "completedTasks": {
+          "days": 7,
+          "source": "worker_housekeeping_policy"
+        }
+      },
+      "asOf": "2026-10-13T11:31:21.326Z",
+      "source": "database"
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:21.326Z",
+      "elapsedMs": 125
+    }
+  },
+  "stderr": ""
+}

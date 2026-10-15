@@ -1,0 +1,173 @@
+{
+  "caseId": "AC-09-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "pendingTotal 等于 readyPending + delayedPending + pendingUnclassified，异常计划时间没有被丢掉或算成到期。",
+      "observed": {
+        "checks": [
+          {
+            "name": "queue-boundaries recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "pending sum",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "processing sum",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "policy seconds",
+            "expected": 300,
+            "observed": 300,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "queue",
+            "exitCode": 0,
+            "elapsedMs": 418
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "5e9e59989dfc81f90e6a9db5d60f846428cc1c9217d2dfd6baa16acc00c7d9ef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-queue-boundaries.json",
+          "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "d8dd0d344c3a7fcb098571fe638708623b5f69ab88863f063c5cf0ea535345ac",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "6608b538b1eaa4e3b4daea969f055676bf38f74297057ee6b1582fc68feddaa2",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5c3f42b1245b118187dab60275a59dfcee53ff73c47b075a8ec7fb2cb2eb1e12",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/queue/command.txt",
+          "sha256": "70ac972ccd007dc7914bfbfe2e8d2007e2fd28f348423d3c96f7ef7ff95bfc6d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/queue/stdout.json",
+          "sha256": "1ab7912424ece92dd64842c4888de78a736711968b86e3db9b04a43dde4976d6",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "processingTotal 等于正常锁、超时锁和无法分类之和，边界按契约；正常锁不宣称 Worker 仍存活。",
+      "observed": {
+        "checks": [
+          {
+            "name": "queue-boundaries recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "pending sum",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "processing sum",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "policy seconds",
+            "expected": 300,
+            "observed": 300,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "queue",
+            "exitCode": 0,
+            "elapsedMs": 418
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "5e9e59989dfc81f90e6a9db5d60f846428cc1c9217d2dfd6baa16acc00c7d9ef",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-queue-boundaries.json",
+          "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "d8dd0d344c3a7fcb098571fe638708623b5f69ab88863f063c5cf0ea535345ac",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "6608b538b1eaa4e3b4daea969f055676bf38f74297057ee6b1582fc68feddaa2",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5c3f42b1245b118187dab60275a59dfcee53ff73c47b075a8ec7fb2cb2eb1e12",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/queue/command.txt",
+          "sha256": "70ac972ccd007dc7914bfbfe2e8d2007e2fd28f348423d3c96f7ef7ff95bfc6d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/queue/stdout.json",
+          "sha256": "1ab7912424ece92dd64842c4888de78a736711968b86e3db9b04a43dde4976d6",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

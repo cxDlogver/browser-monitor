@@ -1,0 +1,124 @@
+{
+  "source": "independent_database_ingestion_envelope",
+  "definitionId": "official.solution.route-stay",
+  "actionStartedAt": "2026-10-13T11:45:20Z",
+  "actionEndedAt": "2026-10-13T11:46:21Z",
+  "rows": [
+    {
+      "event_id": "event-mv6m79mt-i-yap337ns",
+      "occurred_at": "2026-10-13T11:45:50.212Z",
+      "received_at": "2026-10-13T11:45:50.233Z",
+      "processed_at": "2026-10-13T11:45:50.361Z",
+      "event": {
+        "app": {
+          "name": "guanwang",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "name": "site.route.stay",
+        "type": "span",
+        "context": {
+          "url": "http://localhost:3000/solution",
+          "viewId": "view-mv6m5x1h-2-1nrgrq32",
+          "runtime": {
+            "sdk": {
+              "name": "@cxdlogver/browser-monitor-sdk",
+              "version": "0.3.0"
+            },
+            "online": true,
+            "language": "zh-CN",
+            "platform": "Win32",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+          },
+          "routeName": "/solution",
+          "sessionId": "session-mv6m5x1h-1-kbe9cv1q"
+        },
+        "eventId": "event-mv6m79mt-i-yap337ns",
+        "payload": {
+          "name": "site.route.stay",
+          "type": "span",
+          "source": "custom",
+          "status": "ok",
+          "endedAt": 1791891950212,
+          "metrics": {
+            "visibleMs": {
+              "unit": "ms",
+              "value": 62974
+            }
+          },
+          "startedAt": 1791891887238,
+          "attributes": {
+            "path": "/solution",
+            "section": "/solution"
+          },
+          "durationMs": 62974.5
+        },
+        "occurredAt": 1791891950212,
+        "correlation": {
+          "spanId": "da12909a1dbae8e1",
+          "traceId": "4738f0300b3f8d661b23e84f5f40aec4",
+          "parentSpanId": "3483163bbb0437be"
+        },
+        "protocolVersion": "3.0"
+      }
+    },
+    {
+      "event_id": "event-mv6m7o46-p-fgojbyio",
+      "occurred_at": "2026-10-13T11:46:08.982Z",
+      "received_at": "2026-10-13T11:46:11.176Z",
+      "processed_at": "2026-10-13T11:46:11.248Z",
+      "event": {
+        "app": {
+          "name": "guanwang",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "name": "site.route.stay",
+        "type": "span",
+        "context": {
+          "url": "http://localhost:3000/solution",
+          "viewId": "view-mv6m7ad4-2-5rocy26r",
+          "runtime": {
+            "sdk": {
+              "name": "@cxdlogver/browser-monitor-sdk",
+              "version": "0.3.0"
+            },
+            "online": true,
+            "language": "zh-CN",
+            "platform": "Win32",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+          },
+          "routeName": "/solution",
+          "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+        },
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "payload": {
+          "name": "site.route.stay",
+          "type": "span",
+          "source": "custom",
+          "status": "ok",
+          "endedAt": 1791891968982,
+          "metrics": {
+            "visibleMs": {
+              "unit": "ms",
+              "value": 17821
+            }
+          },
+          "startedAt": 1791891951161,
+          "attributes": {
+            "path": "/solution",
+            "section": "/solution"
+          },
+          "durationMs": 17821.40000000596
+        },
+        "occurredAt": 1791891968982,
+        "correlation": {
+          "spanId": "adf2c42894e06be4",
+          "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+          "parentSpanId": "79b9f934eae822f7"
+        },
+        "protocolVersion": "3.0"
+      }
+    }
+  ]
+}

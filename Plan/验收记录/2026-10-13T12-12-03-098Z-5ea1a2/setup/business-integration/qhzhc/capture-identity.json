@@ -1,0 +1,14 @@
+{
+  "source": "independently queried persisted SDK ingestion envelope; not network interception",
+  "identity": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "eventId": "event-mv6lymu3-3-as5ip2jy",
+    "occurredAt": "2026-10-13T11:39:07.419Z",
+    "sessionId": "session-mv6lymu2-1-4nyjjht5",
+    "viewId": "view-mv6lymu3-2-k3gcygom",
+    "traceId": null,
+    "spanId": null
+  },
+  "definitionId": "qhzhc.visualization.view-start",
+  "probeUsed": false
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project use",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54557",
+    "projectId": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff"
+  },
+  "data": {
+    "projectId": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "contextSaved": true,
+    "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY\\.browser-monitor.json"
+  },
+  "meta": {
+    "source": "platform_api_and_local_file",
+    "warnings": [],
+    "elapsedMs": 54
+  }
+}

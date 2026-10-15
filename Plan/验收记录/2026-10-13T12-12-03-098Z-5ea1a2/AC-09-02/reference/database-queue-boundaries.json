@@ -1,0 +1,90 @@
+{
+  "source": "actual_database_queries_with_controlled_snapshot_clock",
+  "snapshotClock": "2026-10-13T11:54:59.469Z",
+  "expected": {
+    "pendingTotal": 6,
+    "readyPending": 3,
+    "delayedPending": 2,
+    "pendingUnclassified": 1,
+    "processingTotal": 3,
+    "processingActive": 1,
+    "processingStale": 1,
+    "processingUnclassified": 1,
+    "processedLastMinute": 2
+  },
+  "observed": {
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+    "pendingTotal": 6,
+    "readyPending": 3,
+    "delayedPending": 2,
+    "pendingUnclassified": 1,
+    "processingTotal": 3,
+    "processingActive": 1,
+    "processingStale": 1,
+    "processingUnclassified": 1,
+    "failed": 1,
+    "processedLastMinute": 2,
+    "deadLetters": 0,
+    "deadLettersOverlappingFailed": 0,
+    "recentFailures": [
+      {
+        "taskId": "0efbb5b5-6efb-4856-b858-909ff9a31bad",
+        "eventId": "committed-failed",
+        "occurredAt": "2026-10-13T11:54:59.468Z",
+        "status": "failed",
+        "attempts": 0,
+        "availableAt": "2026-10-13T11:54:59.469Z",
+        "failedAt": "2026-10-13T11:54:59.469Z",
+        "createdAt": "2026-10-13T11:54:59.646Z",
+        "error": "terminal failure"
+      },
+      {
+        "taskId": "5c8b849d-e14a-4fbe-b2d9-0d681b2d166f",
+        "eventId": "committed-pending",
+        "occurredAt": "2026-10-13T11:54:59.469Z",
+        "status": "pending",
+        "attempts": 0,
+        "availableAt": "2026-10-13T11:55:09.469Z",
+        "failedAt": "2026-10-13T11:54:59.469Z",
+        "createdAt": "2026-10-13T11:54:59.643Z",
+        "error": "post-commit retry"
+      }
+    ],
+    "recentFailuresLimit": 20,
+    "recentFailuresHasMore": false,
+    "lockTimeoutSeconds": 300,
+    "lockTimeoutSource": "shared_worker_policy",
+    "otherQueues": {
+      "labAudits": {
+        "source": "database",
+        "asOf": "2026-10-13T11:54:59.469Z",
+        "counts": {}
+      }
+    },
+    "asOf": "2026-10-13T11:54:59.469Z",
+    "source": "database",
+    "scope": {
+      "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+      "taskType": "telemetry",
+      "environment": null
+    },
+    "limitations": [
+      "Active lock is not a worker heartbeat.",
+      "Failed tasks and dead letters may overlap and must not be added.",
+      "Historical failure timestamps are unknown; those rows sort after dated failures by task creation time."
+    ],
+    "ingestion": {
+      "source": "redis",
+      "scope": {
+        "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca"
+      },
+      "requestedAt": "2026-10-13T11:54:59.756Z",
+      "asOf": null,
+      "accepted": 999,
+      "duplicate": 3,
+      "rejected": 2,
+      "limitation": "Counters can expire; missing values are unknown. They are not retained raw row counts or part of the database snapshot."
+    }
+  },
+  "equal": true
+}

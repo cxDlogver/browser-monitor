@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project use",
+  "context": {
+    "baseUrl": "http://127.0.0.1:59863",
+    "projectId": null
+  },
+  "data": {
+    "projectId": "00000000-0000-4000-8000-000000000003",
+    "accessible": true,
+    "contextSaved": false
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PARTIAL_SUCCESS",
+    "message": "项目可访问，但上下文保存失败。",
+    "details": null
+  }
+}

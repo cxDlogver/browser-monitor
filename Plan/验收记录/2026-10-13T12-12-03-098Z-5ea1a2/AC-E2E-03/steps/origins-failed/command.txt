@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "origins" "set" "--origin" "http://localhost:3000" "--project" "771de9c0-1d91-4d07-919c-d4f05fd8e393" "--base-url" "http://127.0.0.1:61815"

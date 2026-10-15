@@ -1,0 +1,109 @@
+{
+  "caseId": "AC-NET-02",
+  "startedAt": "2026-10-13T12:22:46.456Z",
+  "endedAt": "2026-10-13T12:22:48.562Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "create-malformed",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "malformed",
+        "--app-name",
+        "malformed",
+        "--base-url",
+        "http://127.0.0.1:50130"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:46.456Z",
+      "endedAt": "2026-10-13T12:22:46.865Z",
+      "elapsedMs": 408,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NnKgN5"
+    },
+    {
+      "name": "origins-malformed",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50130"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:46.865Z",
+      "endedAt": "2026-10-13T12:22:47.247Z",
+      "elapsedMs": 383,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NnKgN5"
+    },
+    {
+      "name": "readback-created",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000009",
+        "--base-url",
+        "http://127.0.0.1:50130"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:47.250Z",
+      "endedAt": "2026-10-13T12:22:47.637Z",
+      "elapsedMs": 387,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NnKgN5"
+    },
+    {
+      "name": "readback-origins",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50130"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:47.637Z",
+      "endedAt": "2026-10-13T12:22:48.109Z",
+      "elapsedMs": 472,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NnKgN5"
+    },
+    {
+      "name": "partial-identity",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "partial",
+        "--app-name",
+        "partial",
+        "--base-url",
+        "http://127.0.0.1:50130"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:48.110Z",
+      "endedAt": "2026-10-13T12:22:48.553Z",
+      "elapsedMs": 443,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-NnKgN5"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

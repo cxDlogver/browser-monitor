@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54708",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "items": [
+      {
+        "eventId": "from",
+        "occurredAt": "2026-10-13T12:10:26.878Z",
+        "receivedAt": "2030-01-01T00:00:00.000Z",
+        "type": "span",
+        "name": "site.route.stay",
+        "environment": "other",
+        "version": "1.0.0",
+        "routeName": "/solution",
+        "sessionId": "session-0",
+        "viewId": "view-0"
+      }
+    ],
+    "hasMore": false,
+    "nextCursor": null,
+    "range": {
+      "from": "2026-10-13T12:10:26.878Z",
+      "to": "2026-10-13T12:11:41.878Z"
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:12:43.837Z",
+    "limitations": [
+      "No cross-page snapshot guarantee"
+    ]
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:12:43.837Z",
+    "query": {
+      "from": "2026-10-13T12:10:26.878Z",
+      "to": "2026-10-13T12:11:41.878Z"
+    },
+    "elapsedMs": 43
+  }
+}

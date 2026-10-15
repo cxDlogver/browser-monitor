@@ -1,0 +1,155 @@
+{
+  "caseId": "AC-03-01",
+  "startedAt": "2026-10-13T12:18:52.475Z",
+  "endedAt": "2026-10-13T12:18:56.259Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "list-before",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:52.475Z",
+      "endedAt": "2026-10-13T12:18:52.914Z",
+      "elapsedMs": 439,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "select-before",
+      "invocation": [
+        "project",
+        "use",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:52.914Z",
+      "endedAt": "2026-10-13T12:18:53.386Z",
+      "elapsedMs": 471,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "create",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "新项目",
+        "--app-name",
+        "test-new",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:53.387Z",
+      "endedAt": "2026-10-13T12:18:53.833Z",
+      "elapsedMs": 446,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "get",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "68af1bd1-7411-48e1-82eb-569dc9d4d9a5",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:53.833Z",
+      "endedAt": "2026-10-13T12:18:54.267Z",
+      "elapsedMs": 434,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "list-after",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:54.268Z",
+      "endedAt": "2026-10-13T12:18:54.723Z",
+      "elapsedMs": 455,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "use",
+      "invocation": [
+        "project",
+        "use",
+        "68af1bd1-7411-48e1-82eb-569dc9d4d9a5",
+        "--base-url",
+        "http://127.0.0.1:59807"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:54.723Z",
+      "endedAt": "2026-10-13T12:18:55.202Z",
+      "elapsedMs": 479,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "qhzhc-use",
+      "invocation": [
+        "project",
+        "use",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--context-dir",
+        "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h\\qhzhc",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:55.220Z",
+      "endedAt": "2026-10-13T12:18:55.736Z",
+      "elapsedMs": 516,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    },
+    {
+      "name": "official-use",
+      "invocation": [
+        "project",
+        "use",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--context-dir",
+        "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h\\official",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:55.747Z",
+      "endedAt": "2026-10-13T12:18:56.243Z",
+      "elapsedMs": 496,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

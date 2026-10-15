@@ -1,0 +1,8 @@
+{
+  "status": 403,
+  "body": {
+    "code": "invalid_csrf_token"
+  },
+  "cookiePresent": true,
+  "csrfInput": "invalid"
+}

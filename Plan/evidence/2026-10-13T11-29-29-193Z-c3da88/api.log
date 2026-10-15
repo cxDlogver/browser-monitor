@@ -1,0 +1,71 @@
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [NestFactory] Starting Nest application...
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] InfrastructureModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] AppModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] IngestionModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] ProjectsModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] AuthModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] AnalyticsModule dependencies initialized +1ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] LabAuditsModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [InstanceLoader] DiagnosticsModule dependencies initialized +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] HealthController {/health}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/health/live, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/health/ready, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] MetricsController {/internal}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/internal/metrics, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] AuthController {/api/v1/auth}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/register, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/verify-email, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/login, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/me, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/logout, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/forgot-password, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/auth/reset-password, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] ProjectsController {/api/v1}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/origins, PUT} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/keys/rotate, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/thresholds, PUT} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/invitations, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/invitations/accept, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/dead-letters/:taskId/retry, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] IngestionController {/api/v3/ingest}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v3/ingest/:publicKey/envelopes, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] AnalyticsController {/api/v1/projects/:projectId/analytics}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/overview, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/performance, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/routes, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/custom-signals, GET} route +1ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/custom-signals/detail, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/custom-signals/records, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/traces/:traceId, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/raw-events, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/analytics/service-status, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] LabAuditsController {/api/v1/projects/:projectId}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/lab-settings, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/lab-settings, PUT} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/lab-audits, POST} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/lab-audits, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/lab-audits/:auditId, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RoutesResolver] DiagnosticsController {/api/v1/projects/:projectId}: +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/events, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/diagnostics/data, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/diagnostics/queue, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [RouterExplorer] Mapped {/api/v1/projects/:projectId/diagnostics/events/:eventId, GET} route +0ms
+[Nest] 65084  - 2026/10/13 19:29:48     LOG [NestApplication] Nest application successfully started +0ms
+{"level":"info","message":"request_completed","requestId":"37ddb6a6-c5b9-44db-aac8-793156148720","method":"GET","path":"/health/ready","statusCode":200,"durationMs":31.98}
+{"level":"info","message":"request_completed","requestId":"244c0c6d-97bc-4dd8-9aab-693e7b0c63e4","method":"GET","path":"/health/live","statusCode":200,"durationMs":0.43}
+{"level":"info","message":"request_completed","requestId":"be028136-afec-4d51-9eb3-42c055851733","method":"GET","path":"/health/ready","statusCode":200,"durationMs":3.23}
+{"level":"info","message":"request_completed","requestId":"480eac73-b8fe-4f52-8497-525ea15c2e25","method":"POST","path":"/api/v1/auth/login","statusCode":200,"durationMs":75.27}
+{"level":"info","message":"request_completed","requestId":"05632884-0c46-415e-a2bd-e2a9c5f0fed7","method":"GET","path":"/api/v1/auth/me","statusCode":200,"durationMs":1.12}
+{"level":"info","message":"request_completed","requestId":"c600d284-f2a4-49bf-93ba-8ef30f20983b","method":"POST","path":"/api/v1/projects","statusCode":201,"durationMs":16.73}
+{"level":"info","message":"request_completed","requestId":"df692f88-d773-4259-80c0-279059c7fb87","method":"GET","path":"/api/v1/projects/4ca2f564-72c5-46f4-ba0f-9bfbfdf22436","statusCode":200,"durationMs":24.1}
+{"level":"info","message":"request_completed","requestId":"f90fdab7-78ca-4ad7-a4a0-1202188104df","method":"PUT","path":"/api/v1/projects/4ca2f564-72c5-46f4-ba0f-9bfbfdf22436/origins","statusCode":200,"durationMs":12.58}
+{"level":"info","message":"request_completed","requestId":"8d238b8d-add1-45fa-b93b-48fff0c75bfe","method":"GET","path":"/api/v1/projects/4ca2f564-72c5-46f4-ba0f-9bfbfdf22436","statusCode":200,"durationMs":8.22}
+{"level":"info","message":"request_completed","requestId":"6d46e79b-852b-4839-8472-41e07cee0bd6","method":"GET","path":"/api/v1/projects/4ca2f564-72c5-46f4-ba0f-9bfbfdf22436","statusCode":200,"durationMs":4.66}
+{"level":"info","message":"request_completed","requestId":"11093eee-5bb6-4b78-8e1c-1ffba2532576","method":"POST","path":"/api/v1/projects","statusCode":201,"durationMs":16.5}
+{"level":"info","message":"request_completed","requestId":"7d028ba8-dd98-4d7f-893b-220e10cd03ee","method":"GET","path":"/api/v1/projects/f605c0c6-5b25-4d3c-8b14-951163960ce5","statusCode":200,"durationMs":4.83}
+{"level":"info","message":"request_completed","requestId":"19bb3a1b-35e6-476c-8665-1b789747cf1b","method":"PUT","path":"/api/v1/projects/f605c0c6-5b25-4d3c-8b14-951163960ce5/origins","statusCode":200,"durationMs":12.95}
+{"level":"info","message":"request_completed","requestId":"7cb58e16-bcb0-4fa9-a911-05d8e1a5f0cb","method":"GET","path":"/api/v1/projects/f605c0c6-5b25-4d3c-8b14-951163960ce5","statusCode":200,"durationMs":4.04}
+{"level":"info","message":"request_completed","requestId":"23d4b86a-c101-4ff9-b627-1815e164873e","method":"GET","path":"/api/v1/projects/f605c0c6-5b25-4d3c-8b14-951163960ce5","statusCode":200,"durationMs":9.03}

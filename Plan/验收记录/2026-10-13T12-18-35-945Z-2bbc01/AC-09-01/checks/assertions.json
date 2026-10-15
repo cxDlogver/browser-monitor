@@ -1,0 +1,26 @@
+[
+  {
+    "name": "queue-boundaries recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "pending sum",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "processing sum",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "policy seconds",
+    "expected": 300,
+    "observed": 300,
+    "verdict": "passed"
+  }
+]

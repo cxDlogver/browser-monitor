@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project use",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  },
+  "data": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "contextSaved": true,
+    "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-S6wj7h\\qhzhc\\.browser-monitor.json"
+  },
+  "meta": {
+    "source": "platform_api_and_local_file",
+    "warnings": [],
+    "elapsedMs": 120
+  }
+}

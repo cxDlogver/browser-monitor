@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "health",
+  "context": {
+    "baseUrl": "http://127.0.0.1:1",
+    "projectId": null
+  },
+  "data": {
+    "target": "http://127.0.0.1:1",
+    "checkedAt": "2026-10-13T12:21:12.328Z",
+    "connectivity": {
+      "state": "fail",
+      "source": "http_responses",
+      "reason": "NETWORK_UNREACHABLE"
+    },
+    "liveness": {
+      "state": "unknown",
+      "source": "/health/live",
+      "reason": "NETWORK_UNREACHABLE"
+    },
+    "readiness": {
+      "state": "unknown",
+      "source": "/health/ready",
+      "reason": "未取得端点响应"
+    },
+    "managementApi": {
+      "state": "unknown",
+      "authentication": "unknown",
+      "source": "/api/v1/auth/me",
+      "reason": "NETWORK_UNREACHABLE"
+    },
+    "limitations": [
+      "基础健康不证明 Worker 正常或特定项目已经写入、处理。"
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "HEALTH_UNREADY",
+    "message": "平台或依赖尚未就绪。",
+    "details": null
+  }
+}

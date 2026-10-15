@@ -1,0 +1,195 @@
+{
+  "caseId": "AC-12-03",
+  "status": "failed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": "AssertionError [ERR_ASSERTION]: slow: {\n  \"schemaVersion\": 1,\n  \"ok\": false,\n  \"command\": \"health\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:49717\",\n    \"projectId\": null\n  },\n  \"data\": {\n    \"target\": \"http://127.0.0.1:49717\",\n    \"checkedAt\": \"2026-10-13T12:15:07.948Z\",\n    \"connectivity\": {\n      \"state\": \"pass\",\n      \"source\": \"http_responses\",\n      \"reason\": \"已收到平台响应\"\n    },\n    \"liveness\": {\n      \"state\": \"pass\",\n      \"source\": \"/health/live\",\n      \"reason\": \"平台确认\",\n      \"details\": {\n        \"status\": \"ok\"\n      }\n    },\n    \"readiness\": {\n      \"state\": \"unknown\",\n      \"source\": \"/health/ready\",\n      \"reason\": \"REQUEST_TIMEOUT\"\n    },\n    \"managementApi\": {\n      \"state\": \"unknown\",\n      \"authentication\": \"unknown\",\n      \"source\": \"/api/v1/auth/me\",\n      \"reason\": \"REQUEST_TIMEOUT\"\n    },\n    \"limitations\": [\n      \"基础健康不证明 Worker 正常或特定项目已经写入、处理。\"\n    ]\n  },\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": []\n  },\n  \"error\": {\n    \"code\": \"CAPABILITY_UNAVAILABLE\",\n    \"message\": \"部分健康检查无法取得必要证据。\",\n    \"details\": null\n  }\n}\n\n\n4 !== 5\n\n    at Case.run (file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-kit.mjs:110:36)\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-protocol.mjs:48:96\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-acceptance.mjs:66:47",
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "不可连接明确为连接故障，其余未取得项为 unknown，不能报告有效空数据或平台全健康。",
+      "observed": {
+        "checks": [
+          {
+            "name": "connection failure",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "unobtained stages unknown",
+            "expected": [
+              "unknown",
+              "unknown",
+              "unknown"
+            ],
+            "observed": [
+              "unknown",
+              "unknown",
+              "unknown"
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unreachable",
+            "exitCode": 5,
+            "elapsedMs": 1037
+          },
+          {
+            "name": "slow",
+            "exitCode": 4,
+            "elapsedMs": 30416
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "c0bb9fb431735a0434484fe64afee137ac5f961d8919e72ec6cdb90a9ce91a19",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f72935dc14c5d15e3e5c2d1d907f70aad4f507f0350674d7f0d395077090b04c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "505c9dad99dfcf100e736d936835c0e0da740b6257a777b6e30567e7333e90b0",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "8319c98f3a0e42beaf9faaf187220922ddc48be40645791ac4793e6196341265",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/slow/command.txt",
+          "sha256": "8f87f9eeba87d58e9f4a4812d407976522b645ce6e3fff15c0fe332f3f349721",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/slow/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/slow/stdout.json",
+          "sha256": "8557fe94e3791fbb2f785c30e27f926b8f4785a373ec85fa6c0f066ed8d0d171",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/command.txt",
+          "sha256": "b7e04ed759b07222abc793cb8bba71d84a39b050fa14f3825c3df01db098c5f5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/stdout.json",
+          "sha256": "586e7e1a62172723c82da35f0c6dc1b5acc2d3a25f34f86647e4c468eee2a43b",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "多项检查共享默认 30 秒普通命令预算，不为每项重新计时；截止后没有新请求，已取得与未知项可区分。",
+      "observed": {
+        "checks": [
+          {
+            "name": "connection failure",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "unobtained stages unknown",
+            "expected": [
+              "unknown",
+              "unknown",
+              "unknown"
+            ],
+            "observed": [
+              "unknown",
+              "unknown",
+              "unknown"
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unreachable",
+            "exitCode": 5,
+            "elapsedMs": 1037
+          },
+          {
+            "name": "slow",
+            "exitCode": 4,
+            "elapsedMs": 30416
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "c0bb9fb431735a0434484fe64afee137ac5f961d8919e72ec6cdb90a9ce91a19",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f72935dc14c5d15e3e5c2d1d907f70aad4f507f0350674d7f0d395077090b04c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "505c9dad99dfcf100e736d936835c0e0da740b6257a777b6e30567e7333e90b0",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "8319c98f3a0e42beaf9faaf187220922ddc48be40645791ac4793e6196341265",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/slow/command.txt",
+          "sha256": "8f87f9eeba87d58e9f4a4812d407976522b645ce6e3fff15c0fe332f3f349721",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/slow/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/slow/stdout.json",
+          "sha256": "8557fe94e3791fbb2f785c30e27f926b8f4785a373ec85fa6c0f066ed8d0d171",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/command.txt",
+          "sha256": "b7e04ed759b07222abc793cb8bba71d84a39b050fa14f3825c3df01db098c5f5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unreachable/stdout.json",
+          "sha256": "586e7e1a62172723c82da35f0c6dc1b5acc2d3a25f34f86647e4c468eee2a43b",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

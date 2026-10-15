@@ -1,0 +1,97 @@
+{
+  "caseId": "AC-06-01",
+  "startedAt": "2026-10-13T12:19:13.168Z",
+  "endedAt": "2026-10-13T12:19:14.953Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "default",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:13.168Z",
+      "endedAt": "2026-10-13T12:19:13.603Z",
+      "elapsedMs": 435,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZbDHZk"
+    },
+    {
+      "name": "max",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "100",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:13.603Z",
+      "endedAt": "2026-10-13T12:19:14.060Z",
+      "elapsedMs": 457,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZbDHZk"
+    },
+    {
+      "name": "boundary",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T12:16:58.163Z",
+        "--to",
+        "2026-10-13T12:18:13.163Z",
+        "--limit",
+        "100",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:14.063Z",
+      "endedAt": "2026-10-13T12:19:14.524Z",
+      "elapsedMs": 461,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZbDHZk"
+    },
+    {
+      "name": "from-only",
+      "invocation": [
+        "events",
+        "list",
+        "--from",
+        "2026-10-13T12:16:58.163Z",
+        "--to",
+        "2026-10-13T12:18:13.163Z",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59955"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:14.524Z",
+      "endedAt": "2026-10-13T12:19:14.946Z",
+      "elapsedMs": 422,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZbDHZk"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

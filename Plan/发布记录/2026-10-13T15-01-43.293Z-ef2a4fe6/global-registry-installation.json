@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "source": "official npm registry, fresh cache",
+  "package": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "registry": "https://registry.npmjs.org/",
+  "prefix": "D:/xiang/CX_repo/nodejs/node_global",
+  "install": {
+    "exitCode": 0,
+    "metadata": {
+      "url": "https://registry.npmjs.org/@cxdlogver%2fbrowser-monitor-cli",
+      "status": 200,
+      "cache": "miss"
+    },
+    "tarball": {
+      "url": "https://registry.npmjs.org/@cxdlogver/browser-monitor-cli/-/browser-monitor-cli-0.1.0.tgz",
+      "status": 200,
+      "cache": "miss"
+    },
+    "observation": "changed 1 package in 3s"
+  },
+  "globalCommand": {
+    "cwd": "F:/CX_notes/cx-learn-notes/official-network",
+    "invocation": [
+      "bm",
+      "--help"
+    ],
+    "exitCode": 0,
+    "helpIncludes": [
+      "auth login",
+      "project create",
+      "sdk export",
+      "events list",
+      "events diagnose",
+      "queue status",
+      "events wait"
+    ]
+  },
+  "integrityEvidence": "registry-verification.json"
+}

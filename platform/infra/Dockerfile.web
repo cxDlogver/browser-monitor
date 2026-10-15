@@ -4,6 +4,8 @@ ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
 WORKDIR /workspace
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY cli/package.json ./cli/package.json
+COPY cli/bin ./cli/bin
 COPY protocol/package.json ./protocol/package.json
 COPY sdk/package.json ./sdk/package.json
 COPY platform/package.json ./platform/package.json

@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "fixture",
+    "version": "1.0.0",
+    "environment": "cli-acceptance"
+  },
+  "transport": {
+    "dsn": "http://127.0.0.1:59906/ingest/key"
+  }
+}

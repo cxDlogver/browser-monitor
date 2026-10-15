@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": null
+  },
+  "data": {
+    "id": "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+    "displayName": "CLI非交互-2026-10-13T12-18-35-945Z-2bbc01",
+    "appName": "ai-acceptance",
+    "role": "owner",
+    "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_MKlsss1AAOdQr3EL8XugWJ7P4f9MAE5h-iDJt04_MSc/envelopes",
+    "confirmation": "server_response",
+    "independentlyReadBack": false
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 118
+  }
+}

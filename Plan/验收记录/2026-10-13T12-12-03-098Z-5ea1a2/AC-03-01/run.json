@@ -1,0 +1,153 @@
+{
+  "caseId": "AC-03-01",
+  "startedAt": "2026-10-13T12:12:22.289Z",
+  "endedAt": "2026-10-13T12:12:25.846Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "list-before",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:22.289Z",
+      "endedAt": "2026-10-13T12:12:22.694Z",
+      "elapsedMs": 405,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "select-before",
+      "invocation": [
+        "project",
+        "use",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:22.694Z",
+      "endedAt": "2026-10-13T12:12:23.108Z",
+      "elapsedMs": 415,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "create",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "新项目",
+        "--app-name",
+        "test-new",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:23.109Z",
+      "endedAt": "2026-10-13T12:12:23.518Z",
+      "elapsedMs": 409,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "get",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:23.519Z",
+      "endedAt": "2026-10-13T12:12:23.933Z",
+      "elapsedMs": 414,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "list-after",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:23.933Z",
+      "endedAt": "2026-10-13T12:12:24.339Z",
+      "elapsedMs": 405,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "use",
+      "invocation": [
+        "project",
+        "use",
+        "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+        "--base-url",
+        "http://127.0.0.1:54557"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:24.339Z",
+      "endedAt": "2026-10-13T12:12:24.800Z",
+      "elapsedMs": 461,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "qhzhc-use",
+      "invocation": [
+        "project",
+        "use",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--context-dir",
+        "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY\\qhzhc",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:24.828Z",
+      "endedAt": "2026-10-13T12:12:25.331Z",
+      "elapsedMs": 503,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    },
+    {
+      "name": "official-use",
+      "invocation": [
+        "project",
+        "use",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--context-dir",
+        "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY\\official",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:25.367Z",
+      "endedAt": "2026-10-13T12:12:25.831Z",
+      "elapsedMs": 464,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-MLiblY"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

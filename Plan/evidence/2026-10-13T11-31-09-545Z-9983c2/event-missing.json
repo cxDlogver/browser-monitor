@@ -1,0 +1,65 @@
+{
+  "invocation": [
+    "events",
+    "diagnose",
+    "--event-id",
+    "not-present-2026-10-13T11-31-09-545Z-9983c2",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "events diagnose",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "event": {
+        "eventId": "not-present-2026-10-13T11-31-09-545Z-9983c2",
+        "occurredAt": null,
+        "receivedAt": null,
+        "type": null,
+        "name": null
+      },
+      "raw": {
+        "recordState": "missing"
+      },
+      "processing": {
+        "state": "unknown",
+        "processedAt": null,
+        "evidence": null
+      },
+      "task": {
+        "recordState": "missing",
+        "status": null
+      },
+      "projection": {
+        "visibility": "unknown",
+        "eventEffect": "unknown",
+        "identity": null
+      },
+      "history": {
+        "limitations": [
+          "Raw record missing: never received, retention cleanup and deletion cannot be distinguished.",
+          "Task record missing: historical completion cannot be inferred; completed tasks are retained by worker policy."
+        ],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:31:27.230Z",
+      "source": "database"
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:27.230Z",
+      "elapsedMs": 105
+    }
+  },
+  "stderr": ""
+}

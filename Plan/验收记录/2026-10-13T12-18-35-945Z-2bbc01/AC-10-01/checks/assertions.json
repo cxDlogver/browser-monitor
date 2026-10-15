@@ -1,0 +1,44 @@
+[
+  {
+    "name": "only final snapshot completes",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "same snapshot evidence",
+    "expected": [
+      "committed",
+      "completed"
+    ],
+    "observed": [
+      "committed",
+      "completed"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "noop-revision recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual no-op completes",
+    "expected": "completed",
+    "observed": "completed",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-wait exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-wait exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  }
+]

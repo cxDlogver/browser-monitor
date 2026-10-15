@@ -1,0 +1,301 @@
+{
+  "caseId": "AC-05-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认返回 FILE_EXISTS 且旧内容不变；明确覆盖才改变文件，同路径输入在写入前拒绝。",
+      "observed": {
+        "checks": [
+          {
+            "name": "guard",
+            "expected": "FILE_EXISTS",
+            "observed": "FILE_EXISTS",
+            "verdict": "passed"
+          },
+          {
+            "name": "original hash unchanged",
+            "expected": "34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d",
+            "observed": "34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d",
+            "verdict": "passed"
+          },
+          {
+            "name": "successful path retained",
+            "expected": [
+              {
+                "kind": "out",
+                "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\saved.json"
+              }
+            ],
+            "observed": [
+              {
+                "kind": "out",
+                "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\saved.json"
+              }
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "exists",
+            "exitCode": 2,
+            "elapsedMs": 400
+          },
+          {
+            "name": "overwrite",
+            "exitCode": 0,
+            "elapsedMs": 459
+          },
+          {
+            "name": "same-path",
+            "exitCode": 2,
+            "elapsedMs": 371
+          },
+          {
+            "name": "partial",
+            "exitCode": 8,
+            "elapsedMs": 451
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "11796be8d0ba102265e121945417fd1eeca488a90a5a962fc7262d5134afee22",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "64bc541efe11decd6b007ecc8d1c4e20d2591a7690c0fdab38f0b352e0891d0e",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "44f31ff534283f474ee458ff7b744c067ff62ca43bf02bc1f08f566a8d6c93e1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "0c4a5d230b2df825886ec8da7d102d185ee02f4aaf4f50999dc34f59ab32aa0f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "ca6684be46bd3cfe946c55393b25f80a537e767311015b5b8e3029206708b717",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/exists/command.txt",
+          "sha256": "dd91e81a0fa71e69b58bd5564b3486a7e7972ca4149547f5ad5ec27e61572c6c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exists/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exists/stdout.json",
+          "sha256": "fecfe8d6a1dcb29984e2937f047c0366bf73fae90649744d2d9e7c195b440a68",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/command.txt",
+          "sha256": "16b6fc13f6397287ba599c54053412b652dbd629344ed55b07d6c806d4c6e197",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/stdout.json",
+          "sha256": "0b0e6d2158cdee799ceb8c3535637f7584410d88b9644f115f586a0c8a3c6b88",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/command.txt",
+          "sha256": "39a61cc24441f5ee73c5eecccb2e73650015db59300159b0ab4f33a41ae97299",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stdout.json",
+          "sha256": "7e26f73a30bc59c0c21a7c6e00153f14b70a2ebc6cbe2a656bb0f1f0c4752c94",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/command.txt",
+          "sha256": "a09170668243bf258d7b354121d3e53ac364c20eb04233efdde1dd7f3e19e4dd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/stdout.json",
+          "sha256": "f416b94819f664fb0b82961aefacc7e55104ed6290a38ffee60c7cd9fdd36c93",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "部分成功返回 PARTIAL_SUCCESS / 退出码 8，列出成功路径和失败步骤；成功 JSON 未被删除且内容完整。",
+      "observed": {
+        "checks": [
+          {
+            "name": "guard",
+            "expected": "FILE_EXISTS",
+            "observed": "FILE_EXISTS",
+            "verdict": "passed"
+          },
+          {
+            "name": "original hash unchanged",
+            "expected": "34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d",
+            "observed": "34a780ad578b997db55b260beb60b501f3e04d30ba1a51fcf43cd8dd1241780d",
+            "verdict": "passed"
+          },
+          {
+            "name": "successful path retained",
+            "expected": [
+              {
+                "kind": "out",
+                "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\saved.json"
+              }
+            ],
+            "observed": [
+              {
+                "kind": "out",
+                "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\saved.json"
+              }
+            ],
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "exists",
+            "exitCode": 2,
+            "elapsedMs": 400
+          },
+          {
+            "name": "overwrite",
+            "exitCode": 0,
+            "elapsedMs": 459
+          },
+          {
+            "name": "same-path",
+            "exitCode": 2,
+            "elapsedMs": 371
+          },
+          {
+            "name": "partial",
+            "exitCode": 8,
+            "elapsedMs": 451
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "11796be8d0ba102265e121945417fd1eeca488a90a5a962fc7262d5134afee22",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "64bc541efe11decd6b007ecc8d1c4e20d2591a7690c0fdab38f0b352e0891d0e",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "44f31ff534283f474ee458ff7b744c067ff62ca43bf02bc1f08f566a8d6c93e1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "0c4a5d230b2df825886ec8da7d102d185ee02f4aaf4f50999dc34f59ab32aa0f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "ca6684be46bd3cfe946c55393b25f80a537e767311015b5b8e3029206708b717",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/exists/command.txt",
+          "sha256": "dd91e81a0fa71e69b58bd5564b3486a7e7972ca4149547f5ad5ec27e61572c6c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exists/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exists/stdout.json",
+          "sha256": "fecfe8d6a1dcb29984e2937f047c0366bf73fae90649744d2d9e7c195b440a68",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/command.txt",
+          "sha256": "16b6fc13f6397287ba599c54053412b652dbd629344ed55b07d6c806d4c6e197",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/overwrite/stdout.json",
+          "sha256": "0b0e6d2158cdee799ceb8c3535637f7584410d88b9644f115f586a0c8a3c6b88",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/command.txt",
+          "sha256": "39a61cc24441f5ee73c5eecccb2e73650015db59300159b0ab4f33a41ae97299",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stdout.json",
+          "sha256": "7e26f73a30bc59c0c21a7c6e00153f14b70a2ebc6cbe2a656bb0f1f0c4752c94",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/command.txt",
+          "sha256": "a09170668243bf258d7b354121d3e53ac364c20eb04233efdde1dd7f3e19e4dd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/same-path/stdout.json",
+          "sha256": "f416b94819f664fb0b82961aefacc7e55104ed6290a38ffee60c7cd9fdd36c93",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 2,
+  "baselineDate": "2026-10-13",
+  "acceptanceTarget": "CLI 功能；业务项目仅为真实事件数据源",
+  "platformBaseUrl": "http://localhost:8080",
+  "sdk": {
+    "package": "@cxdlogver/browser-monitor-sdk",
+    "version": "0.3.0",
+    "protocolPackage": "@cxdlogver/browser-monitor-protocol",
+    "protocolVersion": "3.0.0",
+    "registry": "https://registry.npmjs.org/",
+    "integrity": "sha512-Se2hUqXtEhxmU02/fIZOIFb+zXkZczJISAnuWKU5gbC7N1ZEtaB2u6et8omBNrMKCWSCfqTHZQXZhsvgKsK9Qw=="
+  },
+  "projectLifecycle": "每批次通过 CLI 新建两个专用项目；ID 和 DSN 写入运行记录",
+  "cliDefaults": {
+    "requestTimeoutSeconds": 10,
+    "commandTimeoutSeconds": 30,
+    "waitTimeoutSeconds": 60,
+    "waitIntervalSeconds": 2,
+    "listPageSize": 50,
+    "maxListPageSize": 100,
+    "defaultWindowHours": 24,
+    "maxOutputBytes": 1048576
+  },
+  "profiles": [
+    {
+      "id": "qhzhc",
+      "label": "实时走航车项目",
+      "repository": "F:/CX_notes/cx-learn-notes/qhzhc-realtime-platform",
+      "packageName": "qhzhc-project",
+      "displayName": "实时走航车项目-CLI验收",
+      "appName": "qhzhc",
+      "appVersion": "1.0.0",
+      "environment": "cli-acceptance",
+      "origin": "http://127.0.0.1:9527",
+      "entryUrl": "http://127.0.0.1:9527/#/dataVisualization",
+      "routeName": "/dataVisualization",
+      "configFile": "QHZHC_Web/src/config/monitor.local.json",
+      "businessEvents": [
+        {
+          "id": "qhzhc.visualization.view-start",
+          "primary": true,
+          "type": "view",
+          "name": "view.start",
+          "businessAction": "已登录后进入或重新加载 /#/dataVisualization，确认客户端 SDK 已启动",
+          "trigger": "受监控的可视化页面建立新视图",
+          "routeName": "/dataVisualization",
+          "emissionTiming": "新视图开始时；occurredAt 为该视图开始时刻",
+          "expectedPayload": {
+            "type": "view",
+            "name": "view.start",
+            "routeName": "/dataVisualization"
+          },
+          "identityFields": [
+            "projectId",
+            "eventId",
+            "occurredAt",
+            "context.sessionId",
+            "context.viewId"
+          ],
+          "evidence": "动作记录及实际采集信封身份与 CLI 返回对齐，不预设总事件数量"
+        },
+        {
+          "id": "qhzhc.visualization.view-end",
+          "primary": false,
+          "type": "view",
+          "name": "view.end",
+          "businessAction": "从可视化页面通过应用路由离开",
+          "trigger": "上一受监控视图结束",
+          "routeName": "/dataVisualization",
+          "emissionTiming": "视图结束时",
+          "identityRule": "与对应 view.start 使用同一 viewId"
+        }
+      ],
+      "optionalProbe": {
+        "nameTemplate": "cli.acceptance.qhzhc.{runId}",
+        "action": "visualization-ready"
+      }
+    },
+    {
+      "id": "official",
+      "label": "官网项目",
+      "repository": "F:/CX_notes/cx-learn-notes/official-network",
+      "packageName": "official-network",
+      "displayName": "官网项目-CLI验收",
+      "appName": "guanwang",
+      "appVersion": "1.0.0",
+      "environment": "cli-acceptance",
+      "origin": "http://localhost:3000",
+      "entryUrl": "http://localhost:3000/solution",
+      "routeName": "/solution",
+      "configFile": "app/config/monitor.local.json",
+      "businessEvents": [
+        {
+          "id": "official.solution.route-stay",
+          "primary": true,
+          "type": "span",
+          "name": "site.route.stay",
+          "businessAction": "客户端进入 /solution 后停留，再通过应用路由切换到 /",
+          "trigger": "离开 /solution 一级栏目时结束该栏目 Span",
+          "routeName": "/solution",
+          "emissionTiming": "Span end 时形成上报；occurredAt 为结束时刻，startedAt/endedAt 描述整段",
+          "expectedPayload": {
+            "type": "span",
+            "name": "site.route.stay",
+            "source": "custom",
+            "attributes": {
+              "section": "/solution",
+              "path": "/solution"
+            }
+          },
+          "metrics": {
+            "visibleMs": {
+              "unit": "ms",
+              "valueRule": "实际数值，非负；不固定精确时长"
+            }
+          },
+          "identityFields": [
+            "projectId",
+            "eventId",
+            "occurredAt",
+            "context.sessionId",
+            "context.viewId",
+            "correlation.traceId",
+            "correlation.spanId"
+          ],
+          "evidence": "保留起始页面上下文，实际采集身份与 CLI 返回一致；核对字段与单位，不验收计时算法精度"
+        },
+        {
+          "id": "official.site.visit",
+          "primary": false,
+          "type": "span",
+          "name": "site.visit",
+          "businessAction": "完成一次进站后离开页面",
+          "trigger": "pagehide 结算整站访问 Trace",
+          "emissionTiming": "访问结束时；采用 SDK Span 信封，名称为 site.visit",
+          "identityRule": "与子 site.route.stay 使用同一 traceId"
+        }
+      ],
+      "optionalProbe": {
+        "nameTemplate": "cli.acceptance.official.{runId}",
+        "action": "solution-ready"
+      }
+    }
+  ],
+  "runtimeFields": [
+    "runId",
+    "projectId",
+    "keyId",
+    "dsn",
+    "eventId",
+    "occurredAt",
+    "sessionId",
+    "viewId",
+    "queryFrom",
+    "queryTo",
+    "serverAsOf",
+    "fixtureBaseUrl",
+    "accountRoleBinding",
+    "sourceCommit",
+    "deployedRetentionPolicy",
+    "deployedLockTimeout",
+    "eventDefinitionId",
+    "eventSource",
+    "actionStartedAt",
+    "actionEndedAt",
+    "traceId",
+    "spanId",
+    "actionRecordPath",
+    "captureIdentityPath"
+  ],
+  "doNotPersistInEvidence": [
+    "password",
+    "Session Cookie",
+    "CSRF",
+    "database connection string"
+  ],
+  "controlledInputs": {
+    "eventList": {
+      "staticPageRecordCount": 151,
+      "pageSize": 50,
+      "maxPageSize": 100,
+      "invalidLimit": 101,
+      "boundaryRule": "[from,to)",
+      "frozenTime": "运行时选择并写入 fixture manifest；边界相对该时刻生成",
+      "recordCountMeaning": "151 条在查询窗口内的匹配记录；from/to 边界样本另行准备"
+    },
+    "origins": {
+      "oldOrigin": "http://localhost:9000",
+      "invalidValues": [
+        "not-a-url",
+        "ftp://localhost:3000",
+        "http://localhost:3000/path"
+      ],
+      "repeatedValidOrigin": "使用对应 profile.origin 两次"
+    },
+    "creation": {
+      "invalidDisplayName": "   ",
+      "invalidAppName": "invalid app name",
+      "duplicateName": "CLI重复名称夹具"
+    },
+    "wait": {
+      "shortTimeoutSeconds": 5,
+      "intervalSeconds": 2,
+      "requestTimeoutSeconds": 10,
+      "invalidTimeoutSeconds": 0,
+      "invalidIntervalSeconds": 0
+    },
+    "network": {
+      "recoverStatuses": [
+        503,
+        200
+      ],
+      "exhaustedStatuses": [
+        503,
+        503,
+        503
+      ],
+      "nonRetryableStatus": 403,
+      "retryAfterSeconds": 120
+    },
+    "queue": {
+      "recentFailureRecordCount": 21,
+      "recentFailureLimit": 20,
+      "classificationBasis": "实际部署 lockTimeout 与本次 asOf；不预设真实队列数量"
+    }
+  },
+  "eventSelectionPolicy": {
+    "primarySource": "business_event",
+    "probeRequired": false,
+    "normalAcceptanceRequiresBusinessEventEvidence": true,
+    "runIdUsage": "验收记录批次标识；普通业务事件不要求包含 runId 或 acceptanceRunId",
+    "identityRule": "项目、事件定义、动作时间及实际 sessionId/viewId/可用 trace 或业务标识对齐；多候选不猜选"
+  },
+  "optionalProbe": {
+    "enabledByDefault": false,
+    "requiredForAcceptance": false,
+    "purpose": "需要指定内容时的可选辅助输入，不替代正常真实业务事件证据",
+    "eventType": "event",
+    "metric": {
+      "name": "checkpoint",
+      "value": 1,
+      "unit": "count"
+    },
+    "attributes": [
+      "acceptanceRunId",
+      "business",
+      "action",
+      "sequence"
+    ],
+    "sequence": 1
+  }
+}

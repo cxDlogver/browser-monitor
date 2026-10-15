@@ -1,0 +1,44 @@
+[
+  {
+    "name": "one create across recovery",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "partial lists generated JSON",
+    "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+    "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+    "verdict": "passed"
+  },
+  {
+    "name": "original success hash preserved",
+    "expected": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+    "observed": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+    "verdict": "passed"
+  },
+  {
+    "name": "new temp compatible",
+    "expected": {
+      "app": {
+        "name": "recovery",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:50232/ingest/key"
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "recovery",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:50232/ingest/key"
+      }
+    },
+    "verdict": "passed"
+  }
+]

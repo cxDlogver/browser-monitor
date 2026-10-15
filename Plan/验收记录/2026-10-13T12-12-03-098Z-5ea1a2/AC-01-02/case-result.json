@@ -1,0 +1,267 @@
+{
+  "caseId": "AC-01-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "成功选择后文件只含非敏感平台与项目上下文；不可访问选择失败后原上下文保持不变。",
+      "observed": {
+        "checks": [
+          {
+            "name": "denied preserves context",
+            "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:55055\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:55055\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "verdict": "passed"
+          },
+          {
+            "name": "nonsecret context fields",
+            "expected": [
+              "baseUrl",
+              "projectId",
+              "schemaVersion"
+            ],
+            "observed": [
+              "baseUrl",
+              "projectId",
+              "schemaVersion"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "relative path uses cwd",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\call-directory\\monitor.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\call-directory\\monitor.json",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "use",
+            "exitCode": 0,
+            "elapsedMs": 637
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 586
+          },
+          {
+            "name": "export",
+            "exitCode": 0,
+            "elapsedMs": 534
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "b8362ccfc33ec6db0a809d9358265af324841c3cf66501caa897d2f682983260",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e20ccbb70cd4ad6c14f1d32cf3b3f3fa56e0978a6fca83c68c4ae76c9165f947",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/context-after.json",
+          "sha256": "a6d06022009bdbe64bbcafeb5ed91571f1739505c6a76356373cc3a250cf8628",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "2683c9c9a7d31f41351937ae33b18947f00a6674b5803e4491d509bcb114983a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "17aebd7c68d3252577640c0e9deaed3aaca00b13d563154c6169ef07b6c27667",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "adee785d77e0a75ceebd8a748a51dea3cc43cf5f81e803161d608026caebbb95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "c1dc7a956ed0ec7ce8bd72eb5ffe115603a94e70c246b2cc1a5bbcc0723fd0ad",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "177b78c1c1f28ec9ab3a3f3ea3cb49c15ae85a6a9ee4a986b0e79a2cab982e2a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/command.txt",
+          "sha256": "b13374f27fb73e01681df9d5ec08e8d848ae8a39774dd2dc05282cea063bd79a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/stdout.json",
+          "sha256": "59330b3fa23ebfdb89cc6dc6e30514ce744de9277947a116fd4b7252c38c2ee5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/command.txt",
+          "sha256": "832605abf500fc91600d9a571dd966e1a6240ba28406172f83acd6485b2e1fc1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stdout.json",
+          "sha256": "21b1a040e69c741db35e4c4f44f9ff118bc78780410cda8a41728f12157dc1b6",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "相对产物路径落在调用工作目录，不随 context-dir 移动。",
+      "observed": {
+        "checks": [
+          {
+            "name": "denied preserves context",
+            "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:55055\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:55055\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "verdict": "passed"
+          },
+          {
+            "name": "nonsecret context fields",
+            "expected": [
+              "baseUrl",
+              "projectId",
+              "schemaVersion"
+            ],
+            "observed": [
+              "baseUrl",
+              "projectId",
+              "schemaVersion"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "relative path uses cwd",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\call-directory\\monitor.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\call-directory\\monitor.json",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "use",
+            "exitCode": 0,
+            "elapsedMs": 637
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 586
+          },
+          {
+            "name": "export",
+            "exitCode": 0,
+            "elapsedMs": 534
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "b8362ccfc33ec6db0a809d9358265af324841c3cf66501caa897d2f682983260",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e20ccbb70cd4ad6c14f1d32cf3b3f3fa56e0978a6fca83c68c4ae76c9165f947",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/context-after.json",
+          "sha256": "a6d06022009bdbe64bbcafeb5ed91571f1739505c6a76356373cc3a250cf8628",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "2683c9c9a7d31f41351937ae33b18947f00a6674b5803e4491d509bcb114983a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "17aebd7c68d3252577640c0e9deaed3aaca00b13d563154c6169ef07b6c27667",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "adee785d77e0a75ceebd8a748a51dea3cc43cf5f81e803161d608026caebbb95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "c1dc7a956ed0ec7ce8bd72eb5ffe115603a94e70c246b2cc1a5bbcc0723fd0ad",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "177b78c1c1f28ec9ab3a3f3ea3cb49c15ae85a6a9ee4a986b0e79a2cab982e2a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/command.txt",
+          "sha256": "b13374f27fb73e01681df9d5ec08e8d848ae8a39774dd2dc05282cea063bd79a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export/stdout.json",
+          "sha256": "59330b3fa23ebfdb89cc6dc6e30514ce744de9277947a116fd4b7252c38c2ee5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/command.txt",
+          "sha256": "832605abf500fc91600d9a571dd966e1a6240ba28406172f83acd6485b2e1fc1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stdout.json",
+          "sha256": "21b1a040e69c741db35e4c4f44f9ff118bc78780410cda8a41728f12157dc1b6",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

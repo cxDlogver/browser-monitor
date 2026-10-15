@@ -1,0 +1,43 @@
+{
+  "invocation": [
+    "data",
+    "summary"
+  ],
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "data summary",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+    },
+    "data": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "retainedRawEventCount": 92,
+      "latestReceivedAt": "2026-10-13T11:47:51.188Z",
+      "retentionPolicy": {
+        "raw": {
+          "state": "configured",
+          "dropAfter": "30 days",
+          "scheduled": true,
+          "source": "timescaledb_information.jobs"
+        },
+        "completedTasks": {
+          "days": 7,
+          "source": "worker_housekeeping_policy"
+        }
+      },
+      "asOf": "2026-10-13T11:48:05.692Z",
+      "source": "database"
+    },
+    "meta": {
+      "source": "database",
+      "warnings": [],
+      "asOf": "2026-10-13T11:48:05.692Z",
+      "elapsedMs": 96
+    }
+  },
+  "stderr": ""
+}

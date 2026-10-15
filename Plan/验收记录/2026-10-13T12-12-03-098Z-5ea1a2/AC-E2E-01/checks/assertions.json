@@ -1,0 +1,502 @@
+[
+  {
+    "name": "qhzhc-create original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-get original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-origins original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-origins-readback original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-export original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-create original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-get original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-origins original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-origins-readback original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-export original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-list exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-summary exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-diagnose exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-wait exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-queue exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-comparison independent comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-list exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-summary exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-diagnose exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-wait exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-queue exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-comparison independent comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc list target",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc exactly one real input",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc envelope equals independent DB",
+    "expected": {
+      "app": {
+        "name": "qhzhc",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "name": "view.start",
+      "type": "view",
+      "context": {
+        "url": "http://127.0.0.1:9527/",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "runtime": {
+          "sdk": {
+            "name": "@cxdlogver/browser-monitor-sdk",
+            "version": "0.3.0"
+          },
+          "online": true,
+          "language": "zh-CN",
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+        },
+        "routeName": "/dataVisualization",
+        "sessionId": "session-mv6lymu2-1-4nyjjht5"
+      },
+      "eventId": "event-mv6lymu3-3-as5ip2jy",
+      "payload": {
+        "url": "http://127.0.0.1:9527/",
+        "name": "view.start",
+        "type": "view",
+        "source": "initial",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "routeName": "/dataVisualization",
+        "startedAt": 1791891547419
+      },
+      "occurredAt": 1791891547419,
+      "correlation": {},
+      "protocolVersion": "3.0"
+    },
+    "observed": {
+      "app": {
+        "name": "qhzhc",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "name": "view.start",
+      "type": "view",
+      "context": {
+        "url": "http://127.0.0.1:9527/",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "runtime": {
+          "sdk": {
+            "name": "@cxdlogver/browser-monitor-sdk",
+            "version": "0.3.0"
+          },
+          "online": true,
+          "language": "zh-CN",
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+        },
+        "routeName": "/dataVisualization",
+        "sessionId": "session-mv6lymu2-1-4nyjjht5"
+      },
+      "eventId": "event-mv6lymu3-3-as5ip2jy",
+      "payload": {
+        "url": "http://127.0.0.1:9527/",
+        "name": "view.start",
+        "type": "view",
+        "source": "initial",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "routeName": "/dataVisualization",
+        "startedAt": 1791891547419
+      },
+      "occurredAt": 1791891547419,
+      "correlation": {},
+      "protocolVersion": "3.0"
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc summary target",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc raw summary DB count",
+    "expected": 233,
+    "observed": 233,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc diagnose target",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc processing/task",
+    "expected": [
+      "committed",
+      "completed"
+    ],
+    "observed": [
+      "committed",
+      "completed"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc wait target",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc wait completed",
+    "expected": "completed",
+    "observed": "completed",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc queue target",
+    "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc independently present/completed",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "official list target",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official exactly one real input",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "official envelope equals independent DB",
+    "expected": {
+      "app": {
+        "name": "guanwang",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "name": "site.route.stay",
+      "type": "span",
+      "context": {
+        "url": "http://localhost:3000/solution",
+        "viewId": "view-mv6m7ad4-2-5rocy26r",
+        "runtime": {
+          "sdk": {
+            "name": "@cxdlogver/browser-monitor-sdk",
+            "version": "0.3.0"
+          },
+          "online": true,
+          "language": "zh-CN",
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+        },
+        "routeName": "/solution",
+        "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+      },
+      "eventId": "event-mv6m7o46-p-fgojbyio",
+      "payload": {
+        "name": "site.route.stay",
+        "type": "span",
+        "source": "custom",
+        "status": "ok",
+        "endedAt": 1791891968982,
+        "metrics": {
+          "visibleMs": {
+            "unit": "ms",
+            "value": 17821
+          }
+        },
+        "startedAt": 1791891951161,
+        "attributes": {
+          "path": "/solution",
+          "section": "/solution"
+        },
+        "durationMs": 17821.40000000596
+      },
+      "occurredAt": 1791891968982,
+      "correlation": {
+        "spanId": "adf2c42894e06be4",
+        "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+        "parentSpanId": "79b9f934eae822f7"
+      },
+      "protocolVersion": "3.0"
+    },
+    "observed": {
+      "app": {
+        "name": "guanwang",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "name": "site.route.stay",
+      "type": "span",
+      "context": {
+        "url": "http://localhost:3000/solution",
+        "viewId": "view-mv6m7ad4-2-5rocy26r",
+        "runtime": {
+          "sdk": {
+            "name": "@cxdlogver/browser-monitor-sdk",
+            "version": "0.3.0"
+          },
+          "online": true,
+          "language": "zh-CN",
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+        },
+        "routeName": "/solution",
+        "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+      },
+      "eventId": "event-mv6m7o46-p-fgojbyio",
+      "payload": {
+        "name": "site.route.stay",
+        "type": "span",
+        "source": "custom",
+        "status": "ok",
+        "endedAt": 1791891968982,
+        "metrics": {
+          "visibleMs": {
+            "unit": "ms",
+            "value": 17821
+          }
+        },
+        "startedAt": 1791891951161,
+        "attributes": {
+          "path": "/solution",
+          "section": "/solution"
+        },
+        "durationMs": 17821.40000000596
+      },
+      "occurredAt": 1791891968982,
+      "correlation": {
+        "spanId": "adf2c42894e06be4",
+        "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+        "parentSpanId": "79b9f934eae822f7"
+      },
+      "protocolVersion": "3.0"
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "official summary target",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official raw summary DB count",
+    "expected": 140,
+    "observed": 140,
+    "verdict": "passed"
+  },
+  {
+    "name": "official diagnose target",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official processing/task",
+    "expected": [
+      "committed",
+      "completed"
+    ],
+    "observed": [
+      "committed",
+      "completed"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "official wait target",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official wait completed",
+    "expected": "completed",
+    "observed": "completed",
+    "verdict": "passed"
+  },
+  {
+    "name": "official queue target",
+    "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "verdict": "passed"
+  },
+  {
+    "name": "official independently present/completed",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc consumed CLI config",
+    "expected": {
+      "app": {
+        "name": "qhzhc",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "qhzhc",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_fTNFmFDG10_tD5j11NNfQldsvLCs2kP5_gqEulFOtbo/envelopes"
+      }
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "official consumed CLI config",
+    "expected": {
+      "app": {
+        "name": "guanwang",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "guanwang",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+      }
+    },
+    "verdict": "passed"
+  }
+]

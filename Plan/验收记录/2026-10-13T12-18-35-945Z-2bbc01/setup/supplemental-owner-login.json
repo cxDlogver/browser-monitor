@@ -1,0 +1,30 @@
+{
+  "exitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "auth login",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": null
+    },
+    "data": {
+      "user": {
+        "id": "386aa0a4-ff65-4f79-9ef7-5cd127bf1f45",
+        "email": "cli-final-owner-5ffad800-491b-45e3-9efc-4e38cd0bc80b@example.test",
+        "displayName": "CLI final owner"
+      },
+      "expiresAt": "2026-10-20T12:30:17.000Z",
+      "sessionSaved": true
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "expiresAt": "2026-10-20T12:30:17.000Z",
+      "elapsedMs": 347
+    }
+  },
+  "stderr": "",
+  "inputMode": "password-stdin",
+  "role": "owner"
+}

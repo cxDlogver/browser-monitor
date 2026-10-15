@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project use",
+  "context": {
+    "baseUrl": "http://127.0.0.1:55055",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "contextSaved": true,
+    "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\.browser-monitor.json"
+  },
+  "meta": {
+    "source": "platform_api_and_local_file",
+    "warnings": [],
+    "elapsedMs": 65
+  }
+}

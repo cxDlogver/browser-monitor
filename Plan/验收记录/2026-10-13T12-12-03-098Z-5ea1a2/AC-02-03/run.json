@@ -1,0 +1,103 @@
+{
+  "caseId": "AC-02-03",
+  "startedAt": "2026-10-13T12:12:17.744Z",
+  "endedAt": "2026-10-13T12:12:19.904Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "read-a",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:17.758Z",
+      "endedAt": "2026-10-13T12:12:18.174Z",
+      "elapsedMs": 416,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tHcugy"
+    },
+    {
+      "name": "read-b",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54515"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:18.174Z",
+      "endedAt": "2026-10-13T12:12:18.564Z",
+      "elapsedMs": 390,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tHcugy"
+    },
+    {
+      "name": "redirect",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:54514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:18.564Z",
+      "endedAt": "2026-10-13T12:12:18.981Z",
+      "elapsedMs": 417,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tHcugy"
+    },
+    {
+      "name": "owner-write",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:18.981Z",
+      "endedAt": "2026-10-13T12:12:19.424Z",
+      "elapsedMs": 443,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tHcugy"
+    },
+    {
+      "name": "denied-write",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3001",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54514"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:19.424Z",
+      "endedAt": "2026-10-13T12:12:19.830Z",
+      "elapsedMs": 406,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-tHcugy"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

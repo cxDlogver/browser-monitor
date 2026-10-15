@@ -1,0 +1,84 @@
+{
+  "id": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "name": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "size": 23467,
+  "unpackedSize": 69492,
+  "shasum": "df8aa3bc05f45136574f7b3940ad530bedb4d17f",
+  "integrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+  "filename": "cxdlogver-browser-monitor-cli-0.1.0.tgz",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "size": 846,
+      "mode": 420
+    },
+    {
+      "path": "LICENSE",
+      "size": 1066,
+      "mode": 420
+    },
+    {
+      "path": "README.md",
+      "size": 10765,
+      "mode": 420
+    },
+    {
+      "path": "bin/bm.mjs",
+      "size": 368,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands.js",
+      "size": 25456,
+      "mode": 420
+    },
+    {
+      "path": "dist/context.js",
+      "size": 3804,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts.js",
+      "size": 3215,
+      "mode": 420
+    },
+    {
+      "path": "dist/errors.js",
+      "size": 1392,
+      "mode": 420
+    },
+    {
+      "path": "dist/files.js",
+      "size": 2182,
+      "mode": 420
+    },
+    {
+      "path": "dist/http.js",
+      "size": 7106,
+      "mode": 420
+    },
+    {
+      "path": "dist/index.js",
+      "size": 2325,
+      "mode": 420
+    },
+    {
+      "path": "dist/input.js",
+      "size": 7211,
+      "mode": 420
+    },
+    {
+      "path": "dist/output.js",
+      "size": 2412,
+      "mode": 420
+    },
+    {
+      "path": "package.json",
+      "size": 1344,
+      "mode": 420
+    }
+  ],
+  "entryCount": 14,
+  "bundled": []
+}

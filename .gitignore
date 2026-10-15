@@ -7,3 +7,10 @@ coverage/
 .env.*
 !.env.example
 
+# Local npm cache created by publication verification
+/Plan/**/registry-download-cache/
+
+# Keep local authentication fixtures out of Git history
+/Plan/**/fixture-credentials/
+# Raw request traces may include authentication payloads
+/Plan/**/reference/request-trace.json

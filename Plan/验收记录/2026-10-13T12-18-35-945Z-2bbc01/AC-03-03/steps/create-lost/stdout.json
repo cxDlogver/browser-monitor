@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:59863",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "WRITE_OUTCOME_UNKNOWN",
+    "message": "写请求未获得可靠响应。不要自动重复写入；请回查平台。",
+    "details": {
+      "path": "/api/v1/projects",
+      "method": "POST",
+      "attempts": 1
+    }
+  }
+}

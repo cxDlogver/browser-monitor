@@ -1,0 +1,629 @@
+{
+  "caseId": "AC-03-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "新项目返回可靠 ID、最终名称和应用标识，详情、列表及独立平台读取指向同一对象。",
+      "observed": {
+        "checks": [
+          {
+            "name": "create keeps context",
+            "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "verdict": "passed"
+          },
+          {
+            "name": "readback ID",
+            "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "verdict": "passed"
+          },
+          {
+            "name": "list includes new ID",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "use changes context",
+            "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc selected saved ID",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc actual saved name",
+            "expected": "实时走航车项目-CLI验收",
+            "observed": "实时走航车项目-CLI验收",
+            "verdict": "passed"
+          },
+          {
+            "name": "official selected saved ID",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official actual saved name",
+            "expected": "官网项目-CLI验收",
+            "observed": "官网项目-CLI验收",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "list-before",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "select-before",
+            "exitCode": 0,
+            "elapsedMs": 415
+          },
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 409
+          },
+          {
+            "name": "get",
+            "exitCode": 0,
+            "elapsedMs": 414
+          },
+          {
+            "name": "list-after",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "use",
+            "exitCode": 0,
+            "elapsedMs": 461
+          },
+          {
+            "name": "qhzhc-use",
+            "exitCode": 0,
+            "elapsedMs": 503
+          },
+          {
+            "name": "official-use",
+            "exitCode": 0,
+            "elapsedMs": 464
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "f34f669dfd303ccdbeeef75576aa6aecd2a14a25d6a109b0ffb75482fbd05fce",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a353118826fbc2c14a057562747b2c0bd27cb00caab84298fd35e69b6d2c9f3f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-context-after-use.json",
+          "sha256": "fc2e8e99fc81d0b11c3f28d737ce979bdf55bd0b594bb7173bc553172aa5a414",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-create.json",
+          "sha256": "4690bb1b4e4f863273871b327d267e95492ebf147ab4848fbb1d5ebefc976ea4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-get.json",
+          "sha256": "549452181ec931cd8d0874e8fad5b96336a79f016b4a802328baacaeafcca7e9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-project-saved.json",
+          "sha256": "8762a858658a3ba9b14202f1435429a20e2a690c95cf64d886fa965aa88ea2f5",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/project-saved.json",
+          "sha256": "4e88b19740d2e65f1d42eeb3b4cb2745c62c47efb77fed66ea5523de70bddfc6",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-context-after-use.json",
+          "sha256": "923970124247a39e307d234aadc9010e49ad491e97ed65846e9f0af1896a22c8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-create.json",
+          "sha256": "997712e52601d0e922081a5530591236b01f623ae95613952b356cdf3cd0e4a3",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-get.json",
+          "sha256": "81c25ce27ad004d1eadd22944fe2a41e1180d7c77a270b6777d0e5bbe89f8c56",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-project-saved.json",
+          "sha256": "49a8f871395eaabb6a8a025ff1660ff0f6856497a30d2a34e84cbff67b025238",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "0eb2341e11056f5949b624f22f9813df7d0f7e7a0615eb34560c6b72b1fe7b9f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "af7363a1bc87456ab9cf0737f432b31bc0ef04e5bff41beea09ae4ed52e003a8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "8b800b7ce40f3406afe12202fe9b42ceb974a4fba5daf8dab906b6e8247c02f3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "a819b98442f87be16b461704dfa1013f2950f44736cb281aabe813f5acbd76b7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/command.txt",
+          "sha256": "329925768d77413e6d81d596d7bc8cf20fcc957a66602dfd4f807ae27c373726",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/stdout.json",
+          "sha256": "a6ef0568d3893c3c0e7774f030bf9186bc6a0a46fbdc82a2bb546fc17bf81d22",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/command.txt",
+          "sha256": "b36e3813f3f0fd00f23b93511991c3af8b3c9b589292eaba151d6202ad91b022",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/stdout.json",
+          "sha256": "ee8782f06c5d271aac356ba9127a5bdc187068cf2eb323e1b7eace3cbc0c85a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/command.txt",
+          "sha256": "b36e3813f3f0fd00f23b93511991c3af8b3c9b589292eaba151d6202ad91b022",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/stdout.json",
+          "sha256": "9d3bf984eea51647bceddeab3bfdf36f6752e191c900652a7f2e0f019cf14068",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/command.txt",
+          "sha256": "5550e5f65baa047b336b2cb4cce9d12dc0149374b861ed9cf7d27f2c5dbf6651",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/stdout.json",
+          "sha256": "faa49d4300320a7ab68c60c62b9e1a9fc27fbf86a1d7024fe137adfd4ad44441",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/command.txt",
+          "sha256": "2aa2edbff6618adcd7a02684a0aab1e1c210165424d6ead6f5ea9e5804272809",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/stdout.json",
+          "sha256": "298952e56c1c8c114772476947f7628c043e16a6bb0970f8b53c2dcc2c7b6077",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/command.txt",
+          "sha256": "6ccb08cb22949f2db83c2759c1258c7fe22838eb69beb9155c476c977635490d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/stdout.json",
+          "sha256": "eb5c88afb468b174b58775bef61c5b64aa3b188d7927410db1f4acbbbdf3d45c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/command.txt",
+          "sha256": "1785aa56cd1901683a4449626af857830fa2e15ab8bdff3e3e531cd020d2bd07",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stdout.json",
+          "sha256": "624d7e30ead56a996e557d88cc99cb18eae2329440b487632b1527063b0cf2d5",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "创建本身没有更改默认项目；明确 use 后才保存新项目上下文。",
+      "observed": {
+        "checks": [
+          {
+            "name": "create keeps context",
+            "expected": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "observed": "{\n  \"schemaVersion\": 1,\n  \"baseUrl\": \"http://127.0.0.1:54557\",\n  \"projectId\": \"00000000-0000-4000-8000-000000000001\"\n}\n",
+            "verdict": "passed"
+          },
+          {
+            "name": "readback ID",
+            "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "verdict": "passed"
+          },
+          {
+            "name": "list includes new ID",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "use changes context",
+            "expected": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "observed": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-create original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-get original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc selected saved ID",
+            "expected": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "observed": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc actual saved name",
+            "expected": "实时走航车项目-CLI验收",
+            "observed": "实时走航车项目-CLI验收",
+            "verdict": "passed"
+          },
+          {
+            "name": "official selected saved ID",
+            "expected": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "observed": "9d0d0f78-cefc-46d5-9543-7682587db457",
+            "verdict": "passed"
+          },
+          {
+            "name": "official actual saved name",
+            "expected": "官网项目-CLI验收",
+            "observed": "官网项目-CLI验收",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "list-before",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "select-before",
+            "exitCode": 0,
+            "elapsedMs": 415
+          },
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 409
+          },
+          {
+            "name": "get",
+            "exitCode": 0,
+            "elapsedMs": 414
+          },
+          {
+            "name": "list-after",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "use",
+            "exitCode": 0,
+            "elapsedMs": 461
+          },
+          {
+            "name": "qhzhc-use",
+            "exitCode": 0,
+            "elapsedMs": 503
+          },
+          {
+            "name": "official-use",
+            "exitCode": 0,
+            "elapsedMs": 464
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "f34f669dfd303ccdbeeef75576aa6aecd2a14a25d6a109b0ffb75482fbd05fce",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a353118826fbc2c14a057562747b2c0bd27cb00caab84298fd35e69b6d2c9f3f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-context-after-use.json",
+          "sha256": "fc2e8e99fc81d0b11c3f28d737ce979bdf55bd0b594bb7173bc553172aa5a414",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-create.json",
+          "sha256": "4690bb1b4e4f863273871b327d267e95492ebf147ab4848fbb1d5ebefc976ea4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-get.json",
+          "sha256": "549452181ec931cd8d0874e8fad5b96336a79f016b4a802328baacaeafcca7e9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-project-saved.json",
+          "sha256": "8762a858658a3ba9b14202f1435429a20e2a690c95cf64d886fa965aa88ea2f5",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/project-saved.json",
+          "sha256": "4e88b19740d2e65f1d42eeb3b4cb2745c62c47efb77fed66ea5523de70bddfc6",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-context-after-use.json",
+          "sha256": "923970124247a39e307d234aadc9010e49ad491e97ed65846e9f0af1896a22c8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-create.json",
+          "sha256": "997712e52601d0e922081a5530591236b01f623ae95613952b356cdf3cd0e4a3",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-get.json",
+          "sha256": "81c25ce27ad004d1eadd22944fe2a41e1180d7c77a270b6777d0e5bbe89f8c56",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-project-saved.json",
+          "sha256": "49a8f871395eaabb6a8a025ff1660ff0f6856497a30d2a34e84cbff67b025238",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "0eb2341e11056f5949b624f22f9813df7d0f7e7a0615eb34560c6b72b1fe7b9f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "af7363a1bc87456ab9cf0737f432b31bc0ef04e5bff41beea09ae4ed52e003a8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "8b800b7ce40f3406afe12202fe9b42ceb974a4fba5daf8dab906b6e8247c02f3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "a819b98442f87be16b461704dfa1013f2950f44736cb281aabe813f5acbd76b7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/command.txt",
+          "sha256": "329925768d77413e6d81d596d7bc8cf20fcc957a66602dfd4f807ae27c373726",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get/stdout.json",
+          "sha256": "a6ef0568d3893c3c0e7774f030bf9186bc6a0a46fbdc82a2bb546fc17bf81d22",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/command.txt",
+          "sha256": "b36e3813f3f0fd00f23b93511991c3af8b3c9b589292eaba151d6202ad91b022",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-after/stdout.json",
+          "sha256": "ee8782f06c5d271aac356ba9127a5bdc187068cf2eb323e1b7eace3cbc0c85a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/command.txt",
+          "sha256": "b36e3813f3f0fd00f23b93511991c3af8b3c9b589292eaba151d6202ad91b022",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/list-before/stdout.json",
+          "sha256": "9d3bf984eea51647bceddeab3bfdf36f6752e191c900652a7f2e0f019cf14068",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/command.txt",
+          "sha256": "5550e5f65baa047b336b2cb4cce9d12dc0149374b861ed9cf7d27f2c5dbf6651",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/official-use/stdout.json",
+          "sha256": "faa49d4300320a7ab68c60c62b9e1a9fc27fbf86a1d7024fe137adfd4ad44441",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/command.txt",
+          "sha256": "2aa2edbff6618adcd7a02684a0aab1e1c210165424d6ead6f5ea9e5804272809",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/qhzhc-use/stdout.json",
+          "sha256": "298952e56c1c8c114772476947f7628c043e16a6bb0970f8b53c2dcc2c7b6077",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/command.txt",
+          "sha256": "6ccb08cb22949f2db83c2759c1258c7fe22838eb69beb9155c476c977635490d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/select-before/stdout.json",
+          "sha256": "eb5c88afb468b174b58775bef61c5b64aa3b188d7927410db1f4acbbbdf3d45c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/command.txt",
+          "sha256": "1785aa56cd1901683a4449626af857830fa2e15ab8bdff3e3e531cd020d2bd07",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/use/stdout.json",
+          "sha256": "624d7e30ead56a996e557d88cc99cb18eae2329440b487632b1527063b0cf2d5",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

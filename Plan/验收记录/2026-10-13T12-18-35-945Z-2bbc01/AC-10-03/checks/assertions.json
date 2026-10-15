@@ -1,0 +1,38 @@
+[
+  {
+    "name": "default60 bounds",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "default intervals2",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "remaining request budget",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "no requests after deadline",
+    "expected": 2,
+    "observed": 2,
+    "verdict": "passed"
+  },
+  {
+    "name": "last observation time unchanged",
+    "expected": "2026-10-13T12:20:45.560Z",
+    "observed": "2026-10-13T12:20:45.560Z",
+    "verdict": "passed"
+  },
+  {
+    "name": "last request failure recorded",
+    "expected": "REQUEST_TIMEOUT",
+    "observed": "REQUEST_TIMEOUT",
+    "verdict": "passed"
+  }
+]

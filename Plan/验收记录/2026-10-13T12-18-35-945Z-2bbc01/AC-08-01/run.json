@@ -1,0 +1,75 @@
+{
+  "caseId": "AC-08-01",
+  "startedAt": "2026-10-13T12:19:32.055Z",
+  "endedAt": "2026-10-13T12:19:33.563Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "ambiguous",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "collision",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:32.063Z",
+      "endedAt": "2026-10-13T12:19:32.561Z",
+      "elapsedMs": 498,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-f42Tux"
+    },
+    {
+      "name": "exact",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "collision",
+        "--occurred-at",
+        "2026-10-13T10:54:59.469Z",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:32.561Z",
+      "endedAt": "2026-10-13T12:19:33.036Z",
+      "elapsedMs": 476,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-f42Tux"
+    },
+    {
+      "name": "old",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "older",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:33.037Z",
+      "endedAt": "2026-10-13T12:19:33.554Z",
+      "elapsedMs": 518,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-f42Tux"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

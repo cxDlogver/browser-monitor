@@ -1,0 +1,629 @@
+{
+  "caseId": "AC-11-05",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "能力缺失返回 CAPABILITY_UNAVAILABLE / 退出码 4，不伪造数据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "list capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "list invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "diagnose capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "diagnose invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "missing-list",
+            "exitCode": 4,
+            "elapsedMs": 412
+          },
+          {
+            "name": "invalid-list",
+            "exitCode": 5,
+            "elapsedMs": 524
+          },
+          {
+            "name": "missing-summary",
+            "exitCode": 4,
+            "elapsedMs": 471
+          },
+          {
+            "name": "invalid-summary",
+            "exitCode": 5,
+            "elapsedMs": 410
+          },
+          {
+            "name": "missing-diagnose",
+            "exitCode": 4,
+            "elapsedMs": 394
+          },
+          {
+            "name": "invalid-diagnose",
+            "exitCode": 5,
+            "elapsedMs": 398
+          },
+          {
+            "name": "missing-queue",
+            "exitCode": 4,
+            "elapsedMs": 452
+          },
+          {
+            "name": "invalid-queue",
+            "exitCode": 5,
+            "elapsedMs": 419
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "c82e251da8a81137529b7b62abacfbccb63a1e9a954c3cf23831620fe1b91577",
+          "bytes": 1175,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "638dc1392dca07ebbd268a4d12843753fdd8c2fe40196ae7c6eb2f4f9b9ed4f2",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "95005ca404305730eccb7c8b656a989d4a00286114df62f4287c5ae9383c4675",
+          "bytes": 3565,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "970b5086d01cd312c546d31b0f52d7f72da2a881a9b3fa66a371f195b4acdd38",
+          "bytes": 4274,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/invalid-diagnose/command.txt",
+          "sha256": "36a4c569645e3a514f95bf6ed42aa314bfd0da1a65f8f852895e57700cee19b3",
+          "bytes": 150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-diagnose/stdout.json",
+          "sha256": "c6e2d7e05e430dc79a43cd64ebb71d45ed09c569163cd171a9d2024e68d54b8f",
+          "bytes": 394,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/command.txt",
+          "sha256": "0d6b2a6fad236248af847805b1d98bb93539fb299f96ab503665c1ffc7665a5c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/stdout.json",
+          "sha256": "b31da26f61e0b693382cf5e4c3c612be2c9c05b9270f5aa42e122d14beafcb5d",
+          "bytes": 393,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/command.txt",
+          "sha256": "762fc232619d58cfa3e27fecb8f1182f6a84336b77c34599184718d165716e7e",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/stdout.json",
+          "sha256": "cb786fdd6c88d4160244239fa7192d48956967d08a960df9266ad91483375569",
+          "bytes": 406,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/command.txt",
+          "sha256": "069b6a0d607d087c5c77f26103e49a888f95882cf53b44c082960bb9c9e47f70",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/stdout.json",
+          "sha256": "1fd647eaaf9368567c6d6c8d5d9e3ee38005cd5d3d38c7b68122cf0d9ce8f172",
+          "bytes": 394,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/command.txt",
+          "sha256": "36a4c569645e3a514f95bf6ed42aa314bfd0da1a65f8f852895e57700cee19b3",
+          "bytes": 150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/stdout.json",
+          "sha256": "f6c1e66de29845e4068061024591b6e49d9c9c83dd490341e4156b8083f9b71c",
+          "bytes": 542,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/command.txt",
+          "sha256": "0d6b2a6fad236248af847805b1d98bb93539fb299f96ab503665c1ffc7665a5c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/stdout.json",
+          "sha256": "2a28ff70866d34d372483265e0348301c7dcb31719fcd45da7207a69dff608a7",
+          "bytes": 595,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/command.txt",
+          "sha256": "762fc232619d58cfa3e27fecb8f1182f6a84336b77c34599184718d165716e7e",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/stdout.json",
+          "sha256": "59572209df921b99460a1d29a6cb306474e7a0f3a269bf0d7a6bbd42ae4d415b",
+          "bytes": 511,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/command.txt",
+          "sha256": "069b6a0d607d087c5c77f26103e49a888f95882cf53b44c082960bb9c9e47f70",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/stdout.json",
+          "sha256": "a805e818d4346a56be52802d660ad2fdc726746b80cff130ccf748b672a50b3b",
+          "bytes": 510,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "只读契约错误返回 API_CONTRACT_INVALID / 退出码 5，未知或错误字段不被补成零、成功或完成。",
+      "observed": {
+        "checks": [
+          {
+            "name": "list capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "list invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "diagnose capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "diagnose invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue capability",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue invalid",
+            "expected": "API_CONTRACT_INVALID",
+            "observed": "API_CONTRACT_INVALID",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "missing-list",
+            "exitCode": 4,
+            "elapsedMs": 412
+          },
+          {
+            "name": "invalid-list",
+            "exitCode": 5,
+            "elapsedMs": 524
+          },
+          {
+            "name": "missing-summary",
+            "exitCode": 4,
+            "elapsedMs": 471
+          },
+          {
+            "name": "invalid-summary",
+            "exitCode": 5,
+            "elapsedMs": 410
+          },
+          {
+            "name": "missing-diagnose",
+            "exitCode": 4,
+            "elapsedMs": 394
+          },
+          {
+            "name": "invalid-diagnose",
+            "exitCode": 5,
+            "elapsedMs": 398
+          },
+          {
+            "name": "missing-queue",
+            "exitCode": 4,
+            "elapsedMs": 452
+          },
+          {
+            "name": "invalid-queue",
+            "exitCode": 5,
+            "elapsedMs": 419
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "c82e251da8a81137529b7b62abacfbccb63a1e9a954c3cf23831620fe1b91577",
+          "bytes": 1175,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "638dc1392dca07ebbd268a4d12843753fdd8c2fe40196ae7c6eb2f4f9b9ed4f2",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "95005ca404305730eccb7c8b656a989d4a00286114df62f4287c5ae9383c4675",
+          "bytes": 3565,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "970b5086d01cd312c546d31b0f52d7f72da2a881a9b3fa66a371f195b4acdd38",
+          "bytes": 4274,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/invalid-diagnose/command.txt",
+          "sha256": "36a4c569645e3a514f95bf6ed42aa314bfd0da1a65f8f852895e57700cee19b3",
+          "bytes": 150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-diagnose/stdout.json",
+          "sha256": "c6e2d7e05e430dc79a43cd64ebb71d45ed09c569163cd171a9d2024e68d54b8f",
+          "bytes": 394,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/command.txt",
+          "sha256": "0d6b2a6fad236248af847805b1d98bb93539fb299f96ab503665c1ffc7665a5c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-list/stdout.json",
+          "sha256": "b31da26f61e0b693382cf5e4c3c612be2c9c05b9270f5aa42e122d14beafcb5d",
+          "bytes": 393,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/command.txt",
+          "sha256": "762fc232619d58cfa3e27fecb8f1182f6a84336b77c34599184718d165716e7e",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-queue/stdout.json",
+          "sha256": "cb786fdd6c88d4160244239fa7192d48956967d08a960df9266ad91483375569",
+          "bytes": 406,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/command.txt",
+          "sha256": "069b6a0d607d087c5c77f26103e49a888f95882cf53b44c082960bb9c9e47f70",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-summary/stdout.json",
+          "sha256": "1fd647eaaf9368567c6d6c8d5d9e3ee38005cd5d3d38c7b68122cf0d9ce8f172",
+          "bytes": 394,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/command.txt",
+          "sha256": "36a4c569645e3a514f95bf6ed42aa314bfd0da1a65f8f852895e57700cee19b3",
+          "bytes": 150,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-diagnose/stdout.json",
+          "sha256": "f6c1e66de29845e4068061024591b6e49d9c9c83dd490341e4156b8083f9b71c",
+          "bytes": 542,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/command.txt",
+          "sha256": "0d6b2a6fad236248af847805b1d98bb93539fb299f96ab503665c1ffc7665a5c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-list/stdout.json",
+          "sha256": "2a28ff70866d34d372483265e0348301c7dcb31719fcd45da7207a69dff608a7",
+          "bytes": 595,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/command.txt",
+          "sha256": "762fc232619d58cfa3e27fecb8f1182f6a84336b77c34599184718d165716e7e",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-queue/stdout.json",
+          "sha256": "59572209df921b99460a1d29a6cb306474e7a0f3a269bf0d7a6bbd42ae4d415b",
+          "bytes": 511,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/command.txt",
+          "sha256": "069b6a0d607d087c5c77f26103e49a888f95882cf53b44c082960bb9c9e47f70",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/missing-summary/stdout.json",
+          "sha256": "a805e818d4346a56be52802d660ad2fdc726746b80cff130ccf748b672a50b3b",
+          "bytes": 510,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

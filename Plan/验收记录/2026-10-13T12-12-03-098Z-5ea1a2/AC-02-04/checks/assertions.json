@@ -1,0 +1,26 @@
+[
+  {
+    "name": "local cleared",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "remote unknown",
+    "expected": {
+      "localCleared": true,
+      "remoteRevocation": "unknown"
+    },
+    "observed": {
+      "localCleared": true,
+      "remoteRevocation": "unknown"
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "accepted but not saved",
+    "expected": false,
+    "observed": false,
+    "verdict": "passed"
+  }
+]

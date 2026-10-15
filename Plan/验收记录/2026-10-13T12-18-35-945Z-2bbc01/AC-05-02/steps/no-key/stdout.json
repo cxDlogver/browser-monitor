@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:59923",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "KEY_UNAVAILABLE",
+    "message": "没有符合条件的写入键。",
+    "details": null
+  }
+}

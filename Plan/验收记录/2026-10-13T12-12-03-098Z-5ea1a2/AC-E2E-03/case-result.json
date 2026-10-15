@@ -1,0 +1,449 @@
+{
+  "caseId": "AC-E2E-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "恢复沿用同一项目 ID，只有一次创建，没有自动删除或重复创建；最终来源可回查。",
+      "observed": {
+        "checks": [
+          {
+            "name": "one create across recovery",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "partial lists generated JSON",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+            "verdict": "passed"
+          },
+          {
+            "name": "original success hash preserved",
+            "expected": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+            "observed": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+            "verdict": "passed"
+          },
+          {
+            "name": "new temp compatible",
+            "expected": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:61815/ingest/key"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:61815/ingest/key"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "origins-failed",
+            "exitCode": 5,
+            "elapsedMs": 407
+          },
+          {
+            "name": "origins-recovered",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "final-project",
+            "exitCode": 0,
+            "elapsedMs": 422
+          },
+          {
+            "name": "export-partial",
+            "exitCode": 8,
+            "elapsedMs": 421
+          },
+          {
+            "name": "example-recovered",
+            "exitCode": 0,
+            "elapsedMs": 439
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/recovery-temp-config.json",
+          "sha256": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "artifacts/sdk-example.ts",
+          "sha256": "fbc4e6ee276a326d91f71d30cc13040af17308e89aca9d8a073370e0c1ecc42d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "26688a43734f52ea93e59ab2279415989337c0fcd94034784c34e7320f4a9994",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/recovery-file-hashes.json",
+          "sha256": "e7dbdd6b94bd5f655e416c8f3786588e3b6c1d6eca9bcbedc13904bdfbbfd206",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/final-project-state.json",
+          "sha256": "aeceffd3b9b357f47b30589cd48d69b367fd7f278a0a41cc747ce53a28a397ac",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "41ed7aa036d8932acc1f7f4ddde83e665bee55af749502e95269b3354d0ecb48",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "699d2d888bb6db8d2d644540260ad839d69a9cd2f3bd343a576af8257b02a97c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5c48d713f5163d5cd0e7d217eb61d790a57873d895b9b02405ce3d00a680d904",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "b09f04e4fe232e16e2fdbcfdc877836d12a3a343775660d33c40665979e6b972",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "94fda503d70a3113b64c6a7efcec181d834d81db58428e94a0d6009e4dc0fd5b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/command.txt",
+          "sha256": "ce059166cbaf9ff59c49ebe575311de396db9289fda7ef14fb343886ba7ecd9a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/stdout.json",
+          "sha256": "eb6e59b932a134774afcceb5410b0e2f7268314d1d0241ce95a823b1fb65ff86",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/command.txt",
+          "sha256": "536772ec4e4dfb96af38c161005cf42b399f4a1b7b6d9d8576022d074f1299ff",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/stdout.json",
+          "sha256": "4934eb6e251728d5b9a4e375740b7360d4712fcecf99abed85f0fe18d928ed20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/command.txt",
+          "sha256": "022f66c13501c7ebaebf722627182314bc73b8837a21ee6370c8815e330a0bde",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/stdout.json",
+          "sha256": "50b58bc9fbc5917285adcd526217ab221f7cb9d199e890084e811b4046d8da9b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/command.txt",
+          "sha256": "37b22af666bd6be90238d6cfba96eba09827e8d42659d3c25e227f1d32932d1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/stdout.json",
+          "sha256": "c82a781796c0199d6f190181fefe12f1486980450204b44ed4be52778cdcb8c7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/command.txt",
+          "sha256": "37b22af666bd6be90238d6cfba96eba09827e8d42659d3c25e227f1d32932d1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/stdout.json",
+          "sha256": "0b78096ff807db641128d062dfab547edc5c6f77143228108af0d5543a06ac36",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "部分结果列出已生成 JSON；恢复示例后原成功 JSON 哈希不变且仍可用，示例与原配置属于同一项目和参数。重新导出的临时 JSON 不冒充原成功文件，流程各步骤状态与身份有证据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "one create across recovery",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "partial lists generated JSON",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-kjJ168\\original.json",
+            "verdict": "passed"
+          },
+          {
+            "name": "original success hash preserved",
+            "expected": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+            "observed": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+            "verdict": "passed"
+          },
+          {
+            "name": "new temp compatible",
+            "expected": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:61815/ingest/key"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:61815/ingest/key"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "origins-failed",
+            "exitCode": 5,
+            "elapsedMs": 407
+          },
+          {
+            "name": "origins-recovered",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "final-project",
+            "exitCode": 0,
+            "elapsedMs": 422
+          },
+          {
+            "name": "export-partial",
+            "exitCode": 8,
+            "elapsedMs": 421
+          },
+          {
+            "name": "example-recovered",
+            "exitCode": 0,
+            "elapsedMs": 439
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/recovery-temp-config.json",
+          "sha256": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "45517fdb96e1d2081026e207c751fbfa828ccf5f34138954de6185284c5c0f95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "artifacts/sdk-example.ts",
+          "sha256": "fbc4e6ee276a326d91f71d30cc13040af17308e89aca9d8a073370e0c1ecc42d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "26688a43734f52ea93e59ab2279415989337c0fcd94034784c34e7320f4a9994",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/recovery-file-hashes.json",
+          "sha256": "e7dbdd6b94bd5f655e416c8f3786588e3b6c1d6eca9bcbedc13904bdfbbfd206",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/final-project-state.json",
+          "sha256": "aeceffd3b9b357f47b30589cd48d69b367fd7f278a0a41cc747ce53a28a397ac",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "41ed7aa036d8932acc1f7f4ddde83e665bee55af749502e95269b3354d0ecb48",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "699d2d888bb6db8d2d644540260ad839d69a9cd2f3bd343a576af8257b02a97c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "5c48d713f5163d5cd0e7d217eb61d790a57873d895b9b02405ce3d00a680d904",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "b09f04e4fe232e16e2fdbcfdc877836d12a3a343775660d33c40665979e6b972",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "94fda503d70a3113b64c6a7efcec181d834d81db58428e94a0d6009e4dc0fd5b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/command.txt",
+          "sha256": "ce059166cbaf9ff59c49ebe575311de396db9289fda7ef14fb343886ba7ecd9a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/example-recovered/stdout.json",
+          "sha256": "eb6e59b932a134774afcceb5410b0e2f7268314d1d0241ce95a823b1fb65ff86",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/command.txt",
+          "sha256": "536772ec4e4dfb96af38c161005cf42b399f4a1b7b6d9d8576022d074f1299ff",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/export-partial/stdout.json",
+          "sha256": "4934eb6e251728d5b9a4e375740b7360d4712fcecf99abed85f0fe18d928ed20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/command.txt",
+          "sha256": "022f66c13501c7ebaebf722627182314bc73b8837a21ee6370c8815e330a0bde",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/final-project/stdout.json",
+          "sha256": "50b58bc9fbc5917285adcd526217ab221f7cb9d199e890084e811b4046d8da9b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/command.txt",
+          "sha256": "37b22af666bd6be90238d6cfba96eba09827e8d42659d3c25e227f1d32932d1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-failed/stdout.json",
+          "sha256": "c82a781796c0199d6f190181fefe12f1486980450204b44ed4be52778cdcb8c7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/command.txt",
+          "sha256": "37b22af666bd6be90238d6cfba96eba09827e8d42659d3c25e227f1d32932d1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/origins-recovered/stdout.json",
+          "sha256": "0b78096ff807db641128d062dfab547edc5c6f77143228108af0d5543a06ac36",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

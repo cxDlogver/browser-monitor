@@ -1,0 +1,501 @@
+{
+  "caseId": "AC-11-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "超限返回 OUTPUT_TOO_LARGE，没有裁掉页内记录后沿用原游标，错误输出完整且有界。",
+      "observed": {
+        "checks": [
+          {
+            "name": "default budget rejection",
+            "expected": "OUTPUT_TOO_LARGE",
+            "observed": "OUTPUT_TOO_LARGE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no partial page or cursor",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "small pages keep all3 identities",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "continuation finished",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 0",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 4095",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 1.5",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON invalid",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "too-large",
+            "exitCode": 2,
+            "elapsedMs": 521
+          },
+          {
+            "name": "small-page-1",
+            "exitCode": 0,
+            "elapsedMs": 457
+          },
+          {
+            "name": "small-page-2",
+            "exitCode": 0,
+            "elapsedMs": 475
+          },
+          {
+            "name": "small-page-3",
+            "exitCode": 0,
+            "elapsedMs": 479
+          },
+          {
+            "name": "invalid-budget-0",
+            "exitCode": 2,
+            "elapsedMs": 373
+          },
+          {
+            "name": "invalid-budget-4095",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-budget-1.5",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-budget-invalid",
+            "exitCode": 2,
+            "elapsedMs": 366
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "635427f35db08b43f2f0983edb62a831864969cfb6607dcfccfd4ef2e3ffb192",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "6185fff01a1fcf4bfa33e86eeab26e43eed4748aa6431d1604e26d10141fc6e6",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/output-fixture.json",
+          "sha256": "4094d0bfac6d07bb98b96f5e1c929b63593f9d9a59abc652db03e8384f54351f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "bbdcf336aaff1f29a96ac763022ee3fe8b7d21ec6e080f23c0a3b2a3a0f2244d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "4dede72949f32e31cf1f13bbf82a8f15ee8da1c11690ddeed42f499efb09d988",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/invalid-budget-0/command.txt",
+          "sha256": "b97d69156aad987b92a58af9442562ce1fcc8d0b0af896ba6be8b2a81c0747a4",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-0/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-0/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/command.txt",
+          "sha256": "13e5abc0b3c8498ed8444f53c8148cbc1ca43538ac7e9f4587dec98ca6a7a1ab",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/command.txt",
+          "sha256": "3c199015e3d2bc2ba53286105fc90847632e5ec3eb24510fb9c68282914efba1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/command.txt",
+          "sha256": "c00b3b5250dba2813e3f7dc93dd8dd2e4353961f58b58a0b7fbad991945033e6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/command.txt",
+          "sha256": "0241850e3e360cdd703029d2264114f436822de2a1885bdba5698fa781b9eb53",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/stdout.json",
+          "sha256": "4e0fe389e5836482cf0c10bd5eedac9d004199bea3c5e3b73f118673022e9d84",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/command.txt",
+          "sha256": "83f92c0ce6fa61c73e06caa4e8ae9bbb52ab16e9963eb9ab166743403769909e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/stdout.json",
+          "sha256": "efc1f4179e7b684c3b6f2d73e840d89df6883444db6b5e11c0fcbb4d4965862a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/command.txt",
+          "sha256": "eca2379429173e92c5b77c9e49f8cf52bc3efbf70f2a3534ad37f685e8e6a364",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/stdout.json",
+          "sha256": "7960e7a1a604de3030f273ebefa653b363d1b804e99ea30dfcb578b8f12be849",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/command.txt",
+          "sha256": "742d2642d105cc2e2e69d64ce1859082474e41d4d217db87cfd84444d3770096",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/stdout.json",
+          "sha256": "677f9f7528a3b33eae9a85384bbaf0bf4d80ffeb8391d0108e054aae26d232dd",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "缩小后正常读取与续页，无跳过的记录；无效预算不能产生无法解析的残缺错误。",
+      "observed": {
+        "checks": [
+          {
+            "name": "default budget rejection",
+            "expected": "OUTPUT_TOO_LARGE",
+            "observed": "OUTPUT_TOO_LARGE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no partial page or cursor",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "small pages keep all3 identities",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "continuation finished",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 0",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 4095",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON 1.5",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "invalid budget gives complete JSON invalid",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "too-large",
+            "exitCode": 2,
+            "elapsedMs": 521
+          },
+          {
+            "name": "small-page-1",
+            "exitCode": 0,
+            "elapsedMs": 457
+          },
+          {
+            "name": "small-page-2",
+            "exitCode": 0,
+            "elapsedMs": 475
+          },
+          {
+            "name": "small-page-3",
+            "exitCode": 0,
+            "elapsedMs": 479
+          },
+          {
+            "name": "invalid-budget-0",
+            "exitCode": 2,
+            "elapsedMs": 373
+          },
+          {
+            "name": "invalid-budget-4095",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-budget-1.5",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-budget-invalid",
+            "exitCode": 2,
+            "elapsedMs": 366
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "635427f35db08b43f2f0983edb62a831864969cfb6607dcfccfd4ef2e3ffb192",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "6185fff01a1fcf4bfa33e86eeab26e43eed4748aa6431d1604e26d10141fc6e6",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/output-fixture.json",
+          "sha256": "4094d0bfac6d07bb98b96f5e1c929b63593f9d9a59abc652db03e8384f54351f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "bbdcf336aaff1f29a96ac763022ee3fe8b7d21ec6e080f23c0a3b2a3a0f2244d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "4dede72949f32e31cf1f13bbf82a8f15ee8da1c11690ddeed42f499efb09d988",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/invalid-budget-0/command.txt",
+          "sha256": "b97d69156aad987b92a58af9442562ce1fcc8d0b0af896ba6be8b2a81c0747a4",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-0/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-0/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/command.txt",
+          "sha256": "13e5abc0b3c8498ed8444f53c8148cbc1ca43538ac7e9f4587dec98ca6a7a1ab",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-1.5/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/command.txt",
+          "sha256": "3c199015e3d2bc2ba53286105fc90847632e5ec3eb24510fb9c68282914efba1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-4095/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/command.txt",
+          "sha256": "c00b3b5250dba2813e3f7dc93dd8dd2e4353961f58b58a0b7fbad991945033e6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid-budget-invalid/stdout.json",
+          "sha256": "3588f70474f4235fdeb63dc4521a498c6efd0459c2968b4f599ba064fd68f6a6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/command.txt",
+          "sha256": "0241850e3e360cdd703029d2264114f436822de2a1885bdba5698fa781b9eb53",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-1/stdout.json",
+          "sha256": "4e0fe389e5836482cf0c10bd5eedac9d004199bea3c5e3b73f118673022e9d84",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/command.txt",
+          "sha256": "83f92c0ce6fa61c73e06caa4e8ae9bbb52ab16e9963eb9ab166743403769909e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-2/stdout.json",
+          "sha256": "efc1f4179e7b684c3b6f2d73e840d89df6883444db6b5e11c0fcbb4d4965862a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/command.txt",
+          "sha256": "eca2379429173e92c5b77c9e49f8cf52bc3efbf70f2a3534ad37f685e8e6a364",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/small-page-3/stdout.json",
+          "sha256": "7960e7a1a604de3030f273ebefa653b363d1b804e99ea30dfcb578b8f12be849",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/command.txt",
+          "sha256": "742d2642d105cc2e2e69d64ce1859082474e41d4d217db87cfd84444d3770096",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/too-large/stdout.json",
+          "sha256": "677f9f7528a3b33eae9a85384bbaf0bf4d80ffeb8391d0108e054aae26d232dd",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

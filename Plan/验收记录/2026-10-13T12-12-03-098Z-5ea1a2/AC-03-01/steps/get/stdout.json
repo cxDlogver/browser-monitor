@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project get",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54557",
+    "projectId": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff"
+  },
+  "data": {
+    "id": "0f16038b-4b47-46be-ab24-8b6eef5cc5ff",
+    "displayName": "新项目",
+    "appName": "test-new",
+    "enabled": true,
+    "role": "owner",
+    "origins": [
+      "http://localhost:9000"
+    ],
+    "keys": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "active": true,
+        "expiresAt": null,
+        "dsn": "http://127.0.0.1:54557/ingest/key"
+      }
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 39
+  }
+}

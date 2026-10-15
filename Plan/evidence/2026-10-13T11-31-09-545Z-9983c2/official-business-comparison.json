@@ -1,0 +1,363 @@
+{
+  "expected": {
+    "definition": {
+      "id": "official.solution.route-stay",
+      "primary": true,
+      "type": "span",
+      "name": "site.route.stay",
+      "businessAction": "客户端进入 /solution 后停留，再通过应用路由切换到 /",
+      "trigger": "离开 /solution 一级栏目时结束该栏目 Span",
+      "routeName": "/solution",
+      "emissionTiming": "Span end 时形成上报；occurredAt 为结束时刻，startedAt/endedAt 描述整段",
+      "expectedPayload": {
+        "type": "span",
+        "name": "site.route.stay",
+        "source": "custom",
+        "attributes": {
+          "section": "/solution",
+          "path": "/solution"
+        }
+      },
+      "metrics": {
+        "visibleMs": {
+          "unit": "ms",
+          "valueRule": "实际数值，非负；不固定精确时长"
+        }
+      },
+      "identityFields": [
+        "projectId",
+        "eventId",
+        "occurredAt",
+        "context.sessionId",
+        "context.viewId",
+        "correlation.traceId",
+        "correlation.spanId"
+      ],
+      "evidence": "保留起始页面上下文，实际采集身份与 CLI 返回一致；核对字段与单位，不验收计时算法精度"
+    },
+    "app": {
+      "name": "guanwang",
+      "version": "1.0.0",
+      "environment": "cli-acceptance"
+    },
+    "sdkVersion": "0.3.0",
+    "identity": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "eventId": "event-mv6m7o46-p-fgojbyio",
+      "occurredAt": "2026-10-13T11:46:08.982Z",
+      "sessionId": "session-mv6m7ad4-1-8bmr92yw",
+      "viewId": "view-mv6m7ad4-2-5rocy26r",
+      "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+      "spanId": "adf2c42894e06be4"
+    },
+    "processing": "committed",
+    "taskStatus": "completed"
+  },
+  "observed": {
+    "event": {
+      "eventId": "event-mv6m7o46-p-fgojbyio",
+      "occurredAt": "2026-10-13T11:46:08.982Z",
+      "receivedAt": "2026-10-13T11:46:11.176Z",
+      "type": "span",
+      "name": "site.route.stay",
+      "environment": "cli-acceptance",
+      "version": "1.0.0",
+      "sessionId": "session-mv6m7ad4-1-8bmr92yw",
+      "viewId": "view-mv6m7ad4-2-5rocy26r",
+      "routeName": "/solution",
+      "correlation": {
+        "spanId": "adf2c42894e06be4",
+        "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+        "parentSpanId": "79b9f934eae822f7"
+      },
+      "event": {
+        "app": {
+          "name": "guanwang",
+          "version": "1.0.0",
+          "environment": "cli-acceptance"
+        },
+        "name": "site.route.stay",
+        "type": "span",
+        "context": {
+          "url": "http://localhost:3000/solution",
+          "viewId": "view-mv6m7ad4-2-5rocy26r",
+          "runtime": {
+            "sdk": {
+              "name": "@cxdlogver/browser-monitor-sdk",
+              "version": "0.3.0"
+            },
+            "online": true,
+            "language": "zh-CN",
+            "platform": "Win32",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+          },
+          "routeName": "/solution",
+          "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+        },
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "payload": {
+          "name": "site.route.stay",
+          "type": "span",
+          "source": "custom",
+          "status": "ok",
+          "endedAt": 1791891968982,
+          "metrics": {
+            "visibleMs": {
+              "unit": "ms",
+              "value": 17821
+            }
+          },
+          "startedAt": 1791891951161,
+          "attributes": {
+            "path": "/solution",
+            "section": "/solution"
+          },
+          "durationMs": 17821.40000000596
+        },
+        "occurredAt": 1791891968982,
+        "correlation": {
+          "spanId": "adf2c42894e06be4",
+          "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+          "parentSpanId": "79b9f934eae822f7"
+        },
+        "protocolVersion": "3.0"
+      }
+    },
+    "diagnostic": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "event": {
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "occurredAt": "2026-10-13T11:46:08.982Z",
+        "receivedAt": "2026-10-13T11:46:11.176Z",
+        "type": "span",
+        "name": "site.route.stay",
+        "payload": {
+          "app": {
+            "name": "guanwang",
+            "version": "1.0.0",
+            "environment": "cli-acceptance"
+          },
+          "name": "site.route.stay",
+          "type": "span",
+          "context": {
+            "url": "http://localhost:3000/solution",
+            "viewId": "view-mv6m7ad4-2-5rocy26r",
+            "runtime": {
+              "sdk": {
+                "name": "@cxdlogver/browser-monitor-sdk",
+                "version": "0.3.0"
+              },
+              "online": true,
+              "language": "zh-CN",
+              "platform": "Win32",
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+            },
+            "routeName": "/solution",
+            "sessionId": "session-mv6m7ad4-1-8bmr92yw"
+          },
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "payload": {
+            "name": "site.route.stay",
+            "type": "span",
+            "source": "custom",
+            "status": "ok",
+            "endedAt": 1791891968982,
+            "metrics": {
+              "visibleMs": {
+                "unit": "ms",
+                "value": 17821
+              }
+            },
+            "startedAt": 1791891951161,
+            "attributes": {
+              "path": "/solution",
+              "section": "/solution"
+            },
+            "durationMs": 17821.40000000596
+          },
+          "occurredAt": 1791891968982,
+          "correlation": {
+            "spanId": "adf2c42894e06be4",
+            "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+            "parentSpanId": "79b9f934eae822f7"
+          },
+          "protocolVersion": "3.0"
+        }
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:46:11.248Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "618792ee-7afe-4c67-92a6-475160b7c889",
+        "status": "completed",
+        "attempts": 1,
+        "availableAt": "2026-10-13T11:46:11.176Z",
+        "lockedAt": null,
+        "completedAt": "2026-10-13T11:46:11.263Z",
+        "lastFailedAt": null,
+        "lastError": null
+      },
+      "projection": {
+        "visibility": "visible",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "custom_signal",
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "occurredAt": "2026-10-13T11:46:08.982Z"
+        },
+        "currentEntity": {
+          "event_id": "event-mv6m7o46-p-fgojbyio",
+          "kind": "span",
+          "trace_id": "8bb60d85f54603bbfe5752f2b527c42b",
+          "span_id": "adf2c42894e06be4"
+        },
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T11:48:03.448Z",
+      "source": "database"
+    },
+    "wait": {
+      "reason": "completed",
+      "polls": 1,
+      "elapsedMs": 146,
+      "lastObservation": {
+        "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "event": {
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "occurredAt": "2026-10-13T11:46:08.982Z",
+          "receivedAt": "2026-10-13T11:46:11.176Z",
+          "type": "span",
+          "name": "site.route.stay"
+        },
+        "raw": {
+          "recordState": "present"
+        },
+        "processing": {
+          "state": "committed",
+          "processedAt": "2026-10-13T11:46:11.248Z",
+          "evidence": "telemetry_events.processed_at"
+        },
+        "task": {
+          "recordState": "present",
+          "taskId": "618792ee-7afe-4c67-92a6-475160b7c889",
+          "status": "completed",
+          "attempts": 1,
+          "availableAt": "2026-10-13T11:46:11.176Z",
+          "lockedAt": null,
+          "completedAt": "2026-10-13T11:46:11.263Z",
+          "lastFailedAt": null,
+          "lastError": null
+        },
+        "projection": {
+          "visibility": "visible",
+          "eventEffect": "unknown",
+          "identity": {
+            "kind": "custom_signal",
+            "eventId": "event-mv6m7o46-p-fgojbyio",
+            "occurredAt": "2026-10-13T11:46:08.982Z"
+          },
+          "currentEntity": {
+            "event_id": "event-mv6m7o46-p-fgojbyio",
+            "kind": "span",
+            "trace_id": "8bb60d85f54603bbfe5752f2b527c42b",
+            "span_id": "adf2c42894e06be4"
+          },
+          "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+        },
+        "history": {
+          "limitations": [],
+          "completedTaskRetentionDays": 7
+        },
+        "asOf": "2026-10-13T11:48:04.741Z",
+        "source": "database"
+      },
+      "lastObservationAsOf": "2026-10-13T11:48:04.741Z"
+    },
+    "data": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "retainedRawEventCount": 92,
+      "latestReceivedAt": "2026-10-13T11:47:51.188Z",
+      "retentionPolicy": {
+        "raw": {
+          "state": "configured",
+          "dropAfter": "30 days",
+          "scheduled": true,
+          "source": "timescaledb_information.jobs"
+        },
+        "completedTasks": {
+          "days": 7,
+          "source": "worker_housekeeping_policy"
+        }
+      },
+      "asOf": "2026-10-13T11:48:05.692Z",
+      "source": "database"
+    },
+    "queue": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "pendingTotal": 0,
+      "readyPending": 0,
+      "delayedPending": 0,
+      "pendingUnclassified": 0,
+      "processingTotal": 0,
+      "processingActive": 0,
+      "processingStale": 0,
+      "processingUnclassified": 0,
+      "failed": 0,
+      "processedLastMinute": 2,
+      "deadLetters": 0,
+      "deadLettersOverlappingFailed": 0,
+      "recentFailures": [],
+      "recentFailuresLimit": 20,
+      "recentFailuresHasMore": false,
+      "lockTimeoutSeconds": 300,
+      "lockTimeoutSource": "shared_worker_policy",
+      "otherQueues": {
+        "labAudits": {
+          "source": "database",
+          "asOf": "2026-10-13T11:48:06.165Z",
+          "counts": {}
+        }
+      },
+      "asOf": "2026-10-13T11:48:06.165Z",
+      "source": "database",
+      "scope": {
+        "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "taskType": "telemetry",
+        "environment": null
+      },
+      "limitations": [
+        "Active lock is not a worker heartbeat.",
+        "Failed tasks and dead letters may overlap and must not be added.",
+        "Historical failure timestamps are unknown; those rows sort after dated failures by task creation time."
+      ],
+      "ingestion": {
+        "source": "redis",
+        "scope": {
+          "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+        },
+        "requestedAt": "2026-10-13T11:48:06.174Z",
+        "asOf": null,
+        "accepted": 92,
+        "duplicate": 0,
+        "rejected": 0,
+        "limitation": "Counters can expire; missing values are unknown. They are not retained raw row counts or part of the database snapshot."
+      }
+    }
+  },
+  "evidence": {
+    "reference": "official-business-candidates.json",
+    "action": "official-action-record.json",
+    "sdk": "sdk-installation-source.json"
+  },
+  "equal": true
+}

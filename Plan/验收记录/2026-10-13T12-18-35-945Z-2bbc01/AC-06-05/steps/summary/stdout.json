@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:57905",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "items": [
+      {
+        "eventId": "fixture-0000",
+        "occurredAt": "2026-10-13T12:18:25.702Z",
+        "receivedAt": "2026-10-13T12:18:25.702Z",
+        "type": "span",
+        "name": "site.route.stay",
+        "environment": "other",
+        "version": "1.0.0",
+        "routeName": "/solution",
+        "sessionId": "session-0",
+        "viewId": "view-0"
+      }
+    ],
+    "hasMore": false,
+    "nextCursor": null,
+    "range": {
+      "from": "2026-10-12T12:19:25.990Z",
+      "to": "2026-10-13T12:19:25.990Z"
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:19:26.030Z",
+    "limitations": [
+      "No cross-page snapshot guarantee"
+    ]
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:19:26.030Z",
+    "query": {
+      "from": "2026-10-12T12:19:25.990Z",
+      "to": "2026-10-13T12:19:25.990Z",
+      "eventId": "fixture-0000"
+    },
+    "elapsedMs": 46
+  }
+}

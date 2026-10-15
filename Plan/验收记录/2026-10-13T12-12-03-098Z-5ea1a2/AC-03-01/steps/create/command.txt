@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "create" "--display-name" "新项目" "--app-name" "test-new" "--base-url" "http://127.0.0.1:54557"

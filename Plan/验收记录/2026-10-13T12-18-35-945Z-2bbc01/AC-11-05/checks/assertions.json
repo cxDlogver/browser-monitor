@@ -1,0 +1,50 @@
+[
+  {
+    "name": "list capability",
+    "expected": "CAPABILITY_UNAVAILABLE",
+    "observed": "CAPABILITY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "list invalid",
+    "expected": "API_CONTRACT_INVALID",
+    "observed": "API_CONTRACT_INVALID",
+    "verdict": "passed"
+  },
+  {
+    "name": "summary capability",
+    "expected": "CAPABILITY_UNAVAILABLE",
+    "observed": "CAPABILITY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "summary invalid",
+    "expected": "API_CONTRACT_INVALID",
+    "observed": "API_CONTRACT_INVALID",
+    "verdict": "passed"
+  },
+  {
+    "name": "diagnose capability",
+    "expected": "CAPABILITY_UNAVAILABLE",
+    "observed": "CAPABILITY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "diagnose invalid",
+    "expected": "API_CONTRACT_INVALID",
+    "observed": "API_CONTRACT_INVALID",
+    "verdict": "passed"
+  },
+  {
+    "name": "queue capability",
+    "expected": "CAPABILITY_UNAVAILABLE",
+    "observed": "CAPABILITY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "queue invalid",
+    "expected": "API_CONTRACT_INVALID",
+    "observed": "API_CONTRACT_INVALID",
+    "verdict": "passed"
+  }
+]

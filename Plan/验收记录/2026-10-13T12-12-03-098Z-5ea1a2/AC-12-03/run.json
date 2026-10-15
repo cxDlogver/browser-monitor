@@ -1,0 +1,41 @@
+{
+  "caseId": "AC-12-03",
+  "startedAt": "2026-10-13T12:14:36.589Z",
+  "endedAt": "2026-10-13T12:15:08.052Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "unreachable",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:1"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:36.589Z",
+      "endedAt": "2026-10-13T12:14:37.626Z",
+      "elapsedMs": 1037,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Kh6WHZ"
+    },
+    {
+      "name": "slow",
+      "invocation": [
+        "health",
+        "--base-url",
+        "http://127.0.0.1:49717"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:37.626Z",
+      "endedAt": "2026-10-13T12:15:08.042Z",
+      "elapsedMs": 30416,
+      "exitCode": 4,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Kh6WHZ"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

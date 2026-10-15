@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "qhzhc",
+    "version": "1.0.0",
+    "environment": "cli-acceptance"
+  },
+  "transport": {
+    "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_z1gti6B2g7yzpvZnhEhc9SNpxtIjm687OjSU2DO7UXY/envelopes"
+  }
+}

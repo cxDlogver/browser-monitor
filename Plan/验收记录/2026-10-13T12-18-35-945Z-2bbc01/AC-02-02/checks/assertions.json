@@ -1,0 +1,26 @@
+[
+  {
+    "name": "no TTY no input",
+    "expected": "INVALID_ARGUMENT",
+    "observed": "INVALID_ARGUMENT",
+    "verdict": "passed"
+  },
+  {
+    "name": "no input makes no request",
+    "expected": 1,
+    "observed": 1,
+    "verdict": "passed"
+  },
+  {
+    "name": "expired",
+    "expected": "AUTH_EXPIRED",
+    "observed": "AUTH_EXPIRED",
+    "verdict": "passed"
+  },
+  {
+    "name": "expiry not guessed",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  }
+]

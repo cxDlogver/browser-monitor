@@ -1,0 +1,56 @@
+[
+  {
+    "name": "history-missing recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "taskMissing retained facts",
+    "expected": [
+      "present",
+      "missing",
+      "committed"
+    ],
+    "observed": [
+      "present",
+      "missing",
+      "committed"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "rawMissing retained facts",
+    "expected": [
+      "missing",
+      "present",
+      "unknown"
+    ],
+    "observed": [
+      "missing",
+      "present",
+      "unknown"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "allMissing retained facts",
+    "expected": [
+      "missing",
+      "missing",
+      "unknown"
+    ],
+    "observed": [
+      "missing",
+      "missing",
+      "unknown"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "unknown projection",
+    "expected": "unknown",
+    "observed": "unknown",
+    "verdict": "passed"
+  }
+]

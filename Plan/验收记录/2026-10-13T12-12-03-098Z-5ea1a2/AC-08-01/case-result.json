@@ -1,0 +1,263 @@
+{
+  "caseId": "AC-08-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "诊断可定位早于普通列表默认窗口的保留事件，返回正确原始及关联证据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "ambiguity recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "older-than-24h recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual candidates",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual exact identity",
+            "expected": "2026-10-13T10:54:59.469Z",
+            "observed": "2026-10-13T10:54:59.469Z",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "ambiguous",
+            "exitCode": 2,
+            "elapsedMs": 555
+          },
+          {
+            "name": "exact",
+            "exitCode": 0,
+            "elapsedMs": 532
+          },
+          {
+            "name": "old",
+            "exitCode": 0,
+            "elapsedMs": 516
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "27be6cf1246cd039a33960f48c536e6a2780089e09aad1953eb72d01d5c02b31",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-ambiguity.json",
+          "sha256": "270639494d1d6efa46a26205ceefdb7f7d5e0c7231a909aa8afad5e18ce1ebc3",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/database-older-than-24h.json",
+          "sha256": "134558f52fa625cc57b1ec07608d6a02528d9f64d05c414e8e3388a64b433af8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "72f02d45ebbd8466481a6b97b3a5321e81c8c0ba298e5eb4621d813a0c1a44a7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "9d9387e8490858398276cdaea73073f2e4fc51bb66a945dd04097d08f4df22db",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ambiguous/command.txt",
+          "sha256": "846e6c23b32e7b57d68a6f78ecaff0bad096a35bd63ee898f7103ba13c5950ee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stdout.json",
+          "sha256": "31bf1f135d8bb1b702cc7b7e708c373eef4aae267b628e708424e9475924f215",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/command.txt",
+          "sha256": "3b7584c422a355465d7b7197a83ea7a7a1b0a17fbf19e57470aa2dc5d2676919",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/stdout.json",
+          "sha256": "fe5d1bf6a73807ede48aeaa5761b200a1ef61ae80667a4fbde70732c0b364012",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/command.txt",
+          "sha256": "d4d20639a71d24df6b282e032d3683744c611e15fd8a967002330d9aaf29254c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/stdout.json",
+          "sha256": "88577bd680b87cf29489295b70f54a2b2bb87531c8392a8d1463941316433488",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "多候选返回 AMBIGUOUS_EVENT / 退出码 2 和候选信息；补足时间后只诊断指定候选。",
+      "observed": {
+        "checks": [
+          {
+            "name": "ambiguity recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "older-than-24h recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual candidates",
+            "expected": 2,
+            "observed": 2,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual exact identity",
+            "expected": "2026-10-13T10:54:59.469Z",
+            "observed": "2026-10-13T10:54:59.469Z",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "ambiguous",
+            "exitCode": 2,
+            "elapsedMs": 555
+          },
+          {
+            "name": "exact",
+            "exitCode": 0,
+            "elapsedMs": 532
+          },
+          {
+            "name": "old",
+            "exitCode": 0,
+            "elapsedMs": 516
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "27be6cf1246cd039a33960f48c536e6a2780089e09aad1953eb72d01d5c02b31",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-ambiguity.json",
+          "sha256": "270639494d1d6efa46a26205ceefdb7f7d5e0c7231a909aa8afad5e18ce1ebc3",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/database-older-than-24h.json",
+          "sha256": "134558f52fa625cc57b1ec07608d6a02528d9f64d05c414e8e3388a64b433af8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "72f02d45ebbd8466481a6b97b3a5321e81c8c0ba298e5eb4621d813a0c1a44a7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "9d9387e8490858398276cdaea73073f2e4fc51bb66a945dd04097d08f4df22db",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ambiguous/command.txt",
+          "sha256": "846e6c23b32e7b57d68a6f78ecaff0bad096a35bd63ee898f7103ba13c5950ee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ambiguous/stdout.json",
+          "sha256": "31bf1f135d8bb1b702cc7b7e708c373eef4aae267b628e708424e9475924f215",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/command.txt",
+          "sha256": "3b7584c422a355465d7b7197a83ea7a7a1b0a17fbf19e57470aa2dc5d2676919",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/exact/stdout.json",
+          "sha256": "fe5d1bf6a73807ede48aeaa5761b200a1ef61ae80667a4fbde70732c0b364012",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/command.txt",
+          "sha256": "d4d20639a71d24df6b282e032d3683744c611e15fd8a967002330d9aaf29254c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/old/stdout.json",
+          "sha256": "88577bd680b87cf29489295b70f54a2b2bb87531c8392a8d1463941316433488",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

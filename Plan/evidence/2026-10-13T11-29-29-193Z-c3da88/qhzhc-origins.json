@@ -1,0 +1,35 @@
+{
+  "invocation": [
+    "origins",
+    "set",
+    "--origin",
+    "http://127.0.0.1:9527",
+    "--project",
+    "4ca2f564-72c5-46f4-ba0f-9bfbfdf22436"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "origins set",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "4ca2f564-72c5-46f4-ba0f-9bfbfdf22436"
+    },
+    "data": {
+      "origins": [
+        "http://127.0.0.1:9527"
+      ],
+      "confirmation": "server_response",
+      "semantics": "replace_entire_set"
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "elapsedMs": 99
+    }
+  },
+  "stderr": ""
+}

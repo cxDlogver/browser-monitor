@@ -1,0 +1,22 @@
+[
+  {
+    "name": "connection failure",
+    "expected": "fail",
+    "observed": "fail",
+    "verdict": "passed"
+  },
+  {
+    "name": "unobtained stages unknown",
+    "expected": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "observed": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "verdict": "passed"
+  }
+]

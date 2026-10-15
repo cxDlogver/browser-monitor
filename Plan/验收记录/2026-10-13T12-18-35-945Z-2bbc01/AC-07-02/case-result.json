@@ -1,0 +1,411 @@
+{
+  "caseId": "AC-07-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "空项目返回 0 与 null 最近时间；重新调用取得新数量、接收时间和新的查询时刻。",
+      "observed": {
+        "checks": [
+          {
+            "name": "zero-summary recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "valid zero/null",
+            "expected": [
+              0,
+              null
+            ],
+            "observed": [
+              0,
+              null
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "new count",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "fresh asOf",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "unknown retention not guessed",
+            "expected": {
+              "state": "unknown",
+              "dropAfter": null
+            },
+            "observed": {
+              "state": "unknown",
+              "dropAfter": null
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "fault no old count",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "zero",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "refreshed",
+            "exitCode": 0,
+            "elapsedMs": 412
+          },
+          {
+            "name": "failed",
+            "exitCode": 5,
+            "elapsedMs": 1098
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2fec382107022aebc27affc2b57dffe5b31c84bf99c4b997da562c9f98d14b9a",
+          "bytes": 829,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-zero-summary.json",
+          "sha256": "b5f630721431821c093019bbfab52e9852c18404d74c8d7ec224c359ab55a21f",
+          "bytes": 693,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fe0ec999041bd10dc2c2bb3554122959a3895c71052d8ef7c1aaa6b64109dc72",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "1c6e225677d372051d19d5dff35439c57339762ad2d6125c0fdf3afb4dda3eb4",
+          "bytes": 2001,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "dc345a3e2b7a482ddc1e7678a22b24a0fdf01b895bced2b4339730c9f0de2de8",
+          "bytes": 1785,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/failed/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/failed/stdout.json",
+          "sha256": "9416a56d262d8196ffb61706c685f25063018b2a6b7d6c5b7a1b88b8dd7154e7",
+          "bytes": 500,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/stdout.json",
+          "sha256": "e336fd87293e8b1e69944403375cae234237da0e1a2db682452093779f6bd8a1",
+          "bytes": 646,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/stdout.json",
+          "sha256": "e95f34d14f3ea0379d0218102b218fb72f1fc33ff682d06a5ba4b828f4d67ecc",
+          "bytes": 624,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "失败不返回旧数量或零，未知保留期限不填参考天数。",
+      "observed": {
+        "checks": [
+          {
+            "name": "zero-summary recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "valid zero/null",
+            "expected": [
+              0,
+              null
+            ],
+            "observed": [
+              0,
+              null
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "new count",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "fresh asOf",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "unknown retention not guessed",
+            "expected": {
+              "state": "unknown",
+              "dropAfter": null
+            },
+            "observed": {
+              "state": "unknown",
+              "dropAfter": null
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "fault no old count",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "zero",
+            "exitCode": 0,
+            "elapsedMs": 420
+          },
+          {
+            "name": "refreshed",
+            "exitCode": 0,
+            "elapsedMs": 412
+          },
+          {
+            "name": "failed",
+            "exitCode": 5,
+            "elapsedMs": 1098
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2fec382107022aebc27affc2b57dffe5b31c84bf99c4b997da562c9f98d14b9a",
+          "bytes": 829,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-zero-summary.json",
+          "sha256": "b5f630721431821c093019bbfab52e9852c18404d74c8d7ec224c359ab55a21f",
+          "bytes": 693,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fe0ec999041bd10dc2c2bb3554122959a3895c71052d8ef7c1aaa6b64109dc72",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "1c6e225677d372051d19d5dff35439c57339762ad2d6125c0fdf3afb4dda3eb4",
+          "bytes": 2001,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "dc345a3e2b7a482ddc1e7678a22b24a0fdf01b895bced2b4339730c9f0de2de8",
+          "bytes": 1785,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/failed/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/failed/stdout.json",
+          "sha256": "9416a56d262d8196ffb61706c685f25063018b2a6b7d6c5b7a1b88b8dd7154e7",
+          "bytes": 500,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/refreshed/stdout.json",
+          "sha256": "e336fd87293e8b1e69944403375cae234237da0e1a2db682452093779f6bd8a1",
+          "bytes": 646,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/command.txt",
+          "sha256": "584d176fb6dce7e058f93a0731adb8a5a620b8a79278c3167b1d98d7a3ee28ca",
+          "bytes": 126,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/zero/stdout.json",
+          "sha256": "e95f34d14f3ea0379d0218102b218fb72f1fc33ff682d06a5ba4b828f4d67ecc",
+          "bytes": 624,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

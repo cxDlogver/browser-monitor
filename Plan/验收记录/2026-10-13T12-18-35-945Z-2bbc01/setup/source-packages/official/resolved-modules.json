@@ -1,0 +1,14 @@
+{
+  "profile": "official",
+  "packageName": "@cxdlogver/browser-monitor-sdk",
+  "version": "0.3.0",
+  "protocolVersion": "3.0.0",
+  "sdkRealPath": "F:\\CX_notes\\cx-learn-notes\\node_modules\\.pnpm\\@cxdlogver+browser-monitor-sdk@0.3.0\\node_modules\\@cxdlogver\\browser-monitor-sdk\\package.json",
+  "protocolRealPath": "F:\\CX_notes\\cx-learn-notes\\node_modules\\.pnpm\\@cxdlogver+browser-monitor-protocol@3.0.0\\node_modules\\@cxdlogver\\browser-monitor-protocol\\package.json",
+  "dependencies": {
+    "web-vitals": "6.2.1",
+    "@cxdlogver/browser-monitor-protocol": "3.0.0"
+  },
+  "source": "installed_registry_package",
+  "expectedIntegrity": "sha512-Se2hUqXtEhxmU02/fIZOIFb+zXkZczJISAnuWKU5gbC7N1ZEtaB2u6et8omBNrMKCWSCfqTHZQXZhsvgKsK9Qw=="
+}

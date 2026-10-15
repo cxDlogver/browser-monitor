@@ -1,0 +1,32 @@
+[
+  {
+    "name": "server time unknown",
+    "expected": [
+      null,
+      null
+    ],
+    "observed": [
+      null,
+      null
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "text remains data, secrets removed",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "DSN retained only for authorized artifact",
+    "expected": "http://127.0.0.1:49674/ingest/key",
+    "observed": "http://127.0.0.1:49674/ingest/key",
+    "verdict": "passed"
+  },
+  {
+    "name": "queue-boundaries recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

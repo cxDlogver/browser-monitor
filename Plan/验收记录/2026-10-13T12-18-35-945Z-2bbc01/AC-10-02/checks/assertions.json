@@ -1,0 +1,38 @@
+[
+  {
+    "name": "failed correct terminal",
+    "expected": "PROCESSING_FAILED",
+    "observed": "PROCESSING_FAILED",
+    "verdict": "passed"
+  },
+  {
+    "name": "failed evidence retained",
+    "expected": "committed",
+    "observed": "committed",
+    "verdict": "passed"
+  },
+  {
+    "name": "missing correct terminal",
+    "expected": "HISTORY_INCOMPLETE",
+    "observed": "HISTORY_INCOMPLETE",
+    "verdict": "passed"
+  },
+  {
+    "name": "missing evidence retained",
+    "expected": "committed",
+    "observed": "committed",
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid not polled",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "wait only GET",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

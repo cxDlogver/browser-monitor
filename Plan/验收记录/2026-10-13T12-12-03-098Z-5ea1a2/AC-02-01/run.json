@@ -1,0 +1,64 @@
+{
+  "caseId": "AC-02-01",
+  "startedAt": "2026-10-13T12:12:13.310Z",
+  "endedAt": "2026-10-13T12:12:15.153Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "login",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:55094"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:12:13.310Z",
+      "endedAt": "2026-10-13T12:12:14.159Z",
+      "elapsedMs": 849,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-fZAI0K"
+    },
+    {
+      "name": "status",
+      "invocation": [
+        "auth",
+        "status",
+        "--base-url",
+        "http://127.0.0.1:55094"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:14.159Z",
+      "endedAt": "2026-10-13T12:12:14.604Z",
+      "elapsedMs": 445,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-fZAI0K"
+    },
+    {
+      "name": "read",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55094"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:14.604Z",
+      "endedAt": "2026-10-13T12:12:15.048Z",
+      "elapsedMs": 444,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-fZAI0K"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca"
+  },
+  "data": {
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+    "event": {
+      "eventId": "task-missing",
+      "occurredAt": "2026-10-13T11:54:59.467Z",
+      "receivedAt": "2026-10-13T11:54:59.669Z",
+      "type": "performance",
+      "name": "LCP"
+    },
+    "raw": {
+      "recordState": "present"
+    },
+    "processing": {
+      "state": "committed",
+      "processedAt": "2026-10-13T11:54:59.469Z",
+      "evidence": "telemetry_events.processed_at"
+    },
+    "task": {
+      "recordState": "missing",
+      "status": null
+    },
+    "projection": {
+      "visibility": "missing",
+      "eventEffect": "unknown",
+      "identity": {
+        "kind": "performance",
+        "sampleId": "metric-fixture-1"
+      },
+      "currentEntity": null,
+      "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+    },
+    "history": {
+      "limitations": [
+        "Task record missing: historical completion cannot be inferred; completed tasks are retained by worker policy."
+      ],
+      "completedTaskRetentionDays": 7
+    },
+    "asOf": "2026-10-13T12:13:04.830Z",
+    "source": "database"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:13:04.830Z",
+    "elapsedMs": 98
+  }
+}

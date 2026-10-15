@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "guanwang",
+    "version": "1.0.0",
+    "environment": "cli-acceptance"
+  },
+  "transport": {
+    "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+  }
+}

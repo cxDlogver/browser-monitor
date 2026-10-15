@@ -1,0 +1,267 @@
+{
+  "caseId": "AC-E2E-02",
+  "startedAt": "2026-10-13T12:22:53.868Z",
+  "endedAt": "2026-10-13T12:22:59.815Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "ai-create",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "CLI非交互-2026-10-13T12-18-35-945Z-2bbc01",
+        "--app-name",
+        "ai-acceptance",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:53.868Z",
+      "endedAt": "2026-10-13T12:22:54.362Z",
+      "elapsedMs": 494,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "ai-origins",
+      "invocation": [
+        "origins",
+        "set",
+        "--project",
+        "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+        "--origin",
+        "http://localhost:3000",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:54.362Z",
+      "endedAt": "2026-10-13T12:22:54.817Z",
+      "elapsedMs": 455,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "ai-export",
+      "invocation": [
+        "sdk",
+        "export",
+        "--project",
+        "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:54.817Z",
+      "endedAt": "2026-10-13T12:22:55.306Z",
+      "elapsedMs": 490,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "ai-readback",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:55.307Z",
+      "endedAt": "2026-10-13T12:22:55.819Z",
+      "elapsedMs": 512,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "qhzhc-live-list",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--from",
+        "2026-10-13T11:39:06.419Z",
+        "--to",
+        "2026-10-13T11:39:08.419Z",
+        "--include-payload",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:55.827Z",
+      "endedAt": "2026-10-13T12:22:56.331Z",
+      "elapsedMs": 504,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "qhzhc-live-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:56.331Z",
+      "endedAt": "2026-10-13T12:22:56.801Z",
+      "elapsedMs": 470,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "qhzhc-live-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--occurred-at",
+        "2026-10-13T11:39:07.419Z",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:56.806Z",
+      "endedAt": "2026-10-13T12:22:57.390Z",
+      "elapsedMs": 584,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "qhzhc-live-wait",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event-mv6lymu3-3-as5ip2jy",
+        "--occurred-at",
+        "2026-10-13T11:39:07.419Z",
+        "--project",
+        "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:57.390Z",
+      "endedAt": "2026-10-13T12:22:57.880Z",
+      "elapsedMs": 489,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "official-live-list",
+      "invocation": [
+        "events",
+        "list",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--from",
+        "2026-10-13T11:46:07.982Z",
+        "--to",
+        "2026-10-13T11:46:09.982Z",
+        "--include-payload",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:57.886Z",
+      "endedAt": "2026-10-13T12:22:58.343Z",
+      "elapsedMs": 457,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "official-live-summary",
+      "invocation": [
+        "data",
+        "summary",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:58.343Z",
+      "endedAt": "2026-10-13T12:22:58.806Z",
+      "elapsedMs": 462,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "official-live-diagnose",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--occurred-at",
+        "2026-10-13T11:46:08.982Z",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:58.810Z",
+      "endedAt": "2026-10-13T12:22:59.327Z",
+      "elapsedMs": 517,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    },
+    {
+      "name": "official-live-wait",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event-mv6m7o46-p-fgojbyio",
+        "--occurred-at",
+        "2026-10-13T11:46:08.982Z",
+        "--project",
+        "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:22:59.327Z",
+      "endedAt": "2026-10-13T12:22:59.792Z",
+      "elapsedMs": 465,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-qwDAmJ"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

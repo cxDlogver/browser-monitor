@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "auth login",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": null
+  },
+  "data": {
+    "user": {
+      "id": "a468ac03-a71a-44ab-b716-db07b3d0e9a9",
+      "email": "cli-permission-9210acc4-0eab-4f8b-acf7-df7e31ef4d21@example.test",
+      "displayName": "CLI permission fixture"
+    },
+    "expiresAt": "2026-10-20T12:30:17.000Z",
+    "sessionSaved": true
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "expiresAt": "2026-10-20T12:30:17.000Z",
+    "elapsedMs": 344
+  }
+}

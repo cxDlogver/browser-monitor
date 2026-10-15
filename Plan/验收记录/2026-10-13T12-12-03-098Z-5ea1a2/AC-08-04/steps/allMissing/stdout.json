@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca"
+  },
+  "data": {
+    "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+    "event": {
+      "eventId": "all-missing",
+      "occurredAt": null,
+      "receivedAt": null,
+      "type": null,
+      "name": null
+    },
+    "raw": {
+      "recordState": "missing"
+    },
+    "processing": {
+      "state": "unknown",
+      "processedAt": null,
+      "evidence": null
+    },
+    "task": {
+      "recordState": "missing",
+      "status": null
+    },
+    "projection": {
+      "visibility": "unknown",
+      "eventEffect": "unknown",
+      "identity": null
+    },
+    "history": {
+      "limitations": [
+        "Raw record missing: never received, retention cleanup and deletion cannot be distinguished.",
+        "Task record missing: historical completion cannot be inferred; completed tasks are retained by worker policy."
+      ],
+      "completedTaskRetentionDays": 7
+    },
+    "asOf": "2026-10-13T12:13:05.794Z",
+    "source": "database"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:13:05.794Z",
+    "elapsedMs": 95
+  }
+}

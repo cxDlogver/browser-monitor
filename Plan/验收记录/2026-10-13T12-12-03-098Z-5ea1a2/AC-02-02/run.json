@@ -1,0 +1,83 @@
+{
+  "caseId": "AC-02-02",
+  "startedAt": "2026-10-13T12:12:15.211Z",
+  "endedAt": "2026-10-13T12:12:17.683Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "stdin-login",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:55106"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:12:15.211Z",
+      "endedAt": "2026-10-13T12:12:15.945Z",
+      "elapsedMs": 734,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-yReoOv"
+    },
+    {
+      "name": "no-input",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--base-url",
+        "http://127.0.0.1:55106"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:15.945Z",
+      "endedAt": "2026-10-13T12:12:16.360Z",
+      "elapsedMs": 415,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-yReoOv"
+    },
+    {
+      "name": "expired",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:55106"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:16.360Z",
+      "endedAt": "2026-10-13T12:12:17.010Z",
+      "elapsedMs": 649,
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-yReoOv"
+    },
+    {
+      "name": "unknown-expiry",
+      "invocation": [
+        "auth",
+        "login",
+        "--email",
+        "fixture@example.test",
+        "--password-stdin",
+        "--base-url",
+        "http://127.0.0.1:55106"
+      ],
+      "stdin": "provided securely",
+      "startedAt": "2026-10-13T12:12:17.010Z",
+      "endedAt": "2026-10-13T12:12:17.659Z",
+      "elapsedMs": 649,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-yReoOv"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

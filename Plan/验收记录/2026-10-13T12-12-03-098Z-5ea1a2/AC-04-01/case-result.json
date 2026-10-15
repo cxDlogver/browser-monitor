@@ -1,0 +1,353 @@
+{
+  "caseId": "AC-04-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "来源按协议、主机和端口归一化去重，平台地址不会替代业务地址。",
+      "observed": {
+        "checks": [
+          {
+            "name": "normalized set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "replace entire set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "old removed",
+            "expected": false,
+            "observed": false,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "get-before",
+            "exitCode": 0,
+            "elapsedMs": 400
+          },
+          {
+            "name": "set",
+            "exitCode": 0,
+            "elapsedMs": 410
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 400
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e535d82ae253b32614f81aa79aba24218b9693360de16340331794171d8b3613",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a8cc7d487508d44de42f66fc90aa6ee83d49c536f5ba595de8367e26ee00a5f9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "7ef0fbb60421c19cb163eae68bec15e20eb531cba83d2e0eea2c25720658e5d1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "5c1a945f98a458bcf5ee5ef1498134035407fbd3bfb0bce00c42b962c9d44cd7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "736028f6e109ca150a954de777b136be0a82fd702e65d5893a0bb8202b45912a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "37a95df31d082bd64e72cfd7f1aea25410123d836c7ccacc126110b8829637cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "f5085868d62dbb1b437a4c92180f04b702fd68088173bb8e8ded4b0a2e55f732",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/command.txt",
+          "sha256": "37a95df31d082bd64e72cfd7f1aea25410123d836c7ccacc126110b8829637cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/stdout.json",
+          "sha256": "f8655c6c1171e7541051b1d888adaaa79e7a7395ed79120464fc7b428de0c7c1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/command.txt",
+          "sha256": "7392ae4ae8d1a27434e2ee0a470101898afd6be8933d09e8ba038764c37a190d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/stdout.json",
+          "sha256": "6dda65a12e3c175244ca75fb3920c9ac4506b0b11289f29267f8e6161a7374f1",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "保存的是新完整集合，旧项不再保留；提交响应、回查及独立读取一致。",
+      "observed": {
+        "checks": [
+          {
+            "name": "normalized set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "replace entire set",
+            "expected": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "observed": [
+              "http://localhost",
+              "https://example.test"
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "old removed",
+            "expected": false,
+            "observed": false,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-origins-readback original exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "get-before",
+            "exitCode": 0,
+            "elapsedMs": 400
+          },
+          {
+            "name": "set",
+            "exitCode": 0,
+            "elapsedMs": 410
+          },
+          {
+            "name": "get-after",
+            "exitCode": 0,
+            "elapsedMs": 400
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "e535d82ae253b32614f81aa79aba24218b9693360de16340331794171d8b3613",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a8cc7d487508d44de42f66fc90aa6ee83d49c536f5ba595de8367e26ee00a5f9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-origins-readback.json",
+          "sha256": "d885c0d0bf078db9e737f339538fdc27547d1aa3b7c7cb8113fd2dc92ec84aa0",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-origins.json",
+          "sha256": "cb540b325ba7b70eb7a47864eda1883bef7cb1178fe62ac34abda6f697a995bb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-origins-readback.json",
+          "sha256": "8c515a0a7862c1488fbc24fc1baa1291b7bdca2d88c6cb47fd696de5d0647c2d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-origins.json",
+          "sha256": "e462e13af386720370e9c065030398d8e8602dc328a39e8520dcdd363f51ee5a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "7ef0fbb60421c19cb163eae68bec15e20eb531cba83d2e0eea2c25720658e5d1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/saved-state.json",
+          "sha256": "5c1a945f98a458bcf5ee5ef1498134035407fbd3bfb0bce00c42b962c9d44cd7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "736028f6e109ca150a954de777b136be0a82fd702e65d5893a0bb8202b45912a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/get-after/command.txt",
+          "sha256": "37a95df31d082bd64e72cfd7f1aea25410123d836c7ccacc126110b8829637cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-after/stdout.json",
+          "sha256": "f5085868d62dbb1b437a4c92180f04b702fd68088173bb8e8ded4b0a2e55f732",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/command.txt",
+          "sha256": "37a95df31d082bd64e72cfd7f1aea25410123d836c7ccacc126110b8829637cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/get-before/stdout.json",
+          "sha256": "f8655c6c1171e7541051b1d888adaaa79e7a7395ed79120464fc7b428de0c7c1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/command.txt",
+          "sha256": "7392ae4ae8d1a27434e2ee0a470101898afd6be8933d09e8ba038764c37a190d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/set/stdout.json",
+          "sha256": "6dda65a12e3c175244ca75fb3920c9ac4506b0b11289f29267f8e6161a7374f1",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

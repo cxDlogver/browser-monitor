@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50504",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "items": [],
+    "hasMore": false,
+    "nextCursor": null,
+    "range": {
+      "from": "2026-10-12T12:21:02.873Z",
+      "to": "2026-10-13T12:21:02.873Z"
+    },
+    "source": "database",
+    "asOf": null
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [
+      "平台没有提供本页快照时刻，asOf 为未知。"
+    ],
+    "asOf": null,
+    "query": {
+      "from": "2026-10-12T12:21:02.873Z",
+      "to": "2026-10-13T12:21:02.873Z"
+    },
+    "elapsedMs": 47
+  }
+}

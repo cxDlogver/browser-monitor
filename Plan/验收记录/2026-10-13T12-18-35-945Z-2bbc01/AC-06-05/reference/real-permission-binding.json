@@ -1,0 +1,8 @@
+{
+  "userId": "a468ac03-a71a-44ab-b716-db07b3d0e9a9",
+  "email": "cli-permission-9210acc4-0eab-4f8b-acf7-df7e31ef4d21@example.test",
+  "role": "member",
+  "allowedProject": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+  "deniedProject": "9d0d0f78-cefc-46d5-9543-7682587db457",
+  "source": "independent fixture membership"
+}

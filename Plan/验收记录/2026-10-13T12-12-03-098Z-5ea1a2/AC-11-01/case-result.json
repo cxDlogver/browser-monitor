@@ -1,0 +1,303 @@
+{
+  "caseId": "AC-11-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认 stdout 恰为一个完整 UTF-8 JSON，日志与提示在 stderr；JSON 和 table 的目标、事实、范围与限制一致。",
+      "observed": {
+        "checks": [
+          {
+            "name": "table target",
+            "expected": "00000000-0000-4000-8000-000000000001",
+            "observed": "00000000-0000-4000-8000-000000000001",
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact pendingTotal",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact failed",
+            "expected": 21,
+            "observed": 21,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact deadLetters",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact recentFailuresLimit",
+            "expected": 20,
+            "observed": 20,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact recentFailuresHasMore",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "single JSON parse",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "logs separated",
+            "expected": "",
+            "observed": "",
+            "verdict": "passed"
+          },
+          {
+            "name": "help describes input/permission/recovery",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "json",
+            "exitCode": 0,
+            "elapsedMs": 427
+          },
+          {
+            "name": "table",
+            "exitCode": 0,
+            "elapsedMs": 421
+          },
+          {
+            "name": "help",
+            "exitCode": 0,
+            "elapsedMs": 399
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7ab294b722f48518e4b6dca8415ceff471fd3335bc1031b7d6d9cec5a6376f18",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a47b24ace89d54f29c9bb308fed789021c178dac61cbac9f3e5a66eff296011b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "81cf5b078bfb577bdef70aa88dc241636d11fc2e3e462ab29ed9be68922cf86f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "847da9b26bc06dd62054aaeac8eb7203907a485692fd8270135a98dcaf668abd",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/help/command.txt",
+          "sha256": "7df71027bf82b6211419bd11421950497a9528d74950fa1d1e2085fca432fc6d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/help/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/help/stdout.txt",
+          "sha256": "0c23872e96284521b7432db75f669a3814c36eb10558fd9e328d06676d76685d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/command.txt",
+          "sha256": "a89b54a8255035f98b5ac758304c9c3676a73da49c7c36c107597b3ef726a9cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/stdout.json",
+          "sha256": "28e6dc61d8793384ba6f0e375df35ee497aafd0d3cdb45bdf135081daff8bdb8",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/command.txt",
+          "sha256": "f54ee4bae790712bf3d455d02d633c5e977d3f66f48a85c59b7dd223a3a4c9ad",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/stdout.txt",
+          "sha256": "63eed83d177f5a941028671e501c47de1138b4358ee6e984bd289a9aff1c71a5",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "帮助能独立指导调用并说明输入单位、权限、数据变化和恢复，不要求阅读源码。",
+      "observed": {
+        "checks": [
+          {
+            "name": "table target",
+            "expected": "00000000-0000-4000-8000-000000000001",
+            "observed": "00000000-0000-4000-8000-000000000001",
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact pendingTotal",
+            "expected": 3,
+            "observed": 3,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact failed",
+            "expected": 21,
+            "observed": 21,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact deadLetters",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact recentFailuresLimit",
+            "expected": 20,
+            "observed": 20,
+            "verdict": "passed"
+          },
+          {
+            "name": "table fact recentFailuresHasMore",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "single JSON parse",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "logs separated",
+            "expected": "",
+            "observed": "",
+            "verdict": "passed"
+          },
+          {
+            "name": "help describes input/permission/recovery",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "json",
+            "exitCode": 0,
+            "elapsedMs": 427
+          },
+          {
+            "name": "table",
+            "exitCode": 0,
+            "elapsedMs": 421
+          },
+          {
+            "name": "help",
+            "exitCode": 0,
+            "elapsedMs": 399
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7ab294b722f48518e4b6dca8415ceff471fd3335bc1031b7d6d9cec5a6376f18",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a47b24ace89d54f29c9bb308fed789021c178dac61cbac9f3e5a66eff296011b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "81cf5b078bfb577bdef70aa88dc241636d11fc2e3e462ab29ed9be68922cf86f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "847da9b26bc06dd62054aaeac8eb7203907a485692fd8270135a98dcaf668abd",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/help/command.txt",
+          "sha256": "7df71027bf82b6211419bd11421950497a9528d74950fa1d1e2085fca432fc6d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/help/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/help/stdout.txt",
+          "sha256": "0c23872e96284521b7432db75f669a3814c36eb10558fd9e328d06676d76685d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/command.txt",
+          "sha256": "a89b54a8255035f98b5ac758304c9c3676a73da49c7c36c107597b3ef726a9cf",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/json/stdout.json",
+          "sha256": "28e6dc61d8793384ba6f0e375df35ee497aafd0d3cdb45bdf135081daff8bdb8",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/command.txt",
+          "sha256": "f54ee4bae790712bf3d455d02d633c5e977d3f66f48a85c59b7dd223a3a4c9ad",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/table/stdout.txt",
+          "sha256": "63eed83d177f5a941028671e501c47de1138b4358ee6e984bd289a9aff1c71a5",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

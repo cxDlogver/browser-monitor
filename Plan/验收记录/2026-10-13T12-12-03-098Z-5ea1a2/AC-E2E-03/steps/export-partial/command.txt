@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "sdk" "export" "--app-version" "1.0.0" "--environment" "cli-acceptance" "--out" "original.json" "--example-out" "blocked" "--overwrite" "--project" "771de9c0-1d91-4d07-919c-d4f05fd8e393" "--base-url" "http://127.0.0.1:61815"

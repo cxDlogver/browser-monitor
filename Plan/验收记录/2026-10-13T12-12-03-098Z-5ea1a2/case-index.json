@@ -1,0 +1,293 @@
+{
+  "runId": "2026-10-13T12-12-03-098Z-5ea1a2",
+  "inputEvidence": "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\Plan\\evidence\\2026-10-13T11-31-09-545Z-9983c2",
+  "implementationEvidence": "setup/implementation.json",
+  "expectedCases": 47,
+  "executedCases": 47,
+  "passed": 42,
+  "failed": 5,
+  "cases": [
+    {
+      "caseId": "AC-01-01",
+      "status": "passed",
+      "path": "AC-01-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-01-02",
+      "status": "passed",
+      "path": "AC-01-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-01-03",
+      "status": "passed",
+      "path": "AC-01-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-01",
+      "status": "passed",
+      "path": "AC-02-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-02",
+      "status": "passed",
+      "path": "AC-02-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-02-03",
+      "status": "failed",
+      "path": "AC-02-03/case-result.json",
+      "failure": "relation \"project_origins\" does not exist"
+    },
+    {
+      "caseId": "AC-02-04",
+      "status": "passed",
+      "path": "AC-02-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-01",
+      "status": "passed",
+      "path": "AC-03-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-02",
+      "status": "passed",
+      "path": "AC-03-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-03-03",
+      "status": "failed",
+      "path": "AC-03-03/case-result.json",
+      "failure": "use-failed: {\n  \"schemaVersion\": 1,\n  \"ok\": false,\n  \"command\": \"project use\",\n  \"context\": null,\n  \"data\": null,\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": []\n  },\n  \"error\": {\n    \"code\": \"CONTEXT_MISSING\",\n    \"message\": \"项目上下文文件无法读取或已损坏。\",\n    \"details\": null\n  }\n}\n\n\n2 !== 8\n"
+    },
+    {
+      "caseId": "AC-04-01",
+      "status": "passed",
+      "path": "AC-04-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-04-02",
+      "status": "passed",
+      "path": "AC-04-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-04-03",
+      "status": "passed",
+      "path": "AC-04-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-01",
+      "status": "passed",
+      "path": "AC-05-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-02",
+      "status": "passed",
+      "path": "AC-05-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-05-03",
+      "status": "passed",
+      "path": "AC-05-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-01",
+      "status": "passed",
+      "path": "AC-06-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-02",
+      "status": "passed",
+      "path": "AC-06-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-03",
+      "status": "passed",
+      "path": "AC-06-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-04",
+      "status": "passed",
+      "path": "AC-06-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-06-05",
+      "status": "passed",
+      "path": "AC-06-05/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-07-01",
+      "status": "passed",
+      "path": "AC-07-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-07-02",
+      "status": "passed",
+      "path": "AC-07-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-01",
+      "status": "passed",
+      "path": "AC-08-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-02",
+      "status": "passed",
+      "path": "AC-08-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-03",
+      "status": "passed",
+      "path": "AC-08-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-08-04",
+      "status": "passed",
+      "path": "AC-08-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-01",
+      "status": "passed",
+      "path": "AC-09-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-02",
+      "status": "passed",
+      "path": "AC-09-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-09-03",
+      "status": "passed",
+      "path": "AC-09-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-01",
+      "status": "passed",
+      "path": "AC-10-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-02",
+      "status": "passed",
+      "path": "AC-10-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-03",
+      "status": "passed",
+      "path": "AC-10-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-10-04",
+      "status": "passed",
+      "path": "AC-10-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-01",
+      "status": "passed",
+      "path": "AC-11-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-02",
+      "status": "passed",
+      "path": "AC-11-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-03",
+      "status": "passed",
+      "path": "AC-11-03/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-04",
+      "status": "passed",
+      "path": "AC-11-04/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-11-05",
+      "status": "failed",
+      "path": "AC-11-05/case-result.json",
+      "failure": "list capability\n+ actual - expected\n\n+ 'PROJECT_UNAVAILABLE'\n- 'CAPABILITY_UNAVAILABLE'\n"
+    },
+    {
+      "caseId": "AC-12-01",
+      "status": "passed",
+      "path": "AC-12-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-12-02",
+      "status": "passed",
+      "path": "AC-12-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-12-03",
+      "status": "failed",
+      "path": "AC-12-03/case-result.json",
+      "failure": "slow: {\n  \"schemaVersion\": 1,\n  \"ok\": false,\n  \"command\": \"health\",\n  \"context\": {\n    \"baseUrl\": \"http://127.0.0.1:49717\",\n    \"projectId\": null\n  },\n  \"data\": {\n    \"target\": \"http://127.0.0.1:49717\",\n    \"checkedAt\": \"2026-10-13T12:15:07.948Z\",\n    \"connectivity\": {\n      \"state\": \"pass\",\n      \"source\": \"http_responses\",\n      \"reason\": \"已收到平台响应\"\n    },\n    \"liveness\": {\n      \"state\": \"pass\",\n      \"source\": \"/health/live\",\n      \"reason\": \"平台确认\",\n      \"details\": {\n        \"status\": \"ok\"\n      }\n    },\n    \"readiness\": {\n      \"state\": \"unknown\",\n      \"source\": \"/health/ready\",\n      \"reason\": \"REQUEST_TIMEOUT\"\n    },\n    \"managementApi\": {\n      \"state\": \"unknown\",\n      \"authentication\": \"unknown\",\n      \"source\": \"/api/v1/auth/me\",\n      \"reason\": \"REQUEST_TIMEOUT\"\n    },\n    \"limitations\": [\n      \"基础健康不证明 Worker 正常或特定项目已经写入、处理。\"\n    ]\n  },\n  \"meta\": {\n    \"source\": \"platform_api\",\n    \"warnings\": []\n  },\n  \"error\": {\n    \"code\": \"CAPABILITY_UNAVAILABLE\",\n    \"message\": \"部分健康检查无法取得必要证据。\",\n    \"details\": null\n  }\n}\n\n\n4 !== 5\n"
+    },
+    {
+      "caseId": "AC-NET-01",
+      "status": "passed",
+      "path": "AC-NET-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-NET-02",
+      "status": "passed",
+      "path": "AC-NET-02/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-E2E-01",
+      "status": "passed",
+      "path": "AC-E2E-01/case-result.json",
+      "failure": null
+    },
+    {
+      "caseId": "AC-E2E-02",
+      "status": "failed",
+      "path": "AC-E2E-02/case-result.json",
+      "failure": "relation \"project_origins\" does not exist"
+    },
+    {
+      "caseId": "AC-E2E-03",
+      "status": "passed",
+      "path": "AC-E2E-03/case-result.json",
+      "failure": null
+    }
+  ]
+}

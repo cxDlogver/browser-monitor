@@ -1,0 +1,3626 @@
+[
+  {
+    "eventId": "fixture-0001",
+    "occurredAt": "2026-10-13T12:18:18.979Z",
+    "receivedAt": "2026-10-13T12:18:18.980Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0000",
+    "occurredAt": "2026-10-13T12:18:18.979Z",
+    "receivedAt": "2026-10-13T12:18:18.979Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0003",
+    "occurredAt": "2026-10-13T12:18:17.979Z",
+    "receivedAt": "2026-10-13T12:18:18.982Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0002",
+    "occurredAt": "2026-10-13T12:18:17.979Z",
+    "receivedAt": "2026-10-13T12:18:18.981Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0005",
+    "occurredAt": "2026-10-13T12:18:16.979Z",
+    "receivedAt": "2026-10-13T12:18:18.984Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0004",
+    "occurredAt": "2026-10-13T12:18:16.979Z",
+    "receivedAt": "2026-10-13T12:18:18.983Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0007",
+    "occurredAt": "2026-10-13T12:18:15.979Z",
+    "receivedAt": "2026-10-13T12:18:18.986Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0006",
+    "occurredAt": "2026-10-13T12:18:15.979Z",
+    "receivedAt": "2026-10-13T12:18:18.985Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0009",
+    "occurredAt": "2026-10-13T12:18:14.979Z",
+    "receivedAt": "2026-10-13T12:18:18.988Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0008",
+    "occurredAt": "2026-10-13T12:18:14.979Z",
+    "receivedAt": "2026-10-13T12:18:18.987Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0011",
+    "occurredAt": "2026-10-13T12:18:13.979Z",
+    "receivedAt": "2026-10-13T12:18:18.990Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0010",
+    "occurredAt": "2026-10-13T12:18:13.979Z",
+    "receivedAt": "2026-10-13T12:18:18.989Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0013",
+    "occurredAt": "2026-10-13T12:18:12.979Z",
+    "receivedAt": "2026-10-13T12:18:18.992Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0012",
+    "occurredAt": "2026-10-13T12:18:12.979Z",
+    "receivedAt": "2026-10-13T12:18:18.991Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0015",
+    "occurredAt": "2026-10-13T12:18:11.979Z",
+    "receivedAt": "2026-10-13T12:18:18.994Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0014",
+    "occurredAt": "2026-10-13T12:18:11.979Z",
+    "receivedAt": "2026-10-13T12:18:18.993Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0017",
+    "occurredAt": "2026-10-13T12:18:10.979Z",
+    "receivedAt": "2026-10-13T12:18:18.996Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0016",
+    "occurredAt": "2026-10-13T12:18:10.979Z",
+    "receivedAt": "2026-10-13T12:18:18.995Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0019",
+    "occurredAt": "2026-10-13T12:18:09.979Z",
+    "receivedAt": "2026-10-13T12:18:18.998Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0018",
+    "occurredAt": "2026-10-13T12:18:09.979Z",
+    "receivedAt": "2026-10-13T12:18:18.997Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0021",
+    "occurredAt": "2026-10-13T12:18:08.979Z",
+    "receivedAt": "2026-10-13T12:18:19.000Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0020",
+    "occurredAt": "2026-10-13T12:18:08.979Z",
+    "receivedAt": "2026-10-13T12:18:18.999Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0023",
+    "occurredAt": "2026-10-13T12:18:07.979Z",
+    "receivedAt": "2026-10-13T12:18:19.002Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0022",
+    "occurredAt": "2026-10-13T12:18:07.979Z",
+    "receivedAt": "2026-10-13T12:18:19.001Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0025",
+    "occurredAt": "2026-10-13T12:18:06.979Z",
+    "receivedAt": "2026-10-13T12:18:19.004Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0024",
+    "occurredAt": "2026-10-13T12:18:06.979Z",
+    "receivedAt": "2026-10-13T12:18:19.003Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0027",
+    "occurredAt": "2026-10-13T12:18:05.979Z",
+    "receivedAt": "2026-10-13T12:18:19.006Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0026",
+    "occurredAt": "2026-10-13T12:18:05.979Z",
+    "receivedAt": "2026-10-13T12:18:19.005Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0029",
+    "occurredAt": "2026-10-13T12:18:04.979Z",
+    "receivedAt": "2026-10-13T12:18:19.008Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0028",
+    "occurredAt": "2026-10-13T12:18:04.979Z",
+    "receivedAt": "2026-10-13T12:18:19.007Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0031",
+    "occurredAt": "2026-10-13T12:18:03.979Z",
+    "receivedAt": "2026-10-13T12:18:19.010Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0030",
+    "occurredAt": "2026-10-13T12:18:03.979Z",
+    "receivedAt": "2026-10-13T12:18:19.009Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0033",
+    "occurredAt": "2026-10-13T12:18:02.979Z",
+    "receivedAt": "2026-10-13T12:18:19.012Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0032",
+    "occurredAt": "2026-10-13T12:18:02.979Z",
+    "receivedAt": "2026-10-13T12:18:19.011Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0035",
+    "occurredAt": "2026-10-13T12:18:01.979Z",
+    "receivedAt": "2026-10-13T12:18:19.014Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0034",
+    "occurredAt": "2026-10-13T12:18:01.979Z",
+    "receivedAt": "2026-10-13T12:18:19.013Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0037",
+    "occurredAt": "2026-10-13T12:18:00.979Z",
+    "receivedAt": "2026-10-13T12:18:19.016Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0036",
+    "occurredAt": "2026-10-13T12:18:00.979Z",
+    "receivedAt": "2026-10-13T12:18:19.015Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0039",
+    "occurredAt": "2026-10-13T12:17:59.979Z",
+    "receivedAt": "2026-10-13T12:18:19.018Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0038",
+    "occurredAt": "2026-10-13T12:17:59.979Z",
+    "receivedAt": "2026-10-13T12:18:19.017Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0041",
+    "occurredAt": "2026-10-13T12:17:58.979Z",
+    "receivedAt": "2026-10-13T12:18:19.020Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0040",
+    "occurredAt": "2026-10-13T12:17:58.979Z",
+    "receivedAt": "2026-10-13T12:18:19.019Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0043",
+    "occurredAt": "2026-10-13T12:17:57.979Z",
+    "receivedAt": "2026-10-13T12:18:19.022Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0042",
+    "occurredAt": "2026-10-13T12:17:57.979Z",
+    "receivedAt": "2026-10-13T12:18:19.021Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0045",
+    "occurredAt": "2026-10-13T12:17:56.979Z",
+    "receivedAt": "2026-10-13T12:18:19.024Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0044",
+    "occurredAt": "2026-10-13T12:17:56.979Z",
+    "receivedAt": "2026-10-13T12:18:19.023Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0047",
+    "occurredAt": "2026-10-13T12:17:55.979Z",
+    "receivedAt": "2026-10-13T12:18:19.026Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0046",
+    "occurredAt": "2026-10-13T12:17:55.979Z",
+    "receivedAt": "2026-10-13T12:18:19.025Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0049",
+    "occurredAt": "2026-10-13T12:17:54.979Z",
+    "receivedAt": "2026-10-13T12:18:19.028Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0048",
+    "occurredAt": "2026-10-13T12:17:54.979Z",
+    "receivedAt": "2026-10-13T12:18:19.027Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0051",
+    "occurredAt": "2026-10-13T12:17:53.979Z",
+    "receivedAt": "2026-10-13T12:18:19.030Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0050",
+    "occurredAt": "2026-10-13T12:17:53.979Z",
+    "receivedAt": "2026-10-13T12:18:19.029Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0053",
+    "occurredAt": "2026-10-13T12:17:52.979Z",
+    "receivedAt": "2026-10-13T12:18:19.032Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0052",
+    "occurredAt": "2026-10-13T12:17:52.979Z",
+    "receivedAt": "2026-10-13T12:18:19.031Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0055",
+    "occurredAt": "2026-10-13T12:17:51.979Z",
+    "receivedAt": "2026-10-13T12:18:19.034Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0054",
+    "occurredAt": "2026-10-13T12:17:51.979Z",
+    "receivedAt": "2026-10-13T12:18:19.033Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0057",
+    "occurredAt": "2026-10-13T12:17:50.979Z",
+    "receivedAt": "2026-10-13T12:18:19.036Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0056",
+    "occurredAt": "2026-10-13T12:17:50.979Z",
+    "receivedAt": "2026-10-13T12:18:19.035Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0059",
+    "occurredAt": "2026-10-13T12:17:49.979Z",
+    "receivedAt": "2026-10-13T12:18:19.038Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0058",
+    "occurredAt": "2026-10-13T12:17:49.979Z",
+    "receivedAt": "2026-10-13T12:18:19.037Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0061",
+    "occurredAt": "2026-10-13T12:17:48.979Z",
+    "receivedAt": "2026-10-13T12:18:19.040Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0060",
+    "occurredAt": "2026-10-13T12:17:48.979Z",
+    "receivedAt": "2026-10-13T12:18:19.039Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0063",
+    "occurredAt": "2026-10-13T12:17:47.979Z",
+    "receivedAt": "2026-10-13T12:18:19.042Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0062",
+    "occurredAt": "2026-10-13T12:17:47.979Z",
+    "receivedAt": "2026-10-13T12:18:19.041Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0065",
+    "occurredAt": "2026-10-13T12:17:46.979Z",
+    "receivedAt": "2026-10-13T12:18:19.044Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0064",
+    "occurredAt": "2026-10-13T12:17:46.979Z",
+    "receivedAt": "2026-10-13T12:18:19.043Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0067",
+    "occurredAt": "2026-10-13T12:17:45.979Z",
+    "receivedAt": "2026-10-13T12:18:19.046Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0066",
+    "occurredAt": "2026-10-13T12:17:45.979Z",
+    "receivedAt": "2026-10-13T12:18:19.045Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0069",
+    "occurredAt": "2026-10-13T12:17:44.979Z",
+    "receivedAt": "2026-10-13T12:18:19.048Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0068",
+    "occurredAt": "2026-10-13T12:17:44.979Z",
+    "receivedAt": "2026-10-13T12:18:19.047Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0071",
+    "occurredAt": "2026-10-13T12:17:43.979Z",
+    "receivedAt": "2026-10-13T12:18:19.050Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0070",
+    "occurredAt": "2026-10-13T12:17:43.979Z",
+    "receivedAt": "2026-10-13T12:18:19.049Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0073",
+    "occurredAt": "2026-10-13T12:17:42.979Z",
+    "receivedAt": "2026-10-13T12:18:19.052Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0072",
+    "occurredAt": "2026-10-13T12:17:42.979Z",
+    "receivedAt": "2026-10-13T12:18:19.051Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0075",
+    "occurredAt": "2026-10-13T12:17:41.979Z",
+    "receivedAt": "2026-10-13T12:18:19.054Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0074",
+    "occurredAt": "2026-10-13T12:17:41.979Z",
+    "receivedAt": "2026-10-13T12:18:19.053Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0077",
+    "occurredAt": "2026-10-13T12:17:40.979Z",
+    "receivedAt": "2026-10-13T12:18:19.056Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0076",
+    "occurredAt": "2026-10-13T12:17:40.979Z",
+    "receivedAt": "2026-10-13T12:18:19.055Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0079",
+    "occurredAt": "2026-10-13T12:17:39.979Z",
+    "receivedAt": "2026-10-13T12:18:19.058Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0078",
+    "occurredAt": "2026-10-13T12:17:39.979Z",
+    "receivedAt": "2026-10-13T12:18:19.057Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0081",
+    "occurredAt": "2026-10-13T12:17:38.979Z",
+    "receivedAt": "2026-10-13T12:18:19.060Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0080",
+    "occurredAt": "2026-10-13T12:17:38.979Z",
+    "receivedAt": "2026-10-13T12:18:19.059Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0083",
+    "occurredAt": "2026-10-13T12:17:37.979Z",
+    "receivedAt": "2026-10-13T12:18:19.062Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0082",
+    "occurredAt": "2026-10-13T12:17:37.979Z",
+    "receivedAt": "2026-10-13T12:18:19.061Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0085",
+    "occurredAt": "2026-10-13T12:17:36.979Z",
+    "receivedAt": "2026-10-13T12:18:19.064Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0084",
+    "occurredAt": "2026-10-13T12:17:36.979Z",
+    "receivedAt": "2026-10-13T12:18:19.063Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0087",
+    "occurredAt": "2026-10-13T12:17:35.979Z",
+    "receivedAt": "2026-10-13T12:18:19.066Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0086",
+    "occurredAt": "2026-10-13T12:17:35.979Z",
+    "receivedAt": "2026-10-13T12:18:19.065Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0089",
+    "occurredAt": "2026-10-13T12:17:34.979Z",
+    "receivedAt": "2026-10-13T12:18:19.068Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0088",
+    "occurredAt": "2026-10-13T12:17:34.979Z",
+    "receivedAt": "2026-10-13T12:18:19.067Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0091",
+    "occurredAt": "2026-10-13T12:17:33.979Z",
+    "receivedAt": "2026-10-13T12:18:19.070Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0090",
+    "occurredAt": "2026-10-13T12:17:33.979Z",
+    "receivedAt": "2026-10-13T12:18:19.069Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0093",
+    "occurredAt": "2026-10-13T12:17:32.979Z",
+    "receivedAt": "2026-10-13T12:18:19.072Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0092",
+    "occurredAt": "2026-10-13T12:17:32.979Z",
+    "receivedAt": "2026-10-13T12:18:19.071Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0095",
+    "occurredAt": "2026-10-13T12:17:31.979Z",
+    "receivedAt": "2026-10-13T12:18:19.074Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0094",
+    "occurredAt": "2026-10-13T12:17:31.979Z",
+    "receivedAt": "2026-10-13T12:18:19.073Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0097",
+    "occurredAt": "2026-10-13T12:17:30.979Z",
+    "receivedAt": "2026-10-13T12:18:19.076Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0096",
+    "occurredAt": "2026-10-13T12:17:30.979Z",
+    "receivedAt": "2026-10-13T12:18:19.075Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0099",
+    "occurredAt": "2026-10-13T12:17:29.979Z",
+    "receivedAt": "2026-10-13T12:18:19.078Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0098",
+    "occurredAt": "2026-10-13T12:17:29.979Z",
+    "receivedAt": "2026-10-13T12:18:19.077Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0101",
+    "occurredAt": "2026-10-13T12:17:28.979Z",
+    "receivedAt": "2026-10-13T12:18:19.080Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0100",
+    "occurredAt": "2026-10-13T12:17:28.979Z",
+    "receivedAt": "2026-10-13T12:18:19.079Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0103",
+    "occurredAt": "2026-10-13T12:17:27.979Z",
+    "receivedAt": "2026-10-13T12:18:19.082Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0102",
+    "occurredAt": "2026-10-13T12:17:27.979Z",
+    "receivedAt": "2026-10-13T12:18:19.081Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0105",
+    "occurredAt": "2026-10-13T12:17:26.979Z",
+    "receivedAt": "2026-10-13T12:18:19.084Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0104",
+    "occurredAt": "2026-10-13T12:17:26.979Z",
+    "receivedAt": "2026-10-13T12:18:19.083Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0107",
+    "occurredAt": "2026-10-13T12:17:25.979Z",
+    "receivedAt": "2026-10-13T12:18:19.086Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0106",
+    "occurredAt": "2026-10-13T12:17:25.979Z",
+    "receivedAt": "2026-10-13T12:18:19.085Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0109",
+    "occurredAt": "2026-10-13T12:17:24.979Z",
+    "receivedAt": "2026-10-13T12:18:19.088Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0108",
+    "occurredAt": "2026-10-13T12:17:24.979Z",
+    "receivedAt": "2026-10-13T12:18:19.087Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0111",
+    "occurredAt": "2026-10-13T12:17:23.979Z",
+    "receivedAt": "2026-10-13T12:18:19.090Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0110",
+    "occurredAt": "2026-10-13T12:17:23.979Z",
+    "receivedAt": "2026-10-13T12:18:19.089Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0113",
+    "occurredAt": "2026-10-13T12:17:22.979Z",
+    "receivedAt": "2026-10-13T12:18:19.092Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0112",
+    "occurredAt": "2026-10-13T12:17:22.979Z",
+    "receivedAt": "2026-10-13T12:18:19.091Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0115",
+    "occurredAt": "2026-10-13T12:17:21.979Z",
+    "receivedAt": "2026-10-13T12:18:19.094Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0114",
+    "occurredAt": "2026-10-13T12:17:21.979Z",
+    "receivedAt": "2026-10-13T12:18:19.093Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0117",
+    "occurredAt": "2026-10-13T12:17:20.979Z",
+    "receivedAt": "2026-10-13T12:18:19.096Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0116",
+    "occurredAt": "2026-10-13T12:17:20.979Z",
+    "receivedAt": "2026-10-13T12:18:19.095Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0119",
+    "occurredAt": "2026-10-13T12:17:19.979Z",
+    "receivedAt": "2026-10-13T12:18:19.098Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0118",
+    "occurredAt": "2026-10-13T12:17:19.979Z",
+    "receivedAt": "2026-10-13T12:18:19.097Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0121",
+    "occurredAt": "2026-10-13T12:17:18.979Z",
+    "receivedAt": "2026-10-13T12:18:19.100Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0120",
+    "occurredAt": "2026-10-13T12:17:18.979Z",
+    "receivedAt": "2026-10-13T12:18:19.099Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0123",
+    "occurredAt": "2026-10-13T12:17:17.979Z",
+    "receivedAt": "2026-10-13T12:18:19.102Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0122",
+    "occurredAt": "2026-10-13T12:17:17.979Z",
+    "receivedAt": "2026-10-13T12:18:19.101Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0125",
+    "occurredAt": "2026-10-13T12:17:16.979Z",
+    "receivedAt": "2026-10-13T12:18:19.104Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0124",
+    "occurredAt": "2026-10-13T12:17:16.979Z",
+    "receivedAt": "2026-10-13T12:18:19.103Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0127",
+    "occurredAt": "2026-10-13T12:17:15.979Z",
+    "receivedAt": "2026-10-13T12:18:19.106Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0126",
+    "occurredAt": "2026-10-13T12:17:15.979Z",
+    "receivedAt": "2026-10-13T12:18:19.105Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0129",
+    "occurredAt": "2026-10-13T12:17:14.979Z",
+    "receivedAt": "2026-10-13T12:18:19.108Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0128",
+    "occurredAt": "2026-10-13T12:17:14.979Z",
+    "receivedAt": "2026-10-13T12:18:19.107Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0131",
+    "occurredAt": "2026-10-13T12:17:13.979Z",
+    "receivedAt": "2026-10-13T12:18:19.110Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0130",
+    "occurredAt": "2026-10-13T12:17:13.979Z",
+    "receivedAt": "2026-10-13T12:18:19.109Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0133",
+    "occurredAt": "2026-10-13T12:17:12.979Z",
+    "receivedAt": "2026-10-13T12:18:19.112Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0132",
+    "occurredAt": "2026-10-13T12:17:12.979Z",
+    "receivedAt": "2026-10-13T12:18:19.111Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0135",
+    "occurredAt": "2026-10-13T12:17:11.979Z",
+    "receivedAt": "2026-10-13T12:18:19.114Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0134",
+    "occurredAt": "2026-10-13T12:17:11.979Z",
+    "receivedAt": "2026-10-13T12:18:19.113Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0137",
+    "occurredAt": "2026-10-13T12:17:10.979Z",
+    "receivedAt": "2026-10-13T12:18:19.116Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0136",
+    "occurredAt": "2026-10-13T12:17:10.979Z",
+    "receivedAt": "2026-10-13T12:18:19.115Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0139",
+    "occurredAt": "2026-10-13T12:17:09.979Z",
+    "receivedAt": "2026-10-13T12:18:19.118Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0138",
+    "occurredAt": "2026-10-13T12:17:09.979Z",
+    "receivedAt": "2026-10-13T12:18:19.117Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0141",
+    "occurredAt": "2026-10-13T12:17:08.979Z",
+    "receivedAt": "2026-10-13T12:18:19.120Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0140",
+    "occurredAt": "2026-10-13T12:17:08.979Z",
+    "receivedAt": "2026-10-13T12:18:19.119Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0143",
+    "occurredAt": "2026-10-13T12:17:07.979Z",
+    "receivedAt": "2026-10-13T12:18:19.122Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0142",
+    "occurredAt": "2026-10-13T12:17:07.979Z",
+    "receivedAt": "2026-10-13T12:18:19.121Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0145",
+    "occurredAt": "2026-10-13T12:17:06.979Z",
+    "receivedAt": "2026-10-13T12:18:19.124Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-1",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0144",
+    "occurredAt": "2026-10-13T12:17:06.979Z",
+    "receivedAt": "2026-10-13T12:18:19.123Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0147",
+    "occurredAt": "2026-10-13T12:17:05.979Z",
+    "receivedAt": "2026-10-13T12:18:19.126Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-0",
+    "viewId": "view-2",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0146",
+    "occurredAt": "2026-10-13T12:17:05.979Z",
+    "receivedAt": "2026-10-13T12:18:19.125Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-2",
+    "viewId": "view-1",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0149",
+    "occurredAt": "2026-10-13T12:17:04.979Z",
+    "receivedAt": "2026-10-13T12:18:19.128Z",
+    "type": "view",
+    "name": "view.start",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/dataVisualization",
+    "sessionId": "session-2",
+    "viewId": "view-4",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0148",
+    "occurredAt": "2026-10-13T12:17:04.979Z",
+    "receivedAt": "2026-10-13T12:18:19.127Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "cli-acceptance",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-1",
+    "viewId": "view-3",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  },
+  {
+    "eventId": "fixture-0150",
+    "occurredAt": "2026-10-13T12:17:03.979Z",
+    "receivedAt": "2026-10-13T12:18:19.129Z",
+    "type": "span",
+    "name": "site.route.stay",
+    "environment": "other",
+    "version": "1.0.0",
+    "routeName": "/solution",
+    "sessionId": "session-0",
+    "viewId": "view-0",
+    "event": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    }
+  }
+]

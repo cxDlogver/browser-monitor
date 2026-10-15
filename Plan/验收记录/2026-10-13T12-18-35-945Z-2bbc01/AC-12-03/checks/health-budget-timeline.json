@@ -1,0 +1,58 @@
+[
+  {
+    "method": "GET",
+    "path": "/health/live",
+    "query": {},
+    "body": null,
+    "cookiePresent": false,
+    "cookieMatches": false,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:21:12.785Z",
+    "monotonicMs": 156899.9713,
+    "responseClosedMs": 156900.3366,
+    "durationMs": 0.365300000004936
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "query": {},
+    "body": null,
+    "cookiePresent": false,
+    "cookieMatches": false,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:21:12.799Z",
+    "monotonicMs": 156913.3784,
+    "responseClosedMs": 166913.27,
+    "durationMs": 9999.891600000003
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "query": {},
+    "body": null,
+    "cookiePresent": false,
+    "cookieMatches": false,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:21:23.005Z",
+    "monotonicMs": 167119.7226,
+    "responseClosedMs": 177126.9203,
+    "durationMs": 10007.19769999999
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "query": {},
+    "body": null,
+    "cookiePresent": false,
+    "cookieMatches": false,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:21:33.425Z",
+    "monotonicMs": 177539.6002,
+    "responseClosedMs": 186865.1351,
+    "durationMs": 9325.534900000028
+  }
+]

@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "sdk" "export" "--project" "6a1f1fcf-8aed-4668-9717-04efaf47b376" "--app-version" "1.0.0" "--environment" "cli-acceptance" "--base-url" "http://localhost:8080"

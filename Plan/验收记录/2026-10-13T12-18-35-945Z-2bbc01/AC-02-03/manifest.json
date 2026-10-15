@@ -1,0 +1,177 @@
+{
+  "caseId": "AC-02-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "8dd1cd4c77fa361a441ab01cd7fdc2cdb1419e2bd2a892eb017962c5f0e384b4",
+      "bytes": 1338
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "5c6faba0d37eac551c8e1451ab09ef55498be74d2ad365e2d601c6599b584959",
+      "bytes": 240
+    },
+    {
+      "path": "reference/platform-b-trace.json",
+      "sha256": "e8406b36a0f2d83e21cc3c71d7b20ec4ad23adecc811c367a5467c9e431d83b4",
+      "bytes": 382
+    },
+    {
+      "path": "reference/real-invalid-csrf.json",
+      "sha256": "c6ee1234121ef25843610f1787936288ed0b364cdae3a5270c97d6c6dc6000f3",
+      "bytes": 121
+    },
+    {
+      "path": "reference/real-missing-csrf.json",
+      "sha256": "435b1748caff57304745d480d01830c07e17ef564cd676b4f3f8f50cd5d50292",
+      "bytes": 120
+    },
+    {
+      "path": "reference/real-origins-after-denied.json",
+      "sha256": "2e2a0f8ce6108b54659b675d1f00ba00f1efb9a474bdabc28f1d7c48d9509c21",
+      "bytes": 50
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "18ebaeb0c1a5087527a230eb6f6c2a76df71d9f9b7a77bdc198f7b84e04b1dcb",
+      "bytes": 2528
+    },
+    {
+      "path": "run.json",
+      "sha256": "3b88516d1f4fcb359a37775c8e44c29c9763d6712c07f059c986d795c48521a9",
+      "bytes": 2767
+    },
+    {
+      "path": "steps/denied-write/command.txt",
+      "sha256": "f1811ece08b292e6c6e2eac8838052e00d133fd718a2e9ccffc26fd8d32e6707",
+      "bytes": 160
+    },
+    {
+      "path": "steps/denied-write/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/denied-write/stdout.json",
+      "sha256": "1f5e513d1cc6cccb3ad728a28fc1ee28659bf85f6b5c234de4688210da4cfc3f",
+      "bytes": 492
+    },
+    {
+      "path": "steps/invalid-csrf/stdout.json",
+      "sha256": "fd4a8c4390e91646a861d42e81da9a09d3eb22668270f7694f18fd2e37d0b7d7",
+      "bytes": 70
+    },
+    {
+      "path": "steps/missing-csrf/stdout.json",
+      "sha256": "fd4a8c4390e91646a861d42e81da9a09d3eb22668270f7694f18fd2e37d0b7d7",
+      "bytes": 70
+    },
+    {
+      "path": "steps/owner-write/command.txt",
+      "sha256": "8c89efb7c1923ced04ebfc329af4eba5ce3c15d97db1f42b839b0444a28f3894",
+      "bytes": 160
+    },
+    {
+      "path": "steps/owner-write/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/owner-write/stdout.json",
+      "sha256": "8c9adc934c9da77741d8a15c57a3c593764a7166d50bff05913ac35799bb97be",
+      "bytes": 419
+    },
+    {
+      "path": "steps/read-a/command.txt",
+      "sha256": "7fbcfff79312f5bcc04ddfa77d2f7dbd12d98308bbb63cff2c90ffb5e446e576",
+      "bytes": 125
+    },
+    {
+      "path": "steps/read-a/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/read-a/stdout.json",
+      "sha256": "70c1d31152a4cdcf9ebdef8939524f9a478f9cd5b30136e910705c2ef4b60383",
+      "bytes": 696
+    },
+    {
+      "path": "steps/read-b/command.txt",
+      "sha256": "f1133bac78df8d3f43974563e8c34e447d0d0f63973c5370b01fc9e30826ce43",
+      "bytes": 125
+    },
+    {
+      "path": "steps/read-b/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/read-b/stdout.json",
+      "sha256": "51159274260458ab7dba0587f277de4198b0e7cfb390040f3e9ea926f44e380a",
+      "bytes": 696
+    },
+    {
+      "path": "steps/redirect/command.txt",
+      "sha256": "2c1ca4ea7b9995ad5017d617896f427688a3d2897bade1bbad83df74c7f70b41",
+      "bytes": 75
+    },
+    {
+      "path": "steps/redirect/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/redirect/stdout.json",
+      "sha256": "5f43777c3f00fb9db68d67498fa05c6b399c3f2f167b9df8d1461f4489fd6675",
+      "bytes": 438
+    },
+    {
+      "path": "case-result.json",
+      "sha256": "390224dfa39eaecdc6df82e4b25ed605e0dc25fec4ef450935a5cfed206dbe45",
+      "bytes": 21286
+    }
+  ],
+  "sharedEvidence": [
+    {
+      "path": "../setup/inputs.json",
+      "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/bindings.json",
+      "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/events.json",
+      "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/event-definitions.json",
+      "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/implementation.json",
+      "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/installation-audit.json",
+      "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/source-versions.json",
+      "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/diagnostics-fixture-sources.json",
+      "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+      "locator": "explicit input, implementation or independent source audit"
+    }
+  ]
+}

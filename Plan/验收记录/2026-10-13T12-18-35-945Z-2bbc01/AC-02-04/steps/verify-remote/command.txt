@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "auth" "status" "--base-url" "http://127.0.0.1:49401"

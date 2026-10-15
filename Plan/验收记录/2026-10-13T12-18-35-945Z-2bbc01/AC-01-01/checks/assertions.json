@@ -1,0 +1,38 @@
+[
+  {
+    "name": "default target",
+    "expected": {
+      "baseUrl": "http://127.0.0.1:52228",
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    },
+    "observed": {
+      "baseUrl": "http://127.0.0.1:52228",
+      "projectId": "00000000-0000-4000-8000-000000000001"
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "project override",
+    "expected": "00000000-0000-4000-8000-000000000003",
+    "observed": "00000000-0000-4000-8000-000000000003",
+    "verdict": "passed"
+  },
+  {
+    "name": "platform change needs own project",
+    "expected": "CONTEXT_MISSING",
+    "observed": "CONTEXT_MISSING",
+    "verdict": "passed"
+  },
+  {
+    "name": "explicit platform B",
+    "expected": {
+      "baseUrl": "http://127.0.0.1:52236",
+      "projectId": "00000000-0000-4000-8000-000000000003"
+    },
+    "observed": {
+      "baseUrl": "http://127.0.0.1:52236",
+      "projectId": "00000000-0000-4000-8000-000000000003"
+    },
+    "verdict": "passed"
+  }
+]

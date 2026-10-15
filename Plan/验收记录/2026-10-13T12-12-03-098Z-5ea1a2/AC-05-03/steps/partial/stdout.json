@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54694",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "artifacts": [
+      {
+        "kind": "out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\saved.json"
+      }
+    ],
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "keyId": "00000000-0000-4000-8000-000000000002"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PARTIAL_SUCCESS",
+    "message": "SDK 产物未全部写入，已成功的文件已保留。",
+    "details": {
+      "failedArtifact": {
+        "kind": "example-out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\blocked"
+      }
+    }
+  }
+}

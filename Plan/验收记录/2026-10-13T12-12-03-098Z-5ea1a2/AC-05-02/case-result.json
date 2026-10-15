@@ -1,0 +1,443 @@
+{
+  "caseId": "AC-05-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认唯一当前键可导出；无键、多键、禁用项目分别明确拒绝，不按列表首项猜测。",
+      "observed": {
+        "checks": [
+          {
+            "name": "no key",
+            "expected": "KEY_UNAVAILABLE",
+            "observed": "KEY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "ambiguous",
+            "expected": "KEY_AMBIGUOUS",
+            "observed": "KEY_AMBIGUOUS",
+            "verdict": "passed"
+          },
+          {
+            "name": "disabled",
+            "expected": "PROJECT_DISABLED",
+            "observed": "PROJECT_DISABLED",
+            "verdict": "passed"
+          },
+          {
+            "name": "transition explicit expiry",
+            "expected": "2026-10-13T13:12:38.738Z",
+            "observed": "2026-10-13T13:12:38.738Z",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unique",
+            "exitCode": 0,
+            "elapsedMs": 471
+          },
+          {
+            "name": "no-key",
+            "exitCode": 4,
+            "elapsedMs": 459
+          },
+          {
+            "name": "multiple",
+            "exitCode": 4,
+            "elapsedMs": 434
+          },
+          {
+            "name": "explicit",
+            "exitCode": 0,
+            "elapsedMs": 476
+          },
+          {
+            "name": "disabled",
+            "exitCode": 4,
+            "elapsedMs": 453
+          },
+          {
+            "name": "transition",
+            "exitCode": 0,
+            "elapsedMs": 448
+          },
+          {
+            "name": "expired",
+            "exitCode": 4,
+            "elapsedMs": 422
+          },
+          {
+            "name": "inactive",
+            "exitCode": 4,
+            "elapsedMs": 410
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "78cfde8bae9c19dc321b1f34d6360818af7674bdb820742b3b83872179f780f1",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "07a3df33d704dbb6532a56fa4b9dc314e1a51d4d4af64e7e818389bfe1675312",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "5c6fb4360fef40d0028f4c0012551586dbf9d0756f5215703eb8df9b60d6e326",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "000a45ba78befb6abbb308d777a4ec30a7516f834e195c85aa70f7732e3dee8a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/disabled/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/disabled/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/disabled/stdout.json",
+          "sha256": "8435e81848a941422c620220394dea56c635d0cf608526c9d3db56702a6c2cae",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stdout.json",
+          "sha256": "8b7e763e9e75c7a0b7904b31dd8abc02676488f45edfacc1f174c9fe943f01e7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/stdout.json",
+          "sha256": "22376388a17b0f5df6a9334a1a526b30c0b1a283598bef9ce9d8681dbc2f5a67",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/stdout.json",
+          "sha256": "043ffa5f892c5c33e8f99647046cea74cba3ec1ed811b0a8f87cb5a66ee94b33",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/stdout.json",
+          "sha256": "1b447a1085beefc9c62cc535e89a7a4f43424cf6148c791fa431bd80a8760530",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "有效显式键可以使用并说明到期限制；过期或停用键不能用于生成有效接入配置。",
+      "observed": {
+        "checks": [
+          {
+            "name": "no key",
+            "expected": "KEY_UNAVAILABLE",
+            "observed": "KEY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "ambiguous",
+            "expected": "KEY_AMBIGUOUS",
+            "observed": "KEY_AMBIGUOUS",
+            "verdict": "passed"
+          },
+          {
+            "name": "disabled",
+            "expected": "PROJECT_DISABLED",
+            "observed": "PROJECT_DISABLED",
+            "verdict": "passed"
+          },
+          {
+            "name": "transition explicit expiry",
+            "expected": "2026-10-13T13:12:38.738Z",
+            "observed": "2026-10-13T13:12:38.738Z",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unique",
+            "exitCode": 0,
+            "elapsedMs": 471
+          },
+          {
+            "name": "no-key",
+            "exitCode": 4,
+            "elapsedMs": 459
+          },
+          {
+            "name": "multiple",
+            "exitCode": 4,
+            "elapsedMs": 434
+          },
+          {
+            "name": "explicit",
+            "exitCode": 0,
+            "elapsedMs": 476
+          },
+          {
+            "name": "disabled",
+            "exitCode": 4,
+            "elapsedMs": 453
+          },
+          {
+            "name": "transition",
+            "exitCode": 0,
+            "elapsedMs": 448
+          },
+          {
+            "name": "expired",
+            "exitCode": 4,
+            "elapsedMs": 422
+          },
+          {
+            "name": "inactive",
+            "exitCode": 4,
+            "elapsedMs": 410
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "78cfde8bae9c19dc321b1f34d6360818af7674bdb820742b3b83872179f780f1",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "07a3df33d704dbb6532a56fa4b9dc314e1a51d4d4af64e7e818389bfe1675312",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "5c6fb4360fef40d0028f4c0012551586dbf9d0756f5215703eb8df9b60d6e326",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "000a45ba78befb6abbb308d777a4ec30a7516f834e195c85aa70f7732e3dee8a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/disabled/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/disabled/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/disabled/stdout.json",
+          "sha256": "8435e81848a941422c620220394dea56c635d0cf608526c9d3db56702a6c2cae",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stdout.json",
+          "sha256": "8b7e763e9e75c7a0b7904b31dd8abc02676488f45edfacc1f174c9fe943f01e7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/inactive/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/multiple/stdout.json",
+          "sha256": "22376388a17b0f5df6a9334a1a526b30c0b1a283598bef9ce9d8681dbc2f5a67",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-key/stdout.json",
+          "sha256": "3eccb8125bfb973d4b8de7d3f9429e15dc71535a284532b0f58add6fe0aaebf0",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/command.txt",
+          "sha256": "b4a72d12986c8e5df5022869cba67657c240c06368062f156bd32a7a0eec50c6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/transition/stdout.json",
+          "sha256": "043ffa5f892c5c33e8f99647046cea74cba3ec1ed811b0a8f87cb5a66ee94b33",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/command.txt",
+          "sha256": "afdc5937cf7332f1b5580cdf3d627bb76775595b7a0000eea5d2d16ba801dd0a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unique/stdout.json",
+          "sha256": "1b447a1085beefc9c62cc535e89a7a4f43424cf6148c791fa431bd80a8760530",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

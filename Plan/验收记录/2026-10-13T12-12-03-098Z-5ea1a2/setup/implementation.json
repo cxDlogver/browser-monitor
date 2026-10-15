@@ -1,0 +1,79 @@
+{
+  "node": "v22.12.0",
+  "cli": "0.1.0",
+  "files": [
+    {
+      "path": "cli/src/commands.ts",
+      "sha256": "97b22d9de5f22887337149c80e1d7ebaaccefe147e47c0947ee84febc6d6cd3f"
+    },
+    {
+      "path": "cli/src/context.ts",
+      "sha256": "499d47e7ef151728f220bd2d88e11fc412e005966de869f0820eb52edf8773db"
+    },
+    {
+      "path": "cli/src/contracts.ts",
+      "sha256": "4f730341501dc4ac2947b92d005215c1630de2dd651ab9f0895b4f04a80a5569"
+    },
+    {
+      "path": "cli/src/errors.ts",
+      "sha256": "5577b833d8d01d0965985e39520d263df147238826bfcd82a6053d6d4b29d732"
+    },
+    {
+      "path": "cli/src/files.ts",
+      "sha256": "ec2ef1db90d2c99246a687583e21ead9e71dcee5bbd56764b196ca10ecda6678"
+    },
+    {
+      "path": "cli/src/http.ts",
+      "sha256": "a324b0708ac38aa597fe80448c1565509e3c48c82e7dd5904694ad77dde261f1"
+    },
+    {
+      "path": "cli/src/index.ts",
+      "sha256": "c3f8efbcd9e98d699366df4a36182b8673030250dc95dd98e284b9ae42041be9"
+    },
+    {
+      "path": "cli/src/input.ts",
+      "sha256": "a43b0fcb9786ed81dbb30a32b06bcfd4858da0324befc16972ea11a3b5709920"
+    },
+    {
+      "path": "cli/src/output.ts",
+      "sha256": "5deb2a91417ad7747a08d0911dd7547e82a5fd6c3dd97b0f737e596d15cd9e3b"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.controller.ts",
+      "sha256": "d75d8c6b2ed06d34259aa5230d9a46df2be093db9d17b04548a3371b6347dabb"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.module.ts",
+      "sha256": "7e165c85cfe6becddf0a2d68e1711e738321883a6582337e1238296287581e46"
+    },
+    {
+      "path": "platform/apps/api/src/diagnostics/diagnostics.service.ts",
+      "sha256": "8988dae1d13999e8ca927846649762950764b773375a563d6a767263cdf98b77"
+    },
+    {
+      "path": "platform/packages/shared/src/config.ts",
+      "sha256": "1255785ddbdce541cdc4068470bbd01b638d49d0ab598f4e4160ae412b507e68"
+    },
+    {
+      "path": "platform/packages/shared/src/crypto.ts",
+      "sha256": "9cc6e03d8272491c3f95f6c337c1d163df1461097e1c15d1677fb47936987a26"
+    },
+    {
+      "path": "platform/packages/shared/src/index.ts",
+      "sha256": "1324b63a24f40bde502a5a1f6f3f793a8999a33122e7f24c59da7aba8474f4f9"
+    },
+    {
+      "path": "platform/packages/shared/src/outbox-policy.ts",
+      "sha256": "0b65b3dee87a0079503678668016b92f3644bdfe036e612fb6d5622128454c8b"
+    },
+    {
+      "path": "platform/packages/shared/src/privacy.ts",
+      "sha256": "71cb49710819fdebc707f5cab24c2a537e4ba2c53cad0022b5fa84977abf3311"
+    },
+    {
+      "path": "platform/packages/shared/src/thresholds.ts",
+      "sha256": "e3f9c8ec013fe901120b22a21b371bc22c9ccd9575478c5c5dee3c7715843bcb"
+    }
+  ],
+  "inputHash": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181"
+}

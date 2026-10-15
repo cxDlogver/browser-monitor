@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events diagnose",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49618",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "event": {
+      "eventId": "event",
+      "occurredAt": "2026-10-13T00:00:00.000Z"
+    },
+    "raw": {
+      "recordState": "missing"
+    },
+    "processing": {
+      "state": "unknown",
+      "processedAt": null
+    },
+    "task": {
+      "recordState": "missing",
+      "status": null,
+      "completedAt": null
+    },
+    "projection": {
+      "visibility": "unknown",
+      "eventEffect": "unknown"
+    },
+    "history": {
+      "limitations": []
+    },
+    "source": "database",
+    "asOf": "2026-10-13T12:14:27.309Z"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:14:27.309Z",
+    "elapsedMs": 45
+  }
+}

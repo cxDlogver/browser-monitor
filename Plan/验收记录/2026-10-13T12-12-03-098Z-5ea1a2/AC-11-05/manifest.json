@@ -1,0 +1,40 @@
+{
+  "caseId": "AC-11-05",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "36e3812f00e428fc0d83e1acb19874c2c2333102bd2cfb3ff79b20d53a631f97",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "1962a1743d21dbc67fc5c49d2ffe7da666b5cb100bb188c49d8ff70861a69f97",
+      "bytes": 534
+    },
+    {
+      "path": "run.json",
+      "sha256": "920934ec8e790649201bbc48e369d06e5bf3ee74bc02e1cddd3e4f541cf16a6b",
+      "bytes": 791
+    },
+    {
+      "path": "steps/missing-list/command.txt",
+      "sha256": "62eabd0a5bfc5049d52fc11014de111531a6b35d949f3ab687bbb302b4e4a665",
+      "bytes": 125
+    },
+    {
+      "path": "steps/missing-list/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/missing-list/stdout.json",
+      "sha256": "05e21b2b2108d0d22b7c1a060c119143e4e855a14bec5b03d89b0b0b016d0499",
+      "bytes": 592
+    }
+  ]
+}

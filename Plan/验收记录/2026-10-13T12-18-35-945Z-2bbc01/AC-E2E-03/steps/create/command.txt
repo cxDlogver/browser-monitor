@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "create" "--display-name" "恢复夹具" "--app-name" "recovery" "--base-url" "http://127.0.0.1:50232"

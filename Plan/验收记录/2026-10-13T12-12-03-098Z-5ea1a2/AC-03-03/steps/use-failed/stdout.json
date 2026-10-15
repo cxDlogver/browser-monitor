@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project use",
+  "context": null,
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "CONTEXT_MISSING",
+    "message": "项目上下文文件无法读取或已损坏。",
+    "details": null
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "qhzhc-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "typecheck": "vue-cli-service build --no-clean",
+    "lint": "vue-cli-service lint",
+    "test:unit": "jest --runInBand",
+    "test": "npm run test:unit",
+    "verify": "npm run lint && npm run test:unit && npm run build"
+  },
+  "dependencies": {
+    "@cxdlogver/browser-monitor-sdk": "0.3.0",
+    "@turf/turf": "^7.1.0",
+    "axios": "^0.21.1",
+    "core-js": "^3.8.3",
+    "echarts": "^5.1.2",
+    "element-ui": "^2.15.3",
+    "file-saver": "^2.0.5",
+    "moment": "^2.29.1",
+    "nprogress": "^0.2.0",
+    "ol": "^6.15.1",
+    "qweather-icons": "^1.6.0",
+    "sass": "1.32.13",
+    "sass-loader": "10.1.1",
+    "vue": "^2.6.14",
+    "vue-quill-editor": "^3.0.6",
+    "vue-router": "^3.2.0",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/test-utils": "^1.3.6",
+    "@vue/vue2-jest": "^27.0.0",
+    "babel-jest": "^27.5.1",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.0.3",
+    "jest": "^27.5.1",
+    "typescript": "~5.9.2",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "eslintConfig": {
+    "root": false,
+    "env": {
+      "browser": true,
+      "node": false,
+      "jest": true
+    },
+    "globals": {
+      "module": "readonly",
+      "process": "readonly",
+      "globalThis": "readonly",
+      "Cesium": "readonly"
+    },
+    "ignorePatterns": [
+      "dist/**",
+      "public/static/**",
+      "src/assets/icon/iconfont.js",
+      "src/assets/weather-icon/iconfont.js"
+    ],
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {
+      "eslint-disable-next-line": 0
+    }
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "globals": {
+      "vue-jest": {
+        "transform": {
+          "^ts$": "./build/jest-typescript-transform.cjs"
+        }
+      }
+    },
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "\\.(css|scss|sass|less)$": "<rootDir>/tests/unit/styleMock.js"
+    },
+    "testMatch": [
+      "<rootDir>/tests/unit/**/*.spec.js"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/build/jest-typescript-transform.cjs",
+      "^.+\\.js$": "babel-jest",
+      ".*\\.(vue)$": "@vue/vue2-jest"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

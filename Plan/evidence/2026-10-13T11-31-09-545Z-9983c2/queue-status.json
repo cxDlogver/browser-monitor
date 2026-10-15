@@ -1,0 +1,299 @@
+{
+  "invocation": [
+    "queue",
+    "status",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "queue status",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+      "pendingTotal": 2,
+      "readyPending": 1,
+      "delayedPending": 1,
+      "pendingUnclassified": 0,
+      "processingTotal": 3,
+      "processingActive": 1,
+      "processingStale": 1,
+      "processingUnclassified": 1,
+      "failed": 21,
+      "processedLastMinute": 0,
+      "deadLetters": 1,
+      "deadLettersOverlappingFailed": 1,
+      "recentFailures": [
+        {
+          "taskId": "f1188003-24e1-4f66-b026-fbcf3e9fe554",
+          "eventId": "queue-f1188003-24e1-4f66-b026-fbcf3e9fe554",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.926Z",
+          "failedAt": "2026-10-13T11:31:27.926Z",
+          "createdAt": "2026-10-13T11:31:27.926Z",
+          "error": "fixture failure 20"
+        },
+        {
+          "taskId": "c1e7bc88-c8ed-404a-908a-f74a7f33d74b",
+          "eventId": "queue-c1e7bc88-c8ed-404a-908a-f74a7f33d74b",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.922Z",
+          "failedAt": "2026-10-13T11:31:27.922Z",
+          "createdAt": "2026-10-13T11:31:27.922Z",
+          "error": "fixture failure 19"
+        },
+        {
+          "taskId": "c327419e-02f2-4bd3-80e2-fb7a340c39b2",
+          "eventId": "queue-c327419e-02f2-4bd3-80e2-fb7a340c39b2",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.920Z",
+          "failedAt": "2026-10-13T11:31:27.920Z",
+          "createdAt": "2026-10-13T11:31:27.920Z",
+          "error": "fixture failure 18"
+        },
+        {
+          "taskId": "023c3d3c-fba5-47f6-bd2f-d5fa4c7505e1",
+          "eventId": "queue-023c3d3c-fba5-47f6-bd2f-d5fa4c7505e1",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.917Z",
+          "failedAt": "2026-10-13T11:31:27.917Z",
+          "createdAt": "2026-10-13T11:31:27.917Z",
+          "error": "fixture failure 17"
+        },
+        {
+          "taskId": "f9b430e9-03e0-4a5d-ab9f-dcad4ab59a0d",
+          "eventId": "queue-f9b430e9-03e0-4a5d-ab9f-dcad4ab59a0d",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.914Z",
+          "failedAt": "2026-10-13T11:31:27.914Z",
+          "createdAt": "2026-10-13T11:31:27.914Z",
+          "error": "fixture failure 16"
+        },
+        {
+          "taskId": "07cf2a5d-d55c-4030-96bd-b376244ca274",
+          "eventId": "queue-07cf2a5d-d55c-4030-96bd-b376244ca274",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.912Z",
+          "failedAt": "2026-10-13T11:31:27.912Z",
+          "createdAt": "2026-10-13T11:31:27.912Z",
+          "error": "fixture failure 15"
+        },
+        {
+          "taskId": "df873be4-3523-40ab-aec6-9a41dc5e9134",
+          "eventId": "queue-df873be4-3523-40ab-aec6-9a41dc5e9134",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.909Z",
+          "failedAt": "2026-10-13T11:31:27.909Z",
+          "createdAt": "2026-10-13T11:31:27.909Z",
+          "error": "fixture failure 14"
+        },
+        {
+          "taskId": "d0351320-d80a-43f1-ba8d-fd6b9242d15d",
+          "eventId": "queue-d0351320-d80a-43f1-ba8d-fd6b9242d15d",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.905Z",
+          "failedAt": "2026-10-13T11:31:27.905Z",
+          "createdAt": "2026-10-13T11:31:27.905Z",
+          "error": "fixture failure 13"
+        },
+        {
+          "taskId": "0ca3eaaf-e674-4a54-9b81-432f17bfc54c",
+          "eventId": "queue-0ca3eaaf-e674-4a54-9b81-432f17bfc54c",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.902Z",
+          "failedAt": "2026-10-13T11:31:27.902Z",
+          "createdAt": "2026-10-13T11:31:27.902Z",
+          "error": "fixture failure 12"
+        },
+        {
+          "taskId": "da31c656-d8c3-4074-a2fe-55616c8dfd15",
+          "eventId": "queue-da31c656-d8c3-4074-a2fe-55616c8dfd15",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.900Z",
+          "failedAt": "2026-10-13T11:31:27.900Z",
+          "createdAt": "2026-10-13T11:31:27.900Z",
+          "error": "fixture failure 11"
+        },
+        {
+          "taskId": "41cbd02d-d5dd-4c4a-a644-34e7cac3e096",
+          "eventId": "queue-41cbd02d-d5dd-4c4a-a644-34e7cac3e096",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.897Z",
+          "failedAt": "2026-10-13T11:31:27.897Z",
+          "createdAt": "2026-10-13T11:31:27.897Z",
+          "error": "fixture failure 10"
+        },
+        {
+          "taskId": "7becb797-347b-4436-ad9f-84b05d66a491",
+          "eventId": "queue-7becb797-347b-4436-ad9f-84b05d66a491",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.895Z",
+          "failedAt": "2026-10-13T11:31:27.895Z",
+          "createdAt": "2026-10-13T11:31:27.895Z",
+          "error": "fixture failure 9"
+        },
+        {
+          "taskId": "514be71b-72ec-472b-8dec-cd2b2e9d0bd3",
+          "eventId": "queue-514be71b-72ec-472b-8dec-cd2b2e9d0bd3",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.892Z",
+          "failedAt": "2026-10-13T11:31:27.892Z",
+          "createdAt": "2026-10-13T11:31:27.892Z",
+          "error": "fixture failure 8"
+        },
+        {
+          "taskId": "8622e87f-28ac-4d89-a9b2-fd123f14ab02",
+          "eventId": "queue-8622e87f-28ac-4d89-a9b2-fd123f14ab02",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.889Z",
+          "failedAt": "2026-10-13T11:31:27.889Z",
+          "createdAt": "2026-10-13T11:31:27.889Z",
+          "error": "fixture failure 7"
+        },
+        {
+          "taskId": "8e21d512-d956-4cde-910d-83f4b08d5350",
+          "eventId": "queue-8e21d512-d956-4cde-910d-83f4b08d5350",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.887Z",
+          "failedAt": "2026-10-13T11:31:27.887Z",
+          "createdAt": "2026-10-13T11:31:27.887Z",
+          "error": "fixture failure 6"
+        },
+        {
+          "taskId": "7693e23e-a10c-443a-a2fe-b2985949d595",
+          "eventId": "queue-7693e23e-a10c-443a-a2fe-b2985949d595",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.884Z",
+          "failedAt": "2026-10-13T11:31:27.884Z",
+          "createdAt": "2026-10-13T11:31:27.884Z",
+          "error": "fixture failure 5"
+        },
+        {
+          "taskId": "4ec6260c-36e1-48fc-a17d-fb5892a70bf7",
+          "eventId": "queue-4ec6260c-36e1-48fc-a17d-fb5892a70bf7",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.882Z",
+          "failedAt": "2026-10-13T11:31:27.882Z",
+          "createdAt": "2026-10-13T11:31:27.882Z",
+          "error": "fixture failure 4"
+        },
+        {
+          "taskId": "46eff324-ae31-44d6-a17c-06e6892c3621",
+          "eventId": "queue-46eff324-ae31-44d6-a17c-06e6892c3621",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.879Z",
+          "failedAt": "2026-10-13T11:31:27.879Z",
+          "createdAt": "2026-10-13T11:31:27.879Z",
+          "error": "fixture failure 3"
+        },
+        {
+          "taskId": "9645141a-8fd8-448f-afb2-747e5aa64c36",
+          "eventId": "queue-9645141a-8fd8-448f-afb2-747e5aa64c36",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.877Z",
+          "failedAt": "2026-10-13T11:31:27.877Z",
+          "createdAt": "2026-10-13T11:31:27.877Z",
+          "error": "fixture failure 2"
+        },
+        {
+          "taskId": "f4e49881-c963-4766-8294-70b20eb233df",
+          "eventId": "queue-f4e49881-c963-4766-8294-70b20eb233df",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "status": "failed",
+          "attempts": 0,
+          "availableAt": "2026-10-13T11:31:27.873Z",
+          "failedAt": "2026-10-13T11:31:27.873Z",
+          "createdAt": "2026-10-13T11:31:27.873Z",
+          "error": "fixture failure 1"
+        }
+      ],
+      "recentFailuresLimit": 20,
+      "recentFailuresHasMore": true,
+      "lockTimeoutSeconds": 300,
+      "lockTimeoutSource": "shared_worker_policy",
+      "otherQueues": {
+        "labAudits": {
+          "source": "database",
+          "asOf": "2026-10-13T11:31:29.211Z",
+          "counts": {}
+        }
+      },
+      "asOf": "2026-10-13T11:31:29.211Z",
+      "source": "database",
+      "scope": {
+        "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "taskType": "telemetry",
+        "environment": null
+      },
+      "limitations": [
+        "Active lock is not a worker heartbeat.",
+        "Failed tasks and dead letters may overlap and must not be added.",
+        "Historical failure timestamps are unknown; those rows sort after dated failures by task creation time."
+      ],
+      "ingestion": {
+        "source": "redis",
+        "scope": {
+          "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+        },
+        "requestedAt": "2026-10-13T11:31:29.223Z",
+        "asOf": null,
+        "accepted": 1,
+        "duplicate": 0,
+        "rejected": 0,
+        "limitation": "Counters can expire; missing values are unknown. They are not retained raw row counts or part of the database snapshot."
+      }
+    },
+    "meta": {
+      "source": "database_and_labeled_auxiliary_sources",
+      "warnings": [],
+      "asOf": "2026-10-13T11:31:29.211Z",
+      "elapsedMs": 136
+    }
+  },
+  "stderr": ""
+}

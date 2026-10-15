@@ -1,0 +1,23 @@
+name: browser-monitor-cli-test
+services:
+  database:
+    image: timescale/timescaledb-ha:pg17
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: monitor
+      POSTGRES_PASSWORD: monitor
+    ports:
+      - "127.0.0.1:15432:5432"
+    volumes:
+      - cli-test-database:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "127.0.0.1:16379:6379"
+volumes:
+  cli-test-database:

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49618",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PROJECT_UNAVAILABLE",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects",
+      "status": 403
+    }
+  }
+}

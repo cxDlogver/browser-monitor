@@ -1,0 +1,32 @@
+[
+  {
+    "name": "separate-stages recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "pending processing/task remain independent",
+    "expected": [
+      "committed",
+      "pending"
+    ],
+    "observed": [
+      "committed",
+      "pending"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "failed processing/task remain independent",
+    "expected": [
+      "committed",
+      "failed"
+    ],
+    "observed": [
+      "committed",
+      "failed"
+    ],
+    "verdict": "passed"
+  }
+]

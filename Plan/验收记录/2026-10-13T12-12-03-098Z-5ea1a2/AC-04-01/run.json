@@ -1,0 +1,71 @@
+{
+  "caseId": "AC-04-01",
+  "startedAt": "2026-10-13T12:12:30.090Z",
+  "endedAt": "2026-10-13T12:12:31.323Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "get-before",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54609"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:30.090Z",
+      "endedAt": "2026-10-13T12:12:30.490Z",
+      "elapsedMs": 400,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KkPd1T"
+    },
+    {
+      "name": "set",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://LOCALHOST:80",
+        "--origin",
+        "http://localhost/",
+        "--origin",
+        "https://EXAMPLE.test:443",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54609"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:30.490Z",
+      "endedAt": "2026-10-13T12:12:30.900Z",
+      "elapsedMs": 410,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KkPd1T"
+    },
+    {
+      "name": "get-after",
+      "invocation": [
+        "origins",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54609"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:30.900Z",
+      "endedAt": "2026-10-13T12:12:31.300Z",
+      "elapsedMs": 400,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KkPd1T"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

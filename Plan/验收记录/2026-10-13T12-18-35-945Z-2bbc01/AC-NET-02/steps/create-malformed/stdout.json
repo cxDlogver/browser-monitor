@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project create",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50130",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "WRITE_OUTCOME_UNKNOWN",
+    "message": "响应不是可解析的 JSON。",
+    "details": {
+      "path": "/api/v1/projects",
+      "status": 201
+    }
+  }
+}

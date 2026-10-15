@@ -1,0 +1,7 @@
+{
+  "source": "controlled_http_fixture_unless_step_explicitly_uses_real_platform",
+  "platform": "http://127.0.0.1:50130",
+  "projectId": "00000000-0000-4000-8000-000000000001",
+  "fixtureId": "AC-NET-02",
+  "secretValuesPersisted": false
+}

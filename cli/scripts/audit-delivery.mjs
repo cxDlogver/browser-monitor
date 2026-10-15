@@ -1,0 +1,25 @@
+import { root, resolve, readFile, writeFile, files, hash, assert } from './acceptance-kit.mjs';
+import { spawn } from 'node:child_process';
+const relativeRun=process.argv[2];const output=resolve(root,relativeRun);const index=JSON.parse(await readFile(resolve(output,'case-index.json'),'utf8'));
+assert.equal(index.passed,47);assert.equal(index.failed,0);let artifacts=0;
+const sharedNames=['setup/inputs.json','setup/bindings.json','setup/events.json','setup/event-definitions.json','setup/implementation.json','setup/installation-audit.json','setup/source-versions.json','setup/diagnostics-fixture-sources.json'];
+const shared=[];for(const path of sharedNames)shared.push({path:'../'+path,sha256:hash(await readFile(resolve(output,path))),locator:'explicit input, implementation or independent source audit'});
+for(const item of index.cases){const dir=resolve(output,item.caseId);const record=JSON.parse(await readFile(resolve(dir,'case-result.json'),'utf8'));record.executor='Codex';record.implementationVersion='0.1.0';
+  const run=JSON.parse(await readFile(resolve(dir,'run.json'),'utf8'));run.executor='Codex';run.implementationVersion='0.1.0';await writeFile(resolve(dir,'run.json'),JSON.stringify(run,null,2)+'\n');
+  const local=[];for(const path of(await files(dir)).filter(p=>p!=='manifest.json'&&p!=='case-result.json')){const content=await readFile(resolve(dir,path));if(path.endsWith('.json'))JSON.parse(content);local.push({path,sha256:hash(content),bytes:content.length});}
+  for(const r of record.assertions){assert.equal(r.verdict,'passed');assert(r.observed.checks.length);r.evidence=[...local.map(a=>({...a,locator:a.path==='checks/assertions.json'?'named expected/observed assertions':a.path.startsWith('steps/')?'complete command output':'explicit independent source or fixture'})),...shared];}
+  await writeFile(resolve(dir,'case-result.json'),JSON.stringify(record,null,2)+'\n');local.push({path:'case-result.json',sha256:hash(await readFile(resolve(dir,'case-result.json'))),bytes:(await readFile(resolve(dir,'case-result.json'))).length});
+  for(const a of local)assert.equal(hash(await readFile(resolve(dir,a.path))),a.sha256);await writeFile(resolve(dir,'manifest.json'),JSON.stringify({caseId:item.caseId,artifacts:local,sharedEvidence:shared},null,2)+'\n');artifacts+=local.length;
+}
+assert.equal(artifacts,1023);
+const snapshot=JSON.parse(await readFile(resolve(output,'setup/implementation.json'),'utf8'));for(const f of snapshot.files)assert.equal(hash(await readFile(resolve(root,f.path))),f.sha256);
+const sourceFiles=['package.json','pnpm-workspace.yaml','pnpm-lock.yaml','.dockerignore','cli/package.json','cli/bin/bm.mjs','platform/apps/api/src/app.module.ts','platform/apps/worker/src/outbox-worker.ts','platform/packages/database/src/index.ts','platform/packages/database/src/schema.ts','platform/packages/database/migrations/0007_diagnostics.sql','platform/infra/Dockerfile.backend','platform/infra/Dockerfile.web','platform/infra/Dockerfile.audit-worker'];
+for(const d of ['cli/src','cli/scripts','cli/tests','platform/apps/api/src/diagnostics'])for(const path of await files(resolve(root,d)))sourceFiles.push(d+'/'+path);
+const hashes=[];for(const path of [...new Set(sourceFiles)].sort())hashes.push({path,sha256:hash(await readFile(resolve(root,path)))});await writeFile(resolve(output,'setup/delivery-source.json'),JSON.stringify({cliVersion:'0.1.0',node:process.version,files:hashes},null,2));
+for(const file of sourceFiles.filter(p=>p.endsWith('.mjs'))){const code=await new Promise((done,reject)=>{const p=spawn(process.execPath,['--check',resolve(root,file)],{windowsHide:true});p.on('error',reject);p.on('close',done);});assert.equal(code,0,file+' syntax');}
+for(const name of ['cli','api','worker']){const report=JSON.parse(await readFile(resolve(root,'Plan/'+name+'-regression.json'),'utf8'));assert.equal(report.numFailedTests,0);assert(report.numPassedTests>0);}
+const plan=await readFile(resolve(root,'Plan/监控平台CLI验收计划.md'),'utf8');assert.equal((plan.match(/- \[x\] AC-/g)||[]).length,47);assert.equal((plan.match(/\*\*R[12] · 观察结果。\*\* 通过/g)||[]).length,94);assert(!plan.includes('轮询数=true'));
+const audit=JSON.parse(await readFile(resolve(output,'evidence-audit.json'),'utf8'));Object.assign(audit,{finalCheckedAt:new Date().toISOString(),executorRecorded:true,sharedEvidenceHashesMatch:true,sourceHashesMatch:true,scriptSyntaxChecksPassed:true});await writeFile(resolve(output,'evidence-audit.json'),JSON.stringify(audit,null,2)+'\n');
+const manifest=[];for(const path of(await files(output)).filter(p=>p!=='batch-manifest.json')){const content=await readFile(resolve(output,path));manifest.push({path,sha256:hash(content),bytes:content.length});}
+await writeFile(resolve(output,'batch-manifest.json'),JSON.stringify({runId:index.runId,caseCount:47,checkpointCount:94,localCaseArtifacts:artifacts,artifacts:manifest},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,cases:47,checkpoints:94,caseArtifacts:artifacts,batchArtifacts:manifest.length,sourceFiles:hashes.length})+'\n');

@@ -1,0 +1,116 @@
+{
+  "bugs": {
+    "url": "https://github.com/cxDlogver/browser-monitor/issues"
+  },
+  "dist": {
+    "shasum": "bf84d998c2f3cc50248f856381b497f9c2190e09",
+    "tarball": "https://registry.npmjs.org/@cxdlogver/browser-monitor-sdk/-/browser-monitor-sdk-0.3.0.tgz",
+    "fileCount": 12,
+    "integrity": "sha512-Se2hUqXtEhxmU02/fIZOIFb+zXkZczJISAnuWKU5gbC7N1ZEtaB2u6et8omBNrMKCWSCfqTHZQXZhsvgKsK9Qw==",
+    "signatures": [
+      {
+        "sig": "MEUCIC1piZK97DxRhXgUAgIhP/tA1+RPBeYhfRcMKAiQTSZDAiEA9ja7VcyTkH9+76SK1kD7IuJ904aBM4gc2/bGPHqyrbA=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEUCIGyvD3gUEWzaOonrljvPJiXAqPp671enp6plBR6pOsD/AiEAmuesUNdZIGviagvemT/g3THjNlAIQZAI1PPF6n4U7q8=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "unpackedSize": 1492184
+  },
+  "main": "./dist/index.js",
+  "name": "@cxdlogver/browser-monitor-sdk",
+  "type": "module",
+  "_from": "file:cxdlogver-browser-monitor-sdk-0.3.0.tgz",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.global.js",
+  "author": {
+    "name": "cxDlogver"
+  },
+  "module": "./dist/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "build": "tsup",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm publint",
+    "format": "prettier --write .",
+    "publint": "publint",
+    "typecheck": "tsc --noEmit",
+    "test:watch": "vitest",
+    "format:check": "prettier --check ."
+  },
+  "_npmUser": {
+    "name": "cxdlogver",
+    "email": "2801726619@qq.com"
+  },
+  "homepage": "https://github.com/cxDlogver/browser-monitor/tree/main/sdk#readme",
+  "jsdelivr": "./dist/index.global.js",
+  "keywords": [
+    "browser",
+    "monitoring",
+    "performance",
+    "rum",
+    "telemetry",
+    "sdk"
+  ],
+  "_resolved": "C:\\Windows\\Temp\\4284bf0fe08750535139edbcac6ba820\\cxdlogver-browser-monitor-sdk-0.3.0.tgz",
+  "_integrity": "sha512-Se2hUqXtEhxmU02/fIZOIFb+zXkZczJISAnuWKU5gbC7N1ZEtaB2u6et8omBNrMKCWSCfqTHZQXZhsvgKsK9Qw==",
+  "repository": {
+    "url": "git+https://github.com/cxDlogver/browser-monitor.git",
+    "type": "git",
+    "directory": "sdk"
+  },
+  "_npmVersion": "10.9.0",
+  "description": "Framework-agnostic browser telemetry SDK for performance, custom events, traces, and page views.",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "cxdlogver",
+      "email": "2801726619@qq.com"
+    }
+  ],
+  "sideEffects": false,
+  "_nodeVersion": "22.12.0",
+  "dependencies": {
+    "web-vitals": "6.2.1",
+    "@cxdlogver/browser-monitor-protocol": "3.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "_hasShrinkwrap": false,
+  "devDependencies": {
+    "tsup": "8.5.1",
+    "jsdom": "29.1.1",
+    "eslint": "9.39.2",
+    "vitest": "4.0.18",
+    "globals": "16.5.0",
+    "publint": "0.3.24",
+    "prettier": "3.8.1",
+    "@eslint/js": "9.39.2",
+    "typescript": "5.9.3",
+    "@types/node": "22.20.2",
+    "typescript-eslint": "8.48.0"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/browser-monitor-sdk_0.3.0_1791875709116_0.8843349398145217",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "@cxdlogver/browser-monitor-sdk@0.3.0",
+  "version": "0.3.0"
+}

@@ -200,6 +200,7 @@ export const outboxTasks = pgTable(
     lockedAt: timestamp('locked_at', { withTimezone: true }),
     lockedBy: varchar('locked_by', { length: 128 }),
     lastError: text('last_error'),
+    lastFailedAt: timestamp('last_failed_at', { withTimezone: true }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     createdAt,
   },

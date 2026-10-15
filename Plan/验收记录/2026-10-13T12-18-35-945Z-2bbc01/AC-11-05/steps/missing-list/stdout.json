@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50514",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "CAPABILITY_UNAVAILABLE",
+    "message": "平台拒绝或无法完成请求。",
+    "details": {
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/events?from=2026-10-12T12%3A21%3A04.386Z&to=2026-10-13T12%3A21%3A04.386Z&limit=50&includePayload=false",
+      "status": 404
+    }
+  }
+}

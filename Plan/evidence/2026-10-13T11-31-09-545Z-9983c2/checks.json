@@ -1,0 +1,154 @@
+{
+  "runId": "2026-10-13T11-31-09-545Z-9983c2",
+  "checks": [
+    {
+      "name": "health-anonymous",
+      "status": "passed",
+      "evidence": "health-anonymous.json"
+    },
+    {
+      "name": "login",
+      "status": "passed",
+      "evidence": "login.json"
+    },
+    {
+      "name": "auth-status",
+      "status": "passed",
+      "evidence": "auth-status.json"
+    },
+    {
+      "name": "qhzhc-create",
+      "status": "passed",
+      "evidence": "qhzhc-create.json"
+    },
+    {
+      "name": "qhzhc-get",
+      "status": "passed",
+      "evidence": "qhzhc-get.json"
+    },
+    {
+      "name": "qhzhc-origins",
+      "status": "passed",
+      "evidence": "qhzhc-origins.json"
+    },
+    {
+      "name": "qhzhc-origins-readback",
+      "status": "passed",
+      "evidence": "qhzhc-origins-readback.json"
+    },
+    {
+      "name": "qhzhc-export",
+      "status": "passed",
+      "evidence": "qhzhc-export.json"
+    },
+    {
+      "name": "official-create",
+      "status": "passed",
+      "evidence": "official-create.json"
+    },
+    {
+      "name": "official-get",
+      "status": "passed",
+      "evidence": "official-get.json"
+    },
+    {
+      "name": "official-origins",
+      "status": "passed",
+      "evidence": "official-origins.json"
+    },
+    {
+      "name": "official-origins-readback",
+      "status": "passed",
+      "evidence": "official-origins-readback.json"
+    },
+    {
+      "name": "official-export",
+      "status": "passed",
+      "evidence": "official-export.json"
+    },
+    {
+      "name": "event-wait-real-worker",
+      "status": "passed",
+      "evidence": "event-wait-real-worker.json"
+    },
+    {
+      "name": "data-summary",
+      "status": "passed",
+      "evidence": "data-summary.json"
+    },
+    {
+      "name": "event-diagnose",
+      "status": "passed",
+      "evidence": "event-diagnose.json"
+    },
+    {
+      "name": "events-page-1",
+      "status": "passed",
+      "evidence": "events-page-1.json"
+    },
+    {
+      "name": "events-page-2",
+      "status": "passed",
+      "evidence": "events-page-2.json"
+    },
+    {
+      "name": "events-page-3",
+      "status": "passed",
+      "evidence": "events-page-3.json"
+    },
+    {
+      "name": "events-page-4",
+      "status": "passed",
+      "evidence": "events-page-4.json"
+    },
+    {
+      "name": "events-payload-filter",
+      "status": "passed",
+      "evidence": "events-payload-filter.json"
+    },
+    {
+      "name": "events-empty",
+      "status": "passed",
+      "evidence": "events-empty.json"
+    },
+    {
+      "name": "event-missing",
+      "status": "passed",
+      "evidence": "event-missing.json"
+    },
+    {
+      "name": "wait-history-incomplete",
+      "status": "passed",
+      "evidence": "wait-history-incomplete.json"
+    },
+    {
+      "name": "queue-status",
+      "status": "passed",
+      "evidence": "queue-status.json"
+    },
+    {
+      "name": "member-login",
+      "status": "passed",
+      "evidence": "member-login.json"
+    },
+    {
+      "name": "member-read",
+      "status": "passed",
+      "evidence": "member-read.json"
+    },
+    {
+      "name": "member-write-denied",
+      "status": "passed",
+      "evidence": "member-write-denied.json"
+    },
+    {
+      "name": "logout",
+      "status": "passed",
+      "evidence": "logout.json"
+    }
+  ],
+  "result": "passed",
+  "limitations": [
+    "Controlled fixtures do not replace two real business input sources."
+  ]
+}

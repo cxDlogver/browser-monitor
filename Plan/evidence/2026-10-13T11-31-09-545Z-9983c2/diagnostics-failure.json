@@ -1,0 +1,45 @@
+{
+  "message": "AssertionError [ERR_ASSERTION]: pendingTotal\n\n5 !== 6\n\n    at file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-diagnostics.mjs:81:110\n    at record (file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-diagnostics.mjs:32:3)\n    at file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-diagnostics.mjs:81:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+  "checks": [
+    {
+      "name": "zero-summary",
+      "status": "passed",
+      "evidence": "diagnostics-zero-summary.json"
+    },
+    {
+      "name": "older-than-24h",
+      "status": "passed",
+      "evidence": "diagnostics-older-than-24h.json"
+    },
+    {
+      "name": "ambiguity",
+      "status": "passed",
+      "evidence": "diagnostics-ambiguity.json"
+    },
+    {
+      "name": "noop-revision",
+      "status": "passed",
+      "evidence": "diagnostics-noop-revision.json"
+    },
+    {
+      "name": "separate-stages",
+      "status": "passed",
+      "evidence": "diagnostics-separate-stages.json"
+    },
+    {
+      "name": "history-missing",
+      "status": "passed",
+      "evidence": "diagnostics-history-missing.json"
+    },
+    {
+      "name": "time-boundary",
+      "status": "passed",
+      "evidence": "diagnostics-time-boundary.json"
+    },
+    {
+      "name": "summary-scope",
+      "status": "passed",
+      "evidence": "diagnostics-summary-scope.json"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "node": "v22.12.0",
+  "pnpm": "10.28.2",
+  "sources": [
+    {
+      "profile": "platform",
+      "repository": "F:\\CX_notes\\cx-learn-notes\\browser-monitor\\",
+      "sourceCommit": "b2f2f775ea9bf32522a3e1f78fb560a49ae8cc05",
+      "workingChanges": "M README.md\n M package.json\n M platform/apps/api/src/app.module.ts\n M platform/apps/worker/src/outbox-worker.ts\n M platform/packages/database/src/index.ts\n M platform/packages/database/src/schema.ts\n M platform/packages/shared/src/index.ts\n M pnpm-lock.yaml\n M pnpm-workspace.yaml\n?? Plan/\n?? cli/\n?? platform/apps/api/src/diagnostics/\n?? platform/packages/database/migrations/0007_diagnostics.sql\n?? platform/packages/shared/src/outbox-policy.ts"
+    },
+    {
+      "profile": "qhzhc",
+      "repository": "F:/CX_notes/cx-learn-notes/qhzhc-realtime-platform",
+      "sourceCommit": "594d71a83e47e616f1921d58cb5fca324d0bc888",
+      "workingChanges": "M QHZHC_Web/package.json\n M QHZHC_Web/src/main.ts\n M QHZHC_Web/src/plugins/monitor.ts\n M QHZHC_Web/src/shims-vue.d.ts\n M QHZHC_Web/tsconfig.json\n M README.md\n?? QHZHC_Web/src/config/"
+    },
+    {
+      "profile": "official",
+      "repository": "F:/CX_notes/cx-learn-notes/official-network",
+      "sourceCommit": "3c11ca6da4389d9f968630fc25ee74f9e1fca69f",
+      "workingChanges": "M app/plugins/monitor.client.ts\n M app/utils/monitor/stay-tracking.ts\n M \"docs/Web\\346\\200\\247\\350\\203\\275\\344\\274\\230\\345\\214\\226\\344\\275\\223\\347\\263\\273\\346\\272\\220\\347\\240\\201\\345\\210\\206\\346\\236\\220.md\"\n M package.json\n?? app/config/monitor.local.json"
+    }
+  ]
+}

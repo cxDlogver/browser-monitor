@@ -1,0 +1,105 @@
+{
+  "caseId": "AC-02-03",
+  "startedAt": "2026-10-13T12:18:47.647Z",
+  "endedAt": "2026-10-13T12:18:49.956Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "read-a",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:58185"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:47.668Z",
+      "endedAt": "2026-10-13T12:18:48.109Z",
+      "elapsedMs": 440,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-uiSWTu"
+    },
+    {
+      "name": "read-b",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:58186"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:48.109Z",
+      "endedAt": "2026-10-13T12:18:48.548Z",
+      "elapsedMs": 439,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-uiSWTu"
+    },
+    {
+      "name": "redirect",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:58185"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:48.548Z",
+      "endedAt": "2026-10-13T12:18:48.997Z",
+      "elapsedMs": 449,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-uiSWTu"
+    },
+    {
+      "name": "owner-write",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3000",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:58185"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:48.997Z",
+      "endedAt": "2026-10-13T12:18:49.417Z",
+      "elapsedMs": 420,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-uiSWTu"
+    },
+    {
+      "name": "denied-write",
+      "invocation": [
+        "origins",
+        "set",
+        "--origin",
+        "http://localhost:3001",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:58185"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:49.417Z",
+      "endedAt": "2026-10-13T12:18:49.865Z",
+      "elapsedMs": 448,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-uiSWTu"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

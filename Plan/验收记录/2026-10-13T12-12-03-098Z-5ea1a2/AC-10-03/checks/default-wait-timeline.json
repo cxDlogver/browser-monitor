@@ -1,0 +1,516 @@
+{
+  "steps": [
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:14.093Z",
+      "monotonicMs": 71061.0122,
+      "responseClosedMs": 71061.3679,
+      "durationMs": 0.35570000000006985
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:16.107Z",
+      "monotonicMs": 73075.3966,
+      "responseClosedMs": 73075.7675,
+      "durationMs": 0.37090000000898726
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:18.113Z",
+      "monotonicMs": 75080.8787,
+      "responseClosedMs": 75081.0997,
+      "durationMs": 0.22100000000500586
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:20.128Z",
+      "monotonicMs": 77095.8398,
+      "responseClosedMs": 77096.2335,
+      "durationMs": 0.3937000000005355
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:22.137Z",
+      "monotonicMs": 79105.6326,
+      "responseClosedMs": 79105.9802,
+      "durationMs": 0.3476000000082422
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:24.148Z",
+      "monotonicMs": 81116.3122,
+      "responseClosedMs": 81116.6689,
+      "durationMs": 0.35670000000391155
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:26.152Z",
+      "monotonicMs": 83120.2191,
+      "responseClosedMs": 83120.4361,
+      "durationMs": 0.21700000000419095
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:28.164Z",
+      "monotonicMs": 85132.3711,
+      "responseClosedMs": 85132.6006,
+      "durationMs": 0.22950000000128057
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:30.175Z",
+      "monotonicMs": 87143.2477,
+      "responseClosedMs": 87143.4867,
+      "durationMs": 0.23899999998684507
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:32.194Z",
+      "monotonicMs": 89162.212,
+      "responseClosedMs": 89162.5259,
+      "durationMs": 0.31389999999373686
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:34.207Z",
+      "monotonicMs": 91174.7598,
+      "responseClosedMs": 91174.9785,
+      "durationMs": 0.21869999999762513
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:36.219Z",
+      "monotonicMs": 93187.5557,
+      "responseClosedMs": 93188.0518,
+      "durationMs": 0.49610000000393484
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:38.232Z",
+      "monotonicMs": 95200.4242,
+      "responseClosedMs": 95200.6544,
+      "durationMs": 0.23020000000542495
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:40.250Z",
+      "monotonicMs": 97217.8314,
+      "responseClosedMs": 97218.1524,
+      "durationMs": 0.3210000000108266
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:42.252Z",
+      "monotonicMs": 99219.8958,
+      "responseClosedMs": 99220.1088,
+      "durationMs": 0.21300000000337604
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:44.254Z",
+      "monotonicMs": 101222.0464,
+      "responseClosedMs": 101222.2967,
+      "durationMs": 0.2502999999996973
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:46.259Z",
+      "monotonicMs": 103226.9901,
+      "responseClosedMs": 103227.4426,
+      "durationMs": 0.4524999999994179
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:48.263Z",
+      "monotonicMs": 105231.0586,
+      "responseClosedMs": 105231.2905,
+      "durationMs": 0.23189999999885913
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:50.276Z",
+      "monotonicMs": 107244.021,
+      "responseClosedMs": 107244.3722,
+      "durationMs": 0.35120000000461005
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:52.281Z",
+      "monotonicMs": 109249.6485,
+      "responseClosedMs": 109249.9734,
+      "durationMs": 0.3249000000068918
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:54.299Z",
+      "monotonicMs": 111267.3671,
+      "responseClosedMs": 111267.8143,
+      "durationMs": 0.447199999995064
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:56.305Z",
+      "monotonicMs": 113272.9301,
+      "responseClosedMs": 113273.1413,
+      "durationMs": 0.21120000000519212
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:13:58.316Z",
+      "monotonicMs": 115284.3569,
+      "responseClosedMs": 115284.579,
+      "durationMs": 0.2220999999990454
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:00.330Z",
+      "monotonicMs": 117298.4279,
+      "responseClosedMs": 117298.6518,
+      "durationMs": 0.22390000001178123
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:02.347Z",
+      "monotonicMs": 119314.9556,
+      "responseClosedMs": 119315.1773,
+      "durationMs": 0.22169999999459833
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:04.358Z",
+      "monotonicMs": 121326.0632,
+      "responseClosedMs": 121326.2847,
+      "durationMs": 0.22149999999965075
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:06.359Z",
+      "monotonicMs": 123327.3679,
+      "responseClosedMs": 123327.7039,
+      "durationMs": 0.33599999999569263
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:08.362Z",
+      "monotonicMs": 125330.5038,
+      "responseClosedMs": 125330.7065,
+      "durationMs": 0.2026999999943655
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:10.371Z",
+      "monotonicMs": 127339.7137,
+      "responseClosedMs": 127339.9237,
+      "durationMs": 0.21000000000640284
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/diagnostics/events/event",
+      "query": {
+        "includePayload": "false"
+      },
+      "body": null,
+      "cookiePresent": true,
+      "cookieMatches": true,
+      "csrfPresent": false,
+      "csrfMatches": false,
+      "at": "2026-10-13T12:14:12.385Z",
+      "monotonicMs": 129353.3594,
+      "responseClosedMs": 129353.5951,
+      "durationMs": 0.23570000000472646
+    }
+  ],
+  "elapsedMs": 60412,
+  "gaps": [
+    2014.3843999999954,
+    2005.4821000000084,
+    2014.9611000000004,
+    2009.7927999999956,
+    2010.6796000000031,
+    2003.9069000000018,
+    2012.1520000000019,
+    2010.8766000000032,
+    2018.9642999999924,
+    2012.5478000000003,
+    2012.7958999999973,
+    2012.8684999999969,
+    2017.4072000000015,
+    2002.064400000003,
+    2002.1506000000081,
+    2004.943699999989,
+    2004.0685000000085,
+    2012.9623999999894,
+    2005.6275000000023,
+    2017.7186000000074,
+    2005.5629999999946,
+    2011.426800000001,
+    2014.0709999999963,
+    2016.527700000006,
+    2011.107600000003,
+    2001.3046999999933,
+    2003.1359000000084,
+    2009.209899999987,
+    2013.6457000000082
+  ]
+}

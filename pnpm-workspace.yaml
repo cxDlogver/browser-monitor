@@ -1,4 +1,5 @@
 packages:
+  - cli
   - sdk
   - protocol
   - platform

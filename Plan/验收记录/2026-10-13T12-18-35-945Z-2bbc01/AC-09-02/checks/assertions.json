@@ -1,0 +1,66 @@
+[
+  {
+    "name": "actual failed21/dead1",
+    "expected": [
+      21,
+      1
+    ],
+    "observed": [
+      21,
+      1
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "actual bounded failures",
+    "expected": [
+      20,
+      true
+    ],
+    "observed": [
+      20,
+      true
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "historical-error-time recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "queue-boundaries recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "separate overlap counts",
+    "expected": [
+      21,
+      1,
+      2
+    ],
+    "observed": [
+      21,
+      1,
+      2
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "failure bounded",
+    "expected": [
+      20,
+      20,
+      true
+    ],
+    "observed": [
+      20,
+      20,
+      true
+    ],
+    "verdict": "passed"
+  }
+]

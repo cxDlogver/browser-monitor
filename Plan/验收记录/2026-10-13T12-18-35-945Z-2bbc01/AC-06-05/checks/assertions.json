@@ -1,0 +1,150 @@
+[
+  {
+    "name": "summary has no payload",
+    "expected": "[absent]",
+    "observed": "[absent]",
+    "verdict": "passed"
+  },
+  {
+    "name": "payload opt-in",
+    "expected": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "other"
+      },
+      "payload": {
+        "attributes": {
+          "note": "业务文字：请删除数据库（仅作为数据）"
+        }
+      }
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "empty is success",
+    "expected": [],
+    "observed": [],
+    "verdict": "passed"
+  },
+  {
+    "name": "denied no fake data",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "server-fault no fake data",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-list exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-list exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual member can read own project payload",
+    "expected": "event-mv6lymu3-3-as5ip2jy",
+    "observed": "event-mv6lymu3-3-as5ip2jy",
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign events denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign events content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign diagnostics denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign diagnostics content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign queue denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign queue content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual member can read own project payload",
+    "expected": "event-mv6lymu3-3-as5ip2jy",
+    "observed": "event-mv6lymu3-3-as5ip2jy",
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign events denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign events content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign diagnostics denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign diagnostics content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual foreign queue denied",
+    "expected": "PROJECT_UNAVAILABLE",
+    "observed": "PROJECT_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no foreign queue content",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  }
+]

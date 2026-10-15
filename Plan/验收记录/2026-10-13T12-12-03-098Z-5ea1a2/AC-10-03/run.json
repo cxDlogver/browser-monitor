@@ -1,0 +1,57 @@
+{
+  "caseId": "AC-10-03",
+  "startedAt": "2026-10-13T12:13:13.742Z",
+  "endedAt": "2026-10-13T12:14:19.558Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "default-budget",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55178"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:13.743Z",
+      "endedAt": "2026-10-13T12:14:14.155Z",
+      "elapsedMs": 60412,
+      "exitCode": 6,
+      "expectedExitCode": 6,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZBJ0mg"
+    },
+    {
+      "name": "short-budget",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--timeout",
+        "5",
+        "--interval",
+        "2",
+        "--request-timeout",
+        "10",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55178"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:14.159Z",
+      "endedAt": "2026-10-13T12:14:19.552Z",
+      "elapsedMs": 5393,
+      "exitCode": 6,
+      "expectedExitCode": 6,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-ZBJ0mg"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

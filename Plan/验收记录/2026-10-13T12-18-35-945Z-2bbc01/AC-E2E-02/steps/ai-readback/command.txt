@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "project" "get" "--project" "6a1f1fcf-8aed-4668-9717-04efaf47b376" "--base-url" "http://localhost:8080"

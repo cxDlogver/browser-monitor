@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "origins set",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54635",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "WRITE_OUTCOME_UNKNOWN",
+    "message": "写请求未获得可靠响应。不要自动重复写入；请回查平台。",
+    "details": {
+      "path": "/api/v1/projects/00000000-0000-4000-8000-000000000001/origins",
+      "method": "PUT",
+      "attempts": 1
+    }
+  }
+}

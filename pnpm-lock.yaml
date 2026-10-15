@@ -6,7 +6,23 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@cxdlogver/browser-monitor-cli':
+        specifier: workspace:*
+        version: link:cli
+
+  cli:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.0
+        version: 22.20.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.1)(@types/node@22.20.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(lightningcss@1.33.0)(tsx@4.23.15)
 
   platform: {}
 
@@ -15,12 +31,12 @@ importers:
       '@browser-monitor/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@cxdlogver/browser-monitor-protocol':
-        specifier: workspace:*
-        version: link:../../../protocol
       '@browser-monitor/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@cxdlogver/browser-monitor-protocol':
+        specifier: workspace:*
+        version: link:../../../protocol
       '@fastify/cookie':
         specifier: ^11.0.2
         version: 11.1.2
@@ -171,12 +187,12 @@ importers:
       '@browser-monitor/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@cxdlogver/browser-monitor-protocol':
-        specifier: workspace:*
-        version: link:../../../protocol
       '@browser-monitor/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@cxdlogver/browser-monitor-protocol':
+        specifier: workspace:*
+        version: link:../../../protocol
       ioredis:
         specifier: ^5.7.0
         version: 5.11.1

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events wait",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+  },
+  "data": {
+    "reason": "completed",
+    "polls": 1,
+    "elapsedMs": 99,
+    "lastObservation": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "event": {
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "occurredAt": "2026-10-13T11:46:08.982Z",
+        "receivedAt": "2026-10-13T11:46:11.176Z",
+        "type": "span",
+        "name": "site.route.stay"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T11:46:11.248Z",
+        "evidence": "telemetry_events.processed_at"
+      },
+      "task": {
+        "recordState": "present",
+        "taskId": "618792ee-7afe-4c67-92a6-475160b7c889",
+        "status": "completed",
+        "attempts": 1,
+        "availableAt": "2026-10-13T11:46:11.176Z",
+        "lockedAt": null,
+        "completedAt": "2026-10-13T11:46:11.263Z",
+        "lastFailedAt": null,
+        "lastError": null
+      },
+      "projection": {
+        "visibility": "visible",
+        "eventEffect": "unknown",
+        "identity": {
+          "kind": "custom_signal",
+          "eventId": "event-mv6m7o46-p-fgojbyio",
+          "occurredAt": "2026-10-13T11:46:08.982Z"
+        },
+        "currentEntity": {
+          "event_id": "event-mv6m7o46-p-fgojbyio",
+          "kind": "span",
+          "trace_id": "8bb60d85f54603bbfe5752f2b527c42b",
+          "span_id": "adf2c42894e06be4"
+        },
+        "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+      },
+      "history": {
+        "limitations": [],
+        "completedTaskRetentionDays": 7
+      },
+      "asOf": "2026-10-13T12:22:59.697Z",
+      "source": "database"
+    },
+    "lastObservationAsOf": "2026-10-13T12:22:59.697Z",
+    "lastQueryFailure": null
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:22:59.697Z",
+    "elapsedMs": 99
+  }
+}

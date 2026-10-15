@@ -1,0 +1,37 @@
+{
+  "source": "business_event",
+  "probeUsed": false,
+  "observations": [
+    {
+      "profile": "qhzhc",
+      "definitionId": "qhzhc.visualization.view-start",
+      "status": "passed",
+      "identity": {
+        "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "eventId": "event-mv6lymu3-3-as5ip2jy",
+        "occurredAt": "2026-10-13T11:39:07.419Z",
+        "sessionId": "session-mv6lymu2-1-4nyjjht5",
+        "viewId": "view-mv6lymu3-2-k3gcygom",
+        "traceId": null,
+        "spanId": null
+      },
+      "evidence": "qhzhc-business-comparison.json"
+    },
+    {
+      "profile": "official",
+      "definitionId": "official.solution.route-stay",
+      "status": "passed",
+      "identity": {
+        "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+        "eventId": "event-mv6m7o46-p-fgojbyio",
+        "occurredAt": "2026-10-13T11:46:08.982Z",
+        "sessionId": "session-mv6m7ad4-1-8bmr92yw",
+        "viewId": "view-mv6m7ad4-2-5rocy26r",
+        "traceId": "8bb60d85f54603bbfe5752f2b527c42b",
+        "spanId": "adf2c42894e06be4"
+      },
+      "evidence": "official-business-comparison.json"
+    }
+  ],
+  "status": "passed"
+}

@@ -1,0 +1,91 @@
+{
+  "caseId": "AC-NET-01",
+  "startedAt": "2026-10-13T12:15:08.101Z",
+  "endedAt": "2026-10-13T12:16:11.433Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "recover",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:53594"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:15:08.101Z",
+      "endedAt": "2026-10-13T12:15:09.184Z",
+      "elapsedMs": 1083,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-FrzYmw"
+    },
+    {
+      "name": "exhausted",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:53594"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:15:09.184Z",
+      "endedAt": "2026-10-13T12:15:10.285Z",
+      "elapsedMs": 1101,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-FrzYmw"
+    },
+    {
+      "name": "non-retryable",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:53594"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:15:10.285Z",
+      "endedAt": "2026-10-13T12:15:10.691Z",
+      "elapsedMs": 406,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-FrzYmw"
+    },
+    {
+      "name": "retry-after",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:53594"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:15:10.691Z",
+      "endedAt": "2026-10-13T12:15:41.063Z",
+      "elapsedMs": 30372,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-FrzYmw"
+    },
+    {
+      "name": "default-request-budget",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:53594"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:15:41.063Z",
+      "endedAt": "2026-10-13T12:16:11.424Z",
+      "elapsedMs": 30360,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-FrzYmw"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

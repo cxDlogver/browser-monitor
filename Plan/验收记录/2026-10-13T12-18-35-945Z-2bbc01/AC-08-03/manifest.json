@@ -1,0 +1,92 @@
+{
+  "caseId": "AC-08-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "d0ba764595649bc1a42c8bf2f2b6da1aa153297f93e1061f901826cc73f9bd86",
+      "bytes": 675
+    },
+    {
+      "path": "reference/database-noop-revision.json",
+      "sha256": "e59d1aaf930500a8a285c7fb42449aab49a8b9fd51de3c03e001be4e70f9da38",
+      "bytes": 1872
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "7a1e00851d22bbd728bdd86b4bcb5dbc12b4013c4e4a7eb111bd78a82fea0805",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "run.json",
+      "sha256": "48941d48f48e3073c1b9fc63ad9dd04a8e78a49a15c055157448854a5629a343",
+      "bytes": 891
+    },
+    {
+      "path": "steps/noop/command.txt",
+      "sha256": "5479dd544f2244aa60c4bb7c12ea7e212d97372ad1e5c99e394997d8d98fbef7",
+      "bytes": 156
+    },
+    {
+      "path": "steps/noop/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/noop/stdout.json",
+      "sha256": "e9eda39c403a6e0b4cf8be7ce05a045f23840e3154ff04a4f25e5e81dfa60807",
+      "bytes": 1700
+    },
+    {
+      "path": "case-result.json",
+      "sha256": "0065a3d217d26c49c37287d44b0be3ed2d4ef0766dc24235d7edff664538d2a0",
+      "bytes": 10498
+    }
+  ],
+  "sharedEvidence": [
+    {
+      "path": "../setup/inputs.json",
+      "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/bindings.json",
+      "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/events.json",
+      "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/event-definitions.json",
+      "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/implementation.json",
+      "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/installation-audit.json",
+      "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/source-versions.json",
+      "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+      "locator": "explicit input, implementation or independent source audit"
+    },
+    {
+      "path": "../setup/diagnostics-fixture-sources.json",
+      "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+      "locator": "explicit input, implementation or independent source audit"
+    }
+  ]
+}

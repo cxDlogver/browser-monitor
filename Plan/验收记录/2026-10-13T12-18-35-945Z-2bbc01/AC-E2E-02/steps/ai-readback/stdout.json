@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "project get",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "6a1f1fcf-8aed-4668-9717-04efaf47b376"
+  },
+  "data": {
+    "id": "6a1f1fcf-8aed-4668-9717-04efaf47b376",
+    "displayName": "CLI非交互-2026-10-13T12-18-35-945Z-2bbc01",
+    "appName": "ai-acceptance",
+    "enabled": true,
+    "role": "owner",
+    "keys": [
+      {
+        "id": "372d7260-4c61-47e5-9289-ed188472f1d1",
+        "label": "default",
+        "active": true,
+        "expiresAt": null,
+        "createdAt": "2026-10-13T12:22:54.258Z",
+        "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_MKlsss1AAOdQr3EL8XugWJ7P4f9MAE5h-iDJt04_MSc/envelopes"
+      }
+    ],
+    "origins": [
+      "http://localhost:3000"
+    ],
+    "members": [
+      {
+        "id": "8c4c77ee-fbd3-4c6a-ae0e-0bc0b2db42e9",
+        "email": "business-cli-1791891370888@example.test",
+        "displayName": "Business CLI acceptance",
+        "role": "owner"
+      }
+    ],
+    "thresholds": {
+      "id": "0f574205-ddb3-4640-8650-ed67e08b1895",
+      "version": 1,
+      "config": {
+        "CLS": {
+          "good": 0.1,
+          "poor": 0.25,
+          "direction": "lower-is-better"
+        },
+        "FCP": {
+          "good": 1800,
+          "poor": 3000,
+          "direction": "lower-is-better"
+        },
+        "FPS": {
+          "good": 50,
+          "poor": 30,
+          "direction": "higher-is-better"
+        },
+        "INP": {
+          "good": 200,
+          "poor": 500,
+          "direction": "lower-is-better"
+        },
+        "LCP": {
+          "good": 2500,
+          "poor": 4000,
+          "direction": "lower-is-better"
+        }
+      },
+      "project_id": null
+    }
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 133
+  }
+}

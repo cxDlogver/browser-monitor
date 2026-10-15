@@ -1,0 +1,120 @@
+{
+  "caseId": "AC-04-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "4a2431a42e904c6a1f4c6808635bfd25d9bd43fb671adccb36afe61dd6e55e76",
+      "bytes": 292
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "f2e57df8c4f12a29d4986af2ef07f25af14cc50a0482df6305effb912160f43c",
+      "bytes": 240
+    },
+    {
+      "path": "reference/origins-after-denied.json",
+      "sha256": "46459bde5cee9e0351371bd77968d15d9b0b80610c2a23860b931abc4a7660d3",
+      "bytes": 30
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "92bd9e0c2eeb244f3293093c78bd35e5b4708117a26dd619f33d9ebbe257ffff",
+      "bytes": 453
+    },
+    {
+      "path": "run.json",
+      "sha256": "33af324a038577a7bc19850067fee7fd1853944fabffc772fa3696f50e5bf4b2",
+      "bytes": 6101
+    },
+    {
+      "path": "steps/denied/command.txt",
+      "sha256": "3158fef81ea03746fabd0f6d343c1f5dc7947a2343105585ae2054bc85e7f951",
+      "bytes": 160
+    },
+    {
+      "path": "steps/denied/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/denied/stdout.json",
+      "sha256": "d40f194e31f383d862242a72b2229f5e9e28cb38ac1a553b67ff08bcadab056c",
+      "bytes": 492
+    },
+    {
+      "path": "steps/invalid-empty/command.txt",
+      "sha256": "0288b2f4aef115bf44ffc0f61ab191392eeee5cce06adeab39baac469548c2d0",
+      "bytes": 142
+    },
+    {
+      "path": "steps/invalid-empty/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/invalid-empty/stdout.json",
+      "sha256": "ba22f1dbaddc237f65faa4829916ef16449ff2ddb1832ca7f4c7b04d876a16f4",
+      "bytes": 372
+    },
+    {
+      "path": "steps/invalid-ftp/command.txt",
+      "sha256": "16a5a2a0d7e97059e3302cca031b1b1577def00cf918673a952175818a7f3d92",
+      "bytes": 159
+    },
+    {
+      "path": "steps/invalid-ftp/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/invalid-ftp/stdout.json",
+      "sha256": "a23c38175c5358f84dccb3661825366d56e8710759e627d41944806958f9cf7e",
+      "bytes": 419
+    },
+    {
+      "path": "steps/invalid-path/command.txt",
+      "sha256": "be9893c7674a18a9e5da0db6e7c4cd46b50c01705a442a80a0da353c09a94456",
+      "bytes": 165
+    },
+    {
+      "path": "steps/invalid-path/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/invalid-path/stdout.json",
+      "sha256": "a23c38175c5358f84dccb3661825366d56e8710759e627d41944806958f9cf7e",
+      "bytes": 419
+    },
+    {
+      "path": "steps/invalid-text/command.txt",
+      "sha256": "bf3370aa66375f3e024eaf05d3c3acef897df6a9ebc258d93dad1753216eec7c",
+      "bytes": 148
+    },
+    {
+      "path": "steps/invalid-text/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/invalid-text/stdout.json",
+      "sha256": "bac88fcc37bc501848c264a65b70df48343c171206fd61bd7c7a7b474bbb377d",
+      "bytes": 378
+    },
+    {
+      "path": "steps/invalid-too-many/command.txt",
+      "sha256": "bd3ceaafaeb27b7cb280c93c78c0fa66b5c4e67a3d1cd2b39f2cc7bc19f38943",
+      "bytes": 1910
+    },
+    {
+      "path": "steps/invalid-too-many/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/invalid-too-many/stdout.json",
+      "sha256": "f8d0f1d5abd2fc9dede9a9adce3050acaa6637d6964ad4fdb857a8dbb70b52cb",
+      "bytes": 386
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "project list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54514",
+    "projectId": null
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "API_CONTRACT_INVALID",
+    "message": "平台返回重定向；未向新地址发送凭据。",
+    "details": {
+      "path": "/api/v1/projects",
+      "status": 302
+    }
+  }
+}

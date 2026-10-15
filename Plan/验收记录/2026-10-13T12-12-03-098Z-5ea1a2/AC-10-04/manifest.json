@@ -1,0 +1,40 @@
+{
+  "caseId": "AC-10-04",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "6df9722a7cd959e15f9cdc0fa5eac1e0395059df67b98a96a942112c3e113390",
+      "bytes": 612
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "28a61ec96bef148a709024208c5761aaafa1a1c9a549210321b43c965a924997",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "e53890a360256461a2f23163c35e12d16ceb75ba040f41899206a08aa991e957",
+      "bytes": 895
+    },
+    {
+      "path": "run.json",
+      "sha256": "100c1fb9cdd2d92d3411a179847997ee23b7849b66c4e0131bf18249d8bf264e",
+      "bytes": 872
+    },
+    {
+      "path": "steps/failed-after-valid/command.txt",
+      "sha256": "a53e76130d02a7f3847a3c0098f6a92bc85f911a74543bb3e7dac0a6bb3fa853",
+      "bytes": 163
+    },
+    {
+      "path": "steps/failed-after-valid/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/failed-after-valid/stdout.json",
+      "sha256": "8c288965af8ca5af44895229d7ba74d52da943165d4979bf67ad489705cf563c",
+      "bytes": 1575
+    }
+  ]
+}

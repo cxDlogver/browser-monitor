@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "source": "anonymous HTTPS requests to official npm registry",
+  "metadataHttpStatus": 200,
+  "tarballHttpStatus": 200,
+  "name": "@cxdlogver/browser-monitor-cli",
+  "version": "0.1.0",
+  "latest": "0.1.0",
+  "registry": "https://registry.npmjs.org/",
+  "tarball": "https://registry.npmjs.org/@cxdlogver/browser-monitor-cli/-/browser-monitor-cli-0.1.0.tgz",
+  "fileCount": 14,
+  "downloadedBytes": 23467,
+  "testedIntegrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+  "registryIntegrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+  "observedDownloadIntegrity": "sha512-IMSSHjoBr2FWJQXWVQqqTgmNJYrirqofbtK9LWgGHkfdpiCTBFa/vhXM31EcPZfc5zeH5QVUKsMmalOpEj6pHg==",
+  "integrityMatches": true,
+  "bin": {
+    "bm": "bin/bm.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "checkedAt": "2026-10-13T15:16:18.478Z"
+}

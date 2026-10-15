@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "source": "offline Linux container, tested npm tarball",
+  "image": "browser-monitor-cli-dev-check:20261013",
+  "network": "none",
+  "containerRemoved": true,
+  "nodeVersion": "22.23.3",
+  "packageVersion": "0.1.0",
+  "globalCommand": true,
+  "executablePermissions": true,
+  "structuredError": true,
+  "observedExitCode": 0
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "health",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49696",
+    "projectId": null
+  },
+  "data": {
+    "target": "http://127.0.0.1:49696",
+    "checkedAt": "2026-10-13T12:14:34.865Z",
+    "connectivity": {
+      "state": "pass",
+      "source": "http_responses",
+      "reason": "已收到平台响应"
+    },
+    "liveness": {
+      "state": "pass",
+      "source": "/health/live",
+      "reason": "平台确认",
+      "details": {
+        "status": "ok"
+      }
+    },
+    "readiness": {
+      "state": "fail",
+      "source": "/health/ready",
+      "reason": "SERVER_ERROR"
+    },
+    "managementApi": {
+      "state": "pass",
+      "authentication": "pass",
+      "source": "/api/v1/auth/me",
+      "reason": "身份接口可响应"
+    },
+    "limitations": [
+      "基础健康不证明 Worker 正常或特定项目已经写入、处理。"
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "HEALTH_UNREADY",
+    "message": "平台或依赖尚未就绪。",
+    "details": null
+  }
+}

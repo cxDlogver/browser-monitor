@@ -1,0 +1,95 @@
+{
+  "caseId": "AC-02-04",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "43a28d2ef3e210ca91d767203ed4732f7101a8414e8b448c8ce22fcb48905081",
+      "bytes": 461
+    },
+    {
+      "path": "reference/auth-accepted.json",
+      "sha256": "843b3cd0c1c46f50a5109da5098a27396690cbeb60c422228b65eb64856e2655",
+      "bytes": 110
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "270c6483816b6172d9af9aa5134e1b5abe8690aa0e6cbfddbab922e2e6a8744c",
+      "bytes": 240
+    },
+    {
+      "path": "reference/real-logout.json",
+      "sha256": "38e47dd0073b6cd3ffe875b85a4ad929adddb4bd85c4cc4e7cac6f049421748a",
+      "bytes": 498
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "b7d0466ea0c2d6b80c2a42117b3eb80613f08077fea57734eeb05f661c94ebb4",
+      "bytes": 1128
+    },
+    {
+      "path": "run.json",
+      "sha256": "8ffc62cf0f9db2a2a313255340ca93f355f0a97876b55ff48d781def0937336a",
+      "bytes": 2036
+    },
+    {
+      "path": "steps/login-save-failed/command.txt",
+      "sha256": "7de923f22bc92ca971f4540d40f1010ba802796fd4984212cb195a854946ee86",
+      "bytes": 125
+    },
+    {
+      "path": "steps/login-save-failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/login-save-failed/stdout.json",
+      "sha256": "91f7c08ab550c1984397d60d5359b15f01eaf5ce3fea09d777d86dfed7e13032",
+      "bytes": 551
+    },
+    {
+      "path": "steps/logout/command.txt",
+      "sha256": "f01257797ad6269faca00e988e6f0cc8be82e2c4c165264df4c86db3cae2b382",
+      "bytes": 74
+    },
+    {
+      "path": "steps/logout/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/logout/stdout.json",
+      "sha256": "6e7952e32edbe04c178287c57b98b474dcd3f0b789dc547de0425bd17623cee2",
+      "bytes": 317
+    },
+    {
+      "path": "steps/logout-unreachable/command.txt",
+      "sha256": "f01257797ad6269faca00e988e6f0cc8be82e2c4c165264df4c86db3cae2b382",
+      "bytes": 74
+    },
+    {
+      "path": "steps/logout-unreachable/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/logout-unreachable/stdout.json",
+      "sha256": "3a6afb87a67fcbaeff2b758efef2259c6913e97d05ae58bd517ebbce434aa0cb",
+      "bytes": 481
+    },
+    {
+      "path": "steps/verify-remote/command.txt",
+      "sha256": "feacf3c015319868ece3ee4586e8aabd64836f54550805b50d6b69acd1c77310",
+      "bytes": 74
+    },
+    {
+      "path": "steps/verify-remote/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/verify-remote/stdout.json",
+      "sha256": "6f48ef4c74ae281444e1f9d5ad582a5da4075cc98ccd4e21930a480a116444ff",
+      "bytes": 346
+    }
+  ]
+}

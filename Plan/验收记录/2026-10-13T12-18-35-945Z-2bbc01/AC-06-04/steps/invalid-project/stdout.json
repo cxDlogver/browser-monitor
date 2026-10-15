@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:57875",
+    "projectId": "00000000-0000-4000-8000-000000000003"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_CURSOR",
+    "message": "游标不属于当前平台或项目",
+    "details": null
+  }
+}

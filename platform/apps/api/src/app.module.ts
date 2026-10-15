@@ -7,6 +7,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AnalyticsModule } from './analytics/analytics.module.js'; // 查询侧：总览、性能、页面排名、原始事件、自定义观测项、服务状态
 import { AuthModule } from './auth/auth.module.js'; // 账号注册登录、Session 与 CSRF 守卫
+import { DiagnosticsModule } from './diagnostics/diagnostics.module.js';
 import { RequestIdInterceptor } from './common/request-id.interceptor.js'; // 全局：requestId 透传与访问日志
 import { HealthController } from './health/health.controller.js'; // 探针：/health/live、/health/ready
 import { InfrastructureModule } from './infrastructure/infrastructure.module.js'; // @Global：配置 + Postgres/TimescaleDB + Redis
@@ -17,7 +18,7 @@ import { ProjectsModule } from './projects/projects.module.js'; // 项目、成�
 
 @Module({
   // 注册顺序对 Nest 无影响；InfrastructureModule 因 @Global() 可被其余模块直接注入
-  imports: [InfrastructureModule, AuthModule, ProjectsModule, IngestionModule, AnalyticsModule, LabAuditsModule],
+  imports: [InfrastructureModule, AuthModule, ProjectsModule, IngestionModule, AnalyticsModule, LabAuditsModule, DiagnosticsModule],
   // 不属于任何业务模块的控制器：健康检查与指标暴露（无需鉴权，通常不对外网开放）
   controllers: [HealthController, MetricsController],
   // APP_INTERCEPTOR 表示全局生效：所有请求生成/透传 x-request-id，并在响应完成时打一条日志

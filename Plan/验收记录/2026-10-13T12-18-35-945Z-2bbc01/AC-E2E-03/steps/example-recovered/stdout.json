@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50232",
+    "projectId": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e"
+  },
+  "data": {
+    "artifacts": [
+      {
+        "kind": "out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\recovery-temp.json"
+      },
+      {
+        "kind": "example-out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\recovered.ts"
+      }
+    ],
+    "projectId": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+    "keyId": "00000000-0000-4000-8000-000000000002"
+  },
+  "meta": {
+    "source": "platform_api_and_generated_artifact",
+    "warnings": [
+      "SDK JSON 不含函数；业务路由解析与初始化顺序需要在接入入口补充。"
+    ],
+    "keyExpiresAt": null,
+    "keyEligibilityTimeSource": "server_http_date",
+    "elapsedMs": 56
+  }
+}

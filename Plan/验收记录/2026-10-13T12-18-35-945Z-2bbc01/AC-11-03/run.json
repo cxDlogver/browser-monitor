@@ -1,0 +1,179 @@
+{
+  "caseId": "AC-11-03",
+  "startedAt": "2026-10-13T12:20:58.670Z",
+  "endedAt": "2026-10-13T12:21:02.472Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "too-large",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:20:58.675Z",
+      "endedAt": "2026-10-13T12:20:59.315Z",
+      "elapsedMs": 641,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "small-page-1",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--limit",
+        "1",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:20:59.315Z",
+      "endedAt": "2026-10-13T12:20:59.829Z",
+      "elapsedMs": 513,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "small-page-2",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--limit",
+        "1",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1MDQ4MSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjIwOjU5LjY0NVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MjA6NTkuNjQ1WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwMDEifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:20:59.829Z",
+      "endedAt": "2026-10-13T12:21:00.299Z",
+      "elapsedMs": 470,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "small-page-3",
+      "invocation": [
+        "events",
+        "list",
+        "--include-payload",
+        "--limit",
+        "1",
+        "--cursor",
+        "eyJjbGlWZXJzaW9uIjoxLCJiYXNlVXJsIjoiaHR0cDovLzEyNy4wLjAuMTo1MDQ4MSIsInByb2plY3RJZCI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSIsInF1ZXJ5Ijp7ImZyb20iOiIyMDI2LTEwLTEyVDEyOjIwOjU5LjY0NVoiLCJ0byI6IjIwMjYtMTAtMTNUMTI6MjA6NTkuNjQ1WiJ9LCJzZXJ2ZXJDdXJzb3IiOiJmaXh0dXJlLTAwMDAifQ",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:00.299Z",
+      "endedAt": "2026-10-13T12:21:00.793Z",
+      "elapsedMs": 493,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "invalid-budget-0",
+      "invocation": [
+        "events",
+        "list",
+        "--max-output-bytes",
+        "0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:00.793Z",
+      "endedAt": "2026-10-13T12:21:01.201Z",
+      "elapsedMs": 408,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "invalid-budget-4095",
+      "invocation": [
+        "events",
+        "list",
+        "--max-output-bytes",
+        "4095",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:01.201Z",
+      "endedAt": "2026-10-13T12:21:01.624Z",
+      "elapsedMs": 424,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "invalid-budget-1.5",
+      "invocation": [
+        "events",
+        "list",
+        "--max-output-bytes",
+        "1.5",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:01.624Z",
+      "endedAt": "2026-10-13T12:21:02.075Z",
+      "elapsedMs": 450,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    },
+    {
+      "name": "invalid-budget-invalid",
+      "invocation": [
+        "events",
+        "list",
+        "--max-output-bytes",
+        "invalid",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:50481"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:21:02.075Z",
+      "endedAt": "2026-10-13T12:21:02.449Z",
+      "elapsedMs": 375,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-feHS2E"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

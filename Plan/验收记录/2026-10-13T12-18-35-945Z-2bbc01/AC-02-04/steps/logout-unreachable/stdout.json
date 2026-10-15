@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "auth logout",
+  "context": {
+    "baseUrl": "http://127.0.0.1:49401",
+    "projectId": null
+  },
+  "data": {
+    "localCleared": true,
+    "remoteRevocation": "unknown"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PARTIAL_SUCCESS",
+    "message": "已清除本地凭据，远端撤销结果未知。",
+    "details": {
+      "remoteError": "WRITE_OUTCOME_UNKNOWN"
+    }
+  }
+}

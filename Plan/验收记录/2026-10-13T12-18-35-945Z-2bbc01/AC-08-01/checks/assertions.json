@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ambiguity recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "older-than-24h recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual candidates",
+    "expected": 2,
+    "observed": 2,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual exact identity",
+    "expected": "2026-10-13T10:54:59.469Z",
+    "observed": "2026-10-13T10:54:59.469Z",
+    "verdict": "passed"
+  }
+]

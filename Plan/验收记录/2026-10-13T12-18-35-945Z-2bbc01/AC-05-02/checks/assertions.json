@@ -1,0 +1,26 @@
+[
+  {
+    "name": "no key",
+    "expected": "KEY_UNAVAILABLE",
+    "observed": "KEY_UNAVAILABLE",
+    "verdict": "passed"
+  },
+  {
+    "name": "ambiguous",
+    "expected": "KEY_AMBIGUOUS",
+    "observed": "KEY_AMBIGUOUS",
+    "verdict": "passed"
+  },
+  {
+    "name": "disabled",
+    "expected": "PROJECT_DISABLED",
+    "observed": "PROJECT_DISABLED",
+    "verdict": "passed"
+  },
+  {
+    "name": "transition explicit expiry",
+    "expected": "2026-10-13T13:19:10.142Z",
+    "observed": "2026-10-13T13:19:10.142Z",
+    "verdict": "passed"
+  }
+]

@@ -1,0 +1,327 @@
+{
+  "caseId": "AC-01-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认调用使用平台 A / 项目 A，显式项目覆盖后使用指定项目。",
+      "observed": {
+        "checks": [
+          {
+            "name": "default target",
+            "expected": {
+              "baseUrl": "http://127.0.0.1:55039",
+              "projectId": "00000000-0000-4000-8000-000000000001"
+            },
+            "observed": {
+              "baseUrl": "http://127.0.0.1:55039",
+              "projectId": "00000000-0000-4000-8000-000000000001"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "project override",
+            "expected": "00000000-0000-4000-8000-000000000003",
+            "observed": "00000000-0000-4000-8000-000000000003",
+            "verdict": "passed"
+          },
+          {
+            "name": "platform change needs own project",
+            "expected": "CONTEXT_MISSING",
+            "observed": "CONTEXT_MISSING",
+            "verdict": "passed"
+          },
+          {
+            "name": "explicit platform B",
+            "expected": {
+              "baseUrl": "http://127.0.0.1:55046",
+              "projectId": "00000000-0000-4000-8000-000000000003"
+            },
+            "observed": {
+              "baseUrl": "http://127.0.0.1:55046",
+              "projectId": "00000000-0000-4000-8000-000000000003"
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "default",
+            "exitCode": 0,
+            "elapsedMs": 657
+          },
+          {
+            "name": "override",
+            "exitCode": 0,
+            "elapsedMs": 866
+          },
+          {
+            "name": "missing",
+            "exitCode": 2,
+            "elapsedMs": 877
+          },
+          {
+            "name": "explicit",
+            "exitCode": 0,
+            "elapsedMs": 524
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7a35e8309eafa5a6d930c196b0259bc18b1812d1880446f97d0baba5d88b0ac1",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/context-before.json",
+          "sha256": "dd652413f0c762c60cbad771de0987bc19d479e6db34ad29b6c80fabcc347032",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fabd83c9c1113407a85c950ebc69a788c7b2844389a3521e9bce777a252da76b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/platform-b-trace.json",
+          "sha256": "3e70ae8b0e6a1df94cfff5bce0173e5819e04d875d09c1885f86caeb67a4e0eb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "b8e1500ea53be89528cbfe20670b7eca1eaaa7e21787f336767f8af490a319e7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "91e86dbc65b7238c4868ff6f1eb261bc142c69070c6ae9ea1bfa9fb9beddfa92",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/default/command.txt",
+          "sha256": "57b9e059fa066311e254629fac837b9423a5b45047e02bf3f8a08002f4b29784",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/default/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/default/stdout.json",
+          "sha256": "e41ff794cc8814108c5ef4937282dd73f02383299f963d347d074faf5951ffd9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/command.txt",
+          "sha256": "24774b72348f90bd1f63a9796a14d747418a3d3e64a20bdac0ea159e650c94d6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stdout.json",
+          "sha256": "89d3764827d368baa428eba1f3e3098067267649ccb74c448a584eadfb20ec1d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "1ab1ebf2c40b4d47159393ad6f48c792c702adad6f7040dea86116f29aabd985",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "4ea25faa32118ad90ed50079361347d4452e13f43b278c8fbe7e5033b4819cf1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/command.txt",
+          "sha256": "79328a22e6e7b244f99051f53c98e31b261c45ec1980ee1abc24566680e355e3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/stdout.json",
+          "sha256": "be843d5abf51d01986aa2ec9972f49212e3ef937fa296dc1ba3e70df9abd67af",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "切换平台而没有新项目时返回 CONTEXT_MISSING，不能继承项目 A；提供新项目后请求平台 B。",
+      "observed": {
+        "checks": [
+          {
+            "name": "default target",
+            "expected": {
+              "baseUrl": "http://127.0.0.1:55039",
+              "projectId": "00000000-0000-4000-8000-000000000001"
+            },
+            "observed": {
+              "baseUrl": "http://127.0.0.1:55039",
+              "projectId": "00000000-0000-4000-8000-000000000001"
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "project override",
+            "expected": "00000000-0000-4000-8000-000000000003",
+            "observed": "00000000-0000-4000-8000-000000000003",
+            "verdict": "passed"
+          },
+          {
+            "name": "platform change needs own project",
+            "expected": "CONTEXT_MISSING",
+            "observed": "CONTEXT_MISSING",
+            "verdict": "passed"
+          },
+          {
+            "name": "explicit platform B",
+            "expected": {
+              "baseUrl": "http://127.0.0.1:55046",
+              "projectId": "00000000-0000-4000-8000-000000000003"
+            },
+            "observed": {
+              "baseUrl": "http://127.0.0.1:55046",
+              "projectId": "00000000-0000-4000-8000-000000000003"
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "default",
+            "exitCode": 0,
+            "elapsedMs": 657
+          },
+          {
+            "name": "override",
+            "exitCode": 0,
+            "elapsedMs": 866
+          },
+          {
+            "name": "missing",
+            "exitCode": 2,
+            "elapsedMs": 877
+          },
+          {
+            "name": "explicit",
+            "exitCode": 0,
+            "elapsedMs": 524
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7a35e8309eafa5a6d930c196b0259bc18b1812d1880446f97d0baba5d88b0ac1",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/context-before.json",
+          "sha256": "dd652413f0c762c60cbad771de0987bc19d479e6db34ad29b6c80fabcc347032",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "fabd83c9c1113407a85c950ebc69a788c7b2844389a3521e9bce777a252da76b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/platform-b-trace.json",
+          "sha256": "3e70ae8b0e6a1df94cfff5bce0173e5819e04d875d09c1885f86caeb67a4e0eb",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "b8e1500ea53be89528cbfe20670b7eca1eaaa7e21787f336767f8af490a319e7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "91e86dbc65b7238c4868ff6f1eb261bc142c69070c6ae9ea1bfa9fb9beddfa92",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/default/command.txt",
+          "sha256": "57b9e059fa066311e254629fac837b9423a5b45047e02bf3f8a08002f4b29784",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/default/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/default/stdout.json",
+          "sha256": "e41ff794cc8814108c5ef4937282dd73f02383299f963d347d074faf5951ffd9",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/command.txt",
+          "sha256": "24774b72348f90bd1f63a9796a14d747418a3d3e64a20bdac0ea159e650c94d6",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/explicit/stdout.json",
+          "sha256": "89d3764827d368baa428eba1f3e3098067267649ccb74c448a584eadfb20ec1d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "1ab1ebf2c40b4d47159393ad6f48c792c702adad6f7040dea86116f29aabd985",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "4ea25faa32118ad90ed50079361347d4452e13f43b278c8fbe7e5033b4819cf1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/command.txt",
+          "sha256": "79328a22e6e7b244f99051f53c98e31b261c45ec1980ee1abc24566680e355e3",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/override/stdout.json",
+          "sha256": "be843d5abf51d01986aa2ec9972f49212e3ef937fa296dc1ba3e70df9abd67af",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

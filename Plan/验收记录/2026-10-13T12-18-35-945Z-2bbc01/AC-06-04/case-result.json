@@ -1,0 +1,649 @@
+{
+  "caseId": "AC-06-04",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "游标非法或条件冲突明确失败，不重新查询第一页、不串到另一项目。",
+      "observed": {
+        "checks": [
+          {
+            "name": "invalid input no resource request",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "first",
+            "exitCode": 0,
+            "elapsedMs": 438
+          },
+          {
+            "name": "invalid-malformed",
+            "exitCode": 2,
+            "elapsedMs": 380
+          },
+          {
+            "name": "invalid-filter",
+            "exitCode": 2,
+            "elapsedMs": 366
+          },
+          {
+            "name": "invalid-project",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-time-format",
+            "exitCode": 2,
+            "elapsedMs": 384
+          },
+          {
+            "name": "invalid-reversed",
+            "exitCode": 2,
+            "elapsedMs": 381
+          },
+          {
+            "name": "invalid-span",
+            "exitCode": 2,
+            "elapsedMs": 412
+          },
+          {
+            "name": "invalid-limit",
+            "exitCode": 2,
+            "elapsedMs": 378
+          },
+          {
+            "name": "invalid-zero",
+            "exitCode": 2,
+            "elapsedMs": 365
+          },
+          {
+            "name": "invalid-invalid-calendar",
+            "exitCode": 2,
+            "elapsedMs": 366
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "783243be789f166a6ffdef4a06d477ed6cea933063093eac05afa7dea3317fed",
+          "bytes": 123,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/limits.json",
+          "sha256": "ddc985041fbd71777f33f74c7e6f459abc94542459b9622745335137b0591819",
+          "bytes": 93,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f8ca0a48dd3f1b4e9299e9efd4ffc2082d8d5c67cdeeda5b0590ce949aec893c",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "a4c689137b5be97aa3bf1f9ab4b71786cc1a3918da346104c002ac2b856578e2",
+          "bytes": 532,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "2553f0503bc48a4f1896fa7364102626e97d23514b5ba2359fd274829a3a202f",
+          "bytes": 6200,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/first/command.txt",
+          "sha256": "84a1f0bd4bfe7f13778184a2c0bc3e2bfc97013cc2cde21447d00bd31f46ddf0",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/first/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/first/stdout.json",
+          "sha256": "fd4c1464358849951e400eaf5b92ae48dbf6333c2fb009974ca1bc89ce43a8fa",
+          "bytes": 19703,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/command.txt",
+          "sha256": "a702e46f0566eaa6e5fba92a0929e74da3b4d5ff1f9bb7467f51656ae5a87662",
+          "bytes": 436,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/stdout.json",
+          "sha256": "556b64babb51a6d44230aa5e3563b0d5a4849dd940849f461f6f32e8a9a937ad",
+          "bytes": 387,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/command.txt",
+          "sha256": "d2d2a34fc5f41e20745d897d892ba4a866eabb2668c9306064757257fec152bc",
+          "bytes": 157,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/stdout.json",
+          "sha256": "864325474a7d9bf27c47a732b630466f17fdafd20f8e04e00c1aa569ac855b15",
+          "bytes": 374,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/command.txt",
+          "sha256": "5e3af8bc4019acd4d870d922819e308bdb8797899c8e8425f4bca2552c559698",
+          "bytes": 141,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/stdout.json",
+          "sha256": "a1aad615ce3830d2929b19c0444510827e7eeab03048825f0a801a8320fbed7d",
+          "bytes": 382,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/command.txt",
+          "sha256": "e072768a831e791de5affdcb0bdac57767fcc9a6ff167f0531cc6a56dd417725",
+          "bytes": 146,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/stdout.json",
+          "sha256": "e840e4a110956d84e9d43d88e1f5fe52aafe5559e7822e0f49fdbdad1947f4d7",
+          "bytes": 372,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/command.txt",
+          "sha256": "32044caa531c9b22ee4fdcaead022e217440cfa3bfd9d01f477f8d1bf8957dda",
+          "bytes": 417,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/stdout.json",
+          "sha256": "c0e956d71531b982dfe20ad95e22f8726500e0af35f6d298a9f24303d25c1d76",
+          "bytes": 390,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/command.txt",
+          "sha256": "ad822cbba1cd487d4e0af7d85782ed46ba0573d4789bcbfe657f63fb94b86209",
+          "bytes": 187,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/stdout.json",
+          "sha256": "af78194bda1960799a94a596231e41e5b6f61ef6a53115f87fa493aa97f31400",
+          "bytes": 397,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/command.txt",
+          "sha256": "92cff82d8486a894def167a8136d7b21d973f549dd765aaf0e54850c67f0234c",
+          "bytes": 187,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/stdout.json",
+          "sha256": "af78194bda1960799a94a596231e41e5b6f61ef6a53115f87fa493aa97f31400",
+          "bytes": 397,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/command.txt",
+          "sha256": "bd96791e34707a18ee04f7fe604eca4b820c7a2fccb3606a7cf1e9fdbd2c101f",
+          "bytes": 156,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/stdout.json",
+          "sha256": "5dcdc6ded9b260b13cf0d0fe4c7fbff7eb7bb942dbf4ef88d6d577051718541c",
+          "bytes": 414,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/command.txt",
+          "sha256": "f2b7f602329d3b538af97cc8fcd0c436a8cdde257f707cc459362ecc31224f83",
+          "bytes": 139,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/stdout.json",
+          "sha256": "a1aad615ce3830d2929b19c0444510827e7eeab03048825f0a801a8320fbed7d",
+          "bytes": 382,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "无效范围与条数明确失败，超出平台跨度说明支持范围，没有静默裁剪或忽略参数。",
+      "observed": {
+        "checks": [
+          {
+            "name": "invalid input no resource request",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "first",
+            "exitCode": 0,
+            "elapsedMs": 438
+          },
+          {
+            "name": "invalid-malformed",
+            "exitCode": 2,
+            "elapsedMs": 380
+          },
+          {
+            "name": "invalid-filter",
+            "exitCode": 2,
+            "elapsedMs": 366
+          },
+          {
+            "name": "invalid-project",
+            "exitCode": 2,
+            "elapsedMs": 369
+          },
+          {
+            "name": "invalid-time-format",
+            "exitCode": 2,
+            "elapsedMs": 384
+          },
+          {
+            "name": "invalid-reversed",
+            "exitCode": 2,
+            "elapsedMs": 381
+          },
+          {
+            "name": "invalid-span",
+            "exitCode": 2,
+            "elapsedMs": 412
+          },
+          {
+            "name": "invalid-limit",
+            "exitCode": 2,
+            "elapsedMs": 378
+          },
+          {
+            "name": "invalid-zero",
+            "exitCode": 2,
+            "elapsedMs": 365
+          },
+          {
+            "name": "invalid-invalid-calendar",
+            "exitCode": 2,
+            "elapsedMs": 366
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "783243be789f166a6ffdef4a06d477ed6cea933063093eac05afa7dea3317fed",
+          "bytes": 123,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/limits.json",
+          "sha256": "ddc985041fbd71777f33f74c7e6f459abc94542459b9622745335137b0591819",
+          "bytes": 93,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "f8ca0a48dd3f1b4e9299e9efd4ffc2082d8d5c67cdeeda5b0590ce949aec893c",
+          "bytes": 240,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "a4c689137b5be97aa3bf1f9ab4b71786cc1a3918da346104c002ac2b856578e2",
+          "bytes": 532,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "2553f0503bc48a4f1896fa7364102626e97d23514b5ba2359fd274829a3a202f",
+          "bytes": 6200,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/first/command.txt",
+          "sha256": "84a1f0bd4bfe7f13778184a2c0bc3e2bfc97013cc2cde21447d00bd31f46ddf0",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/first/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/first/stdout.json",
+          "sha256": "fd4c1464358849951e400eaf5b92ae48dbf6333c2fb009974ca1bc89ce43a8fa",
+          "bytes": 19703,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/command.txt",
+          "sha256": "a702e46f0566eaa6e5fba92a0929e74da3b4d5ff1f9bb7467f51656ae5a87662",
+          "bytes": 436,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-filter/stdout.json",
+          "sha256": "556b64babb51a6d44230aa5e3563b0d5a4849dd940849f461f6f32e8a9a937ad",
+          "bytes": 387,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/command.txt",
+          "sha256": "d2d2a34fc5f41e20745d897d892ba4a866eabb2668c9306064757257fec152bc",
+          "bytes": 157,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-invalid-calendar/stdout.json",
+          "sha256": "864325474a7d9bf27c47a732b630466f17fdafd20f8e04e00c1aa569ac855b15",
+          "bytes": 374,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/command.txt",
+          "sha256": "5e3af8bc4019acd4d870d922819e308bdb8797899c8e8425f4bca2552c559698",
+          "bytes": 141,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-limit/stdout.json",
+          "sha256": "a1aad615ce3830d2929b19c0444510827e7eeab03048825f0a801a8320fbed7d",
+          "bytes": 382,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/command.txt",
+          "sha256": "e072768a831e791de5affdcb0bdac57767fcc9a6ff167f0531cc6a56dd417725",
+          "bytes": 146,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-malformed/stdout.json",
+          "sha256": "e840e4a110956d84e9d43d88e1f5fe52aafe5559e7822e0f49fdbdad1947f4d7",
+          "bytes": 372,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/command.txt",
+          "sha256": "32044caa531c9b22ee4fdcaead022e217440cfa3bfd9d01f477f8d1bf8957dda",
+          "bytes": 417,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-project/stdout.json",
+          "sha256": "c0e956d71531b982dfe20ad95e22f8726500e0af35f6d298a9f24303d25c1d76",
+          "bytes": 390,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/command.txt",
+          "sha256": "ad822cbba1cd487d4e0af7d85782ed46ba0573d4789bcbfe657f63fb94b86209",
+          "bytes": 187,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-reversed/stdout.json",
+          "sha256": "af78194bda1960799a94a596231e41e5b6f61ef6a53115f87fa493aa97f31400",
+          "bytes": 397,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/command.txt",
+          "sha256": "92cff82d8486a894def167a8136d7b21d973f549dd765aaf0e54850c67f0234c",
+          "bytes": 187,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-span/stdout.json",
+          "sha256": "af78194bda1960799a94a596231e41e5b6f61ef6a53115f87fa493aa97f31400",
+          "bytes": 397,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/command.txt",
+          "sha256": "bd96791e34707a18ee04f7fe604eca4b820c7a2fccb3606a7cf1e9fdbd2c101f",
+          "bytes": 156,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-time-format/stdout.json",
+          "sha256": "5dcdc6ded9b260b13cf0d0fe4c7fbff7eb7bb942dbf4ef88d6d577051718541c",
+          "bytes": 414,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/command.txt",
+          "sha256": "f2b7f602329d3b538af97cc8fcd0c436a8cdde257f707cc459362ecc31224f83",
+          "bytes": 139,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/invalid-zero/stdout.json",
+          "sha256": "a1aad615ce3830d2929b19c0444510827e7eeab03048825f0a801a8320fbed7d",
+          "bytes": 382,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

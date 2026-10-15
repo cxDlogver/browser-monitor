@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54651",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "config": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "test"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:54651/ingest/key"
+      }
+    },
+    "example": "import { createMonitor } from \"@cxdlogver/browser-monitor-sdk\";\nimport config from \"./monitor.json\";\n\n// 在浏览器客户端入口启动；SSR 项目使用客户端插件。\nconst monitor = createMonitor({\n  ...config,\n  view: { resolveRouteName: (location) => location.pathname },\n});\nmonitor.start();\n// 在业务需要结束监控时调用 monitor.destroy()。\n",
+    "artifacts": [],
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "keyId": "00000000-0000-4000-8000-000000000002"
+  },
+  "meta": {
+    "source": "platform_api_and_generated_artifact",
+    "warnings": [
+      "SDK JSON 不含函数；业务路由解析与初始化顺序需要在接入入口补充。"
+    ],
+    "keyExpiresAt": "2026-10-13T13:12:38.738Z",
+    "keyEligibilityTimeSource": "server_http_date",
+    "elapsedMs": 57
+  }
+}

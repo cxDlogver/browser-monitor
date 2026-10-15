@@ -1,0 +1,188 @@
+{
+  "caseId": "AC-11-02",
+  "startedAt": "2026-10-13T12:14:22.398Z",
+  "endedAt": "2026-10-13T12:14:27.408Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "success",
+      "invocation": [
+        "events",
+        "list",
+        "--name",
+        "absent",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:22.399Z",
+      "endedAt": "2026-10-13T12:14:22.883Z",
+      "elapsedMs": 484,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "invalid",
+      "invocation": [
+        "events",
+        "list",
+        "--limit",
+        "101",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:22.883Z",
+      "endedAt": "2026-10-13T12:14:23.277Z",
+      "elapsedMs": 395,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "auth",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:23.277Z",
+      "endedAt": "2026-10-13T12:14:23.932Z",
+      "elapsedMs": 654,
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "denied",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:23.933Z",
+      "endedAt": "2026-10-13T12:14:24.387Z",
+      "elapsedMs": 454,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "network",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:24.388Z",
+      "endedAt": "2026-10-13T12:14:25.497Z",
+      "elapsedMs": 1110,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "timeout",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--timeout",
+        "0.1",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:25.497Z",
+      "endedAt": "2026-10-13T12:14:26.077Z",
+      "elapsedMs": 579,
+      "exitCode": 6,
+      "expectedExitCode": 6,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "terminal",
+      "invocation": [
+        "events",
+        "wait",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:26.077Z",
+      "endedAt": "2026-10-13T12:14:26.507Z",
+      "elapsedMs": 430,
+      "exitCode": 7,
+      "expectedExitCode": 7,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "partial",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--out",
+        "ok.json",
+        "--example-out",
+        "blocked",
+        "--overwrite",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:26.508Z",
+      "endedAt": "2026-10-13T12:14:26.968Z",
+      "elapsedMs": 460,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    },
+    {
+      "name": "missing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "event",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49618"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:26.968Z",
+      "endedAt": "2026-10-13T12:14:27.399Z",
+      "elapsedMs": 431,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-IUuHLm"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

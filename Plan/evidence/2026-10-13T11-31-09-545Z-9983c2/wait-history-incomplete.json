@@ -1,0 +1,82 @@
+{
+  "invocation": [
+    "events",
+    "wait",
+    "--event-id",
+    "942122f2-596e-4275-8aa9-61ee1e022dbf",
+    "--project",
+    "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  ],
+  "stdin": null,
+  "expectedExitCode": 7,
+  "observedExitCode": 7,
+  "result": {
+    "schemaVersion": 1,
+    "ok": false,
+    "command": "events wait",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+    },
+    "data": {
+      "reason": "history_incomplete",
+      "polls": 1,
+      "elapsedMs": 101,
+      "lastObservation": {
+        "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+        "event": {
+          "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+          "occurredAt": "2026-10-13T11:31:18.536Z",
+          "receivedAt": "2026-10-13T11:31:18.551Z",
+          "type": "performance",
+          "name": "LCP"
+        },
+        "raw": {
+          "recordState": "present"
+        },
+        "processing": {
+          "state": "committed",
+          "processedAt": "2026-10-13T11:31:19.334Z",
+          "evidence": "telemetry_events.processed_at"
+        },
+        "task": {
+          "recordState": "missing",
+          "status": null
+        },
+        "projection": {
+          "visibility": "visible",
+          "eventEffect": "unknown",
+          "identity": {
+            "kind": "performance",
+            "sampleId": "metric-fixture-1"
+          },
+          "currentEntity": {
+            "sample_id": "metric-fixture-1",
+            "sequence": 0,
+            "state": "provisional"
+          },
+          "limitation": "Current entity visibility does not prove this event changed it; a committed no-op is valid."
+        },
+        "history": {
+          "limitations": [
+            "Task record missing: historical completion cannot be inferred; completed tasks are retained by worker policy."
+          ],
+          "completedTaskRetentionDays": 7
+        },
+        "asOf": "2026-10-13T11:31:27.754Z",
+        "source": "database"
+      },
+      "lastObservationAsOf": "2026-10-13T11:31:27.754Z"
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": []
+    },
+    "error": {
+      "code": "HISTORY_INCOMPLETE",
+      "message": "处理已提交，但任务完成证据缺失。",
+      "details": null
+    }
+  },
+  "stderr": ""
+}

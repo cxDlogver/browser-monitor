@@ -1,0 +1,58 @@
+{
+  "projectId": "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+  "frozenTime": "2026-10-13T11:54:59.469Z",
+  "clockSource": "controlled_driver_override_of_transaction_timestamp_for_boundary_test",
+  "checks": [
+    {
+      "name": "zero-summary",
+      "status": "passed",
+      "evidence": "diagnostics-zero-summary.json"
+    },
+    {
+      "name": "older-than-24h",
+      "status": "passed",
+      "evidence": "diagnostics-older-than-24h.json"
+    },
+    {
+      "name": "ambiguity",
+      "status": "passed",
+      "evidence": "diagnostics-ambiguity.json"
+    },
+    {
+      "name": "noop-revision",
+      "status": "passed",
+      "evidence": "diagnostics-noop-revision.json"
+    },
+    {
+      "name": "separate-stages",
+      "status": "passed",
+      "evidence": "diagnostics-separate-stages.json"
+    },
+    {
+      "name": "history-missing",
+      "status": "passed",
+      "evidence": "diagnostics-history-missing.json"
+    },
+    {
+      "name": "time-boundary",
+      "status": "passed",
+      "evidence": "diagnostics-time-boundary.json"
+    },
+    {
+      "name": "summary-scope",
+      "status": "passed",
+      "evidence": "diagnostics-summary-scope.json"
+    },
+    {
+      "name": "queue-boundaries",
+      "status": "passed",
+      "evidence": "diagnostics-queue-boundaries.json"
+    },
+    {
+      "name": "historical-error-time",
+      "status": "passed",
+      "evidence": "diagnostics-historical-error-time.json"
+    }
+  ],
+  "result": "passed"
+}

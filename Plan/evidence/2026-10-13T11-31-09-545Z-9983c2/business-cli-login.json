@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "auth login",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": null
+  },
+  "data": {
+    "user": {
+      "id": "8c4c77ee-fbd3-4c6a-ae0e-0bc0b2db42e9",
+      "email": "business-cli-1791891370888@example.test",
+      "displayName": "Business CLI acceptance"
+    },
+    "expiresAt": "2026-10-20T11:36:14.000Z",
+    "sessionSaved": true
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "expiresAt": "2026-10-20T11:36:14.000Z",
+    "elapsedMs": 329
+  }
+}

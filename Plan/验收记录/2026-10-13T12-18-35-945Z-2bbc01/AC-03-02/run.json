@@ -1,0 +1,145 @@
+{
+  "caseId": "AC-03-02",
+  "startedAt": "2026-10-13T12:18:56.362Z",
+  "endedAt": "2026-10-13T12:18:59.335Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "duplicate-list",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:56.362Z",
+      "endedAt": "2026-10-13T12:18:56.806Z",
+      "elapsedMs": 444,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "get-a",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:56.806Z",
+      "endedAt": "2026-10-13T12:18:57.302Z",
+      "elapsedMs": 495,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "get-b",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:57.302Z",
+      "endedAt": "2026-10-13T12:18:57.748Z",
+      "elapsedMs": 446,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "invalid-blank",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "   ",
+        "--app-name",
+        "valid",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:57.748Z",
+      "endedAt": "2026-10-13T12:18:58.138Z",
+      "elapsedMs": 390,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "invalid-long",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "--app-name",
+        "valid",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:58.138Z",
+      "endedAt": "2026-10-13T12:18:58.531Z",
+      "elapsedMs": 393,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "invalid-app-long",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "valid",
+        "--app-name",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:58.531Z",
+      "endedAt": "2026-10-13T12:18:58.916Z",
+      "elapsedMs": 385,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    },
+    {
+      "name": "invalid-app-invalid",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "valid",
+        "--app-name",
+        "invalid app name",
+        "--base-url",
+        "http://127.0.0.1:59834"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:58.916Z",
+      "endedAt": "2026-10-13T12:18:59.326Z",
+      "elapsedMs": 410,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-gB4O16"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

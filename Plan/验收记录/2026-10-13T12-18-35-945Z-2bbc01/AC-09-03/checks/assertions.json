@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Redis separate source/asOf",
+    "expected": [
+      "redis",
+      null
+    ],
+    "observed": [
+      "redis",
+      null
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "other task independent",
+    "expected": 2,
+    "observed": 2,
+    "verdict": "passed"
+  },
+  {
+    "name": "queue-boundaries recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-queue exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-queue exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "queue failure no zero",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  }
+]

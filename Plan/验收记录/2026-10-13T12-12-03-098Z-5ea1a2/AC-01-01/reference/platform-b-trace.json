@@ -1,0 +1,16 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/projects/00000000-0000-4000-8000-000000000003",
+    "query": {},
+    "body": null,
+    "cookiePresent": true,
+    "cookieMatches": true,
+    "csrfPresent": false,
+    "csrfMatches": false,
+    "at": "2026-10-13T12:12:08.748Z",
+    "monotonicMs": 5715.5224,
+    "responseClosedMs": 5716.0367,
+    "durationMs": 0.514299999999821
+  }
+]

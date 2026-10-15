@@ -1,0 +1,60 @@
+{
+  "caseId": "AC-08-02",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "2ae58da958a730821737773e21472177d395c120a99613c5a17be6b67bc5e8c4",
+      "bytes": 559
+    },
+    {
+      "path": "reference/database-separate-stages.json",
+      "sha256": "271c4c1099035db8c010d110c9fa7a61c81d59293f1ac96a5edd9e7b3a89274f",
+      "bytes": 3068
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "5568d73dadd52d241e1c2675aede661ed465f6e092cf261b9d6447989296c01d",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "run.json",
+      "sha256": "a986cb64c9e97fb1cd23080aa901a33534ab43a4f0f657b820c4d8ce679c1bb6",
+      "bytes": 1361
+    },
+    {
+      "path": "steps/failed/command.txt",
+      "sha256": "59c5d1392a8b39cc1ffc12c650e671aa78feee755eeeadec6a7fcf40608ada70",
+      "bytes": 160
+    },
+    {
+      "path": "steps/failed/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/failed/stdout.json",
+      "sha256": "6a5576876f9461c0ed4c44abf9bb772565dbce9249d192713c1997671345c8f6",
+      "bytes": 1622
+    },
+    {
+      "path": "steps/pending/command.txt",
+      "sha256": "416cda63b81f8e511578be16236cf1dbaab04fa2c3c6e313a18994086a1cb1df",
+      "bytes": 161
+    },
+    {
+      "path": "steps/pending/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/pending/stdout.json",
+      "sha256": "81b9f7dab8b77e2b3d4345829ca4c0fa9bd636f6132d38e28a123d9cce8cc5e2",
+      "bytes": 1625
+    }
+  ]
+}

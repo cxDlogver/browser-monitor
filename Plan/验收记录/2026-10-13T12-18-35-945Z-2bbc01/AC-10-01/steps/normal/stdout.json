@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "events wait",
+  "context": {
+    "baseUrl": "http://127.0.0.1:61829",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "reason": "completed",
+    "polls": 3,
+    "elapsedMs": 2068,
+    "lastObservation": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "event": {
+        "eventId": "event",
+        "occurredAt": "2026-10-13T00:00:00.000Z"
+      },
+      "raw": {
+        "recordState": "present"
+      },
+      "processing": {
+        "state": "committed",
+        "processedAt": "2026-10-13T00:00:01.000Z"
+      },
+      "task": {
+        "recordState": "present",
+        "status": "completed",
+        "completedAt": "2026-10-13T00:00:02.000Z"
+      },
+      "projection": {
+        "visibility": "missing",
+        "eventEffect": "unknown"
+      },
+      "history": {
+        "limitations": []
+      },
+      "source": "database",
+      "asOf": "2026-10-13T12:19:41.850Z"
+    },
+    "lastObservationAsOf": "2026-10-13T12:19:41.850Z",
+    "lastQueryFailure": null
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:19:41.850Z",
+    "elapsedMs": 2068
+  }
+}

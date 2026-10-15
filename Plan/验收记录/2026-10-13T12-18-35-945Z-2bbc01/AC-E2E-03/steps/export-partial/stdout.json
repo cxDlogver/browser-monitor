@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50232",
+    "projectId": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e"
+  },
+  "data": {
+    "artifacts": [
+      {
+        "kind": "out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json"
+      }
+    ],
+    "projectId": "6d41bdb0-b3e1-46c7-8a79-2d680bfb7c2e",
+    "keyId": "00000000-0000-4000-8000-000000000002"
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "PARTIAL_SUCCESS",
+    "message": "SDK 产物未全部写入，已成功的文件已保留。",
+    "details": {
+      "failedArtifact": {
+        "kind": "example-out",
+        "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\blocked"
+      }
+    }
+  }
+}

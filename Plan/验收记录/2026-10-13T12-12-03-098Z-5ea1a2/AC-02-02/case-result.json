@@ -1,0 +1,293 @@
+{
+  "caseId": "AC-02-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "受控输入可以登录；缺少输入立即返回错误，失效会话返回 AUTH_EXPIRED / 退出码 3，均不进入无人应答提示。",
+      "observed": {
+        "checks": [
+          {
+            "name": "no TTY no input",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "no input makes no request",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "expired",
+            "expected": "AUTH_EXPIRED",
+            "observed": "AUTH_EXPIRED",
+            "verdict": "passed"
+          },
+          {
+            "name": "expiry not guessed",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "stdin-login",
+            "exitCode": 0,
+            "elapsedMs": 734
+          },
+          {
+            "name": "no-input",
+            "exitCode": 2,
+            "elapsedMs": 415
+          },
+          {
+            "name": "expired",
+            "exitCode": 3,
+            "elapsedMs": 649
+          },
+          {
+            "name": "unknown-expiry",
+            "exitCode": 0,
+            "elapsedMs": 649
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2c8b229ca12728be33c802c673a07b8d129cfebff53ab109e649a62e53bdc723",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/auth-response-redacted.json",
+          "sha256": "9e0b6c7ebf9d861cda86fe98a5c768fa40a8a95f13418560d384a3672336c678",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "c5122e5bf6d795d7db401086e025d9e955f2f8a859ce4e5cc6320c42a719bc16",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "e474e0adff43c96e06c065e8b6161c50ad3b34a221f5dd30edb8d32a34b34d9f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "7f888d64d1a5739f12eb96598464154e6cf654b8326a96ad0b11de639c84c659",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/expired/command.txt",
+          "sha256": "b4777001bef4aeba41d8598b49468a8a58d704e705b57ac5fd934eba5a01940d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stdout.json",
+          "sha256": "e7a64efdab0e97f0bc06dbef6158f241534cc0f3ec3fc5cd166f798ee4fbad3a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/command.txt",
+          "sha256": "20cac7ee32128f56a46574fec8e9e3198e071bd58643bad21b3b5113df36ac61",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/stdout.json",
+          "sha256": "c3fa754b06ee78d2cc3709acaa8d3ecc88b970e638c0cb1607c75aa034edafee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/command.txt",
+          "sha256": "da36c5ab58386f2cb2a8b0faaf9fa7a847a45386fd95bd367c5c91b5e6335d20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/stdout.json",
+          "sha256": "96f5c0f376ba415f8accc6efd05ae39e3607c2e197b2f327f4799cb474cad633",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/command.txt",
+          "sha256": "da36c5ab58386f2cb2a8b0faaf9fa7a847a45386fd95bd367c5c91b5e6335d20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/stdout.json",
+          "sha256": "b97bc75474675cae9f4bf6bd162a1313a8bcac6c4af626a2336b3a7d0dac15d4",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "到期时间未知明确为空或 unknown，不推算固定剩余天数。",
+      "observed": {
+        "checks": [
+          {
+            "name": "no TTY no input",
+            "expected": "INVALID_ARGUMENT",
+            "observed": "INVALID_ARGUMENT",
+            "verdict": "passed"
+          },
+          {
+            "name": "no input makes no request",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "expired",
+            "expected": "AUTH_EXPIRED",
+            "observed": "AUTH_EXPIRED",
+            "verdict": "passed"
+          },
+          {
+            "name": "expiry not guessed",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "stdin-login",
+            "exitCode": 0,
+            "elapsedMs": 734
+          },
+          {
+            "name": "no-input",
+            "exitCode": 2,
+            "elapsedMs": 415
+          },
+          {
+            "name": "expired",
+            "exitCode": 3,
+            "elapsedMs": 649
+          },
+          {
+            "name": "unknown-expiry",
+            "exitCode": 0,
+            "elapsedMs": 649
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2c8b229ca12728be33c802c673a07b8d129cfebff53ab109e649a62e53bdc723",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/auth-response-redacted.json",
+          "sha256": "9e0b6c7ebf9d861cda86fe98a5c768fa40a8a95f13418560d384a3672336c678",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "c5122e5bf6d795d7db401086e025d9e955f2f8a859ce4e5cc6320c42a719bc16",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "e474e0adff43c96e06c065e8b6161c50ad3b34a221f5dd30edb8d32a34b34d9f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "7f888d64d1a5739f12eb96598464154e6cf654b8326a96ad0b11de639c84c659",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/expired/command.txt",
+          "sha256": "b4777001bef4aeba41d8598b49468a8a58d704e705b57ac5fd934eba5a01940d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/expired/stdout.json",
+          "sha256": "e7a64efdab0e97f0bc06dbef6158f241534cc0f3ec3fc5cd166f798ee4fbad3a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/command.txt",
+          "sha256": "20cac7ee32128f56a46574fec8e9e3198e071bd58643bad21b3b5113df36ac61",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/no-input/stdout.json",
+          "sha256": "c3fa754b06ee78d2cc3709acaa8d3ecc88b970e638c0cb1607c75aa034edafee",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/command.txt",
+          "sha256": "da36c5ab58386f2cb2a8b0faaf9fa7a847a45386fd95bd367c5c91b5e6335d20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/stdin-login/stdout.json",
+          "sha256": "96f5c0f376ba415f8accc6efd05ae39e3607c2e197b2f327f4799cb474cad633",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/command.txt",
+          "sha256": "da36c5ab58386f2cb2a8b0faaf9fa7a847a45386fd95bd367c5c91b5e6335d20",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-expiry/stdout.json",
+          "sha256": "b97bc75474675cae9f4bf6bd162a1313a8bcac6c4af626a2336b3a7d0dac15d4",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

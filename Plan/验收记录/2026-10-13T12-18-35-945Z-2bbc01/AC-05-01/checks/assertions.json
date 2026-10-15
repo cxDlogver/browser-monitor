@@ -1,0 +1,76 @@
+[
+  {
+    "name": "pure config",
+    "expected": [
+      "app",
+      "transport"
+    ],
+    "observed": [
+      "app",
+      "transport"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "app params",
+    "expected": {
+      "name": "fixture",
+      "version": "1.0.0",
+      "environment": "cli-acceptance"
+    },
+    "observed": {
+      "name": "fixture",
+      "version": "1.0.0",
+      "environment": "cli-acceptance"
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "inline equals file",
+    "expected": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:59906/ingest/key"
+      }
+    },
+    "observed": {
+      "app": {
+        "name": "fixture",
+        "version": "1.0.0",
+        "environment": "cli-acceptance"
+      },
+      "transport": {
+        "dsn": "http://127.0.0.1:59906/ingest/key"
+      }
+    },
+    "verdict": "passed"
+  },
+  {
+    "name": "example initializes and starts",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-export original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-export original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "example relative JSON import",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "caseId": "AC-01-01",
+  "startedAt": "2026-10-13T12:18:37.441Z",
+  "endedAt": "2026-10-13T12:18:39.144Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "default",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:52228"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:37.448Z",
+      "endedAt": "2026-10-13T12:18:37.848Z",
+      "elapsedMs": 400,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Na987Q"
+    },
+    {
+      "name": "override",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:52228"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:37.849Z",
+      "endedAt": "2026-10-13T12:18:38.287Z",
+      "elapsedMs": 438,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Na987Q"
+    },
+    {
+      "name": "missing",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:52236"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:38.297Z",
+      "endedAt": "2026-10-13T12:18:38.681Z",
+      "elapsedMs": 384,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Na987Q"
+    },
+    {
+      "name": "explicit",
+      "invocation": [
+        "project",
+        "get",
+        "--base-url",
+        "http://127.0.0.1:52236",
+        "--project",
+        "00000000-0000-4000-8000-000000000003"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:18:38.681Z",
+      "endedAt": "2026-10-13T12:18:39.127Z",
+      "elapsedMs": 447,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-Na987Q"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

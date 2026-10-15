@@ -1,0 +1,265 @@
+{
+  "caseId": "AC-11-04",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "没有服务端时刻时明确 asOf 未知，客户端时间不冒充快照；混合来源分别说明范围与时刻。",
+      "observed": {
+        "checks": [
+          {
+            "name": "server time unknown",
+            "expected": [
+              null,
+              null
+            ],
+            "observed": [
+              null,
+              null
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "text remains data, secrets removed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "DSN retained only for authorized artifact",
+            "expected": "http://127.0.0.1:49674/ingest/key",
+            "observed": "http://127.0.0.1:49674/ingest/key",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue-boundaries recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unknown-asof",
+            "exitCode": 0,
+            "elapsedMs": 419
+          },
+          {
+            "name": "untrusted-event",
+            "exitCode": 0,
+            "elapsedMs": 423
+          },
+          {
+            "name": "sdk-dsn",
+            "exitCode": 0,
+            "elapsedMs": 429
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "be436d98b35088f4c91a222335591525847ab05123b1945ec73ced71940b9c98",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-queue-boundaries.json",
+          "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "6f4f145122762b86e36866048edff2b1c20bfdadb4500c670712ed4cbd6bb304",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "50985b65e5d2d9bb47588bba0cfa4a0960aea71ce0090c56715e90db4b7c2ae4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "dca68e5f748d2c2817f24e0c710aff00b55cd9301de276a028adf15c71f7019c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/sdk-dsn/command.txt",
+          "sha256": "b608eca9f563c88bd957987ab453d7d7eff8eb84490f95a480d6723d8928eb75",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/sdk-dsn/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/sdk-dsn/stdout.json",
+          "sha256": "184fe93dca0d0f2fa1f7a219dda80da61153d4354565aceb53c4c9b51490fc0b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/command.txt",
+          "sha256": "adc5ab59e5328d695837a230ea028b7417d611ac2fa9bee6ed2a9cfd6b10d3ea",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/stdout.json",
+          "sha256": "0e6eeb92d42b04caf141734402d0161b39a42dc79841b2ec29b5e4c64cc02d0d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/command.txt",
+          "sha256": "1780b51203309f3970dc73eb52f9d5bf842a3610915234037d1762fa27477bde",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/stdout.json",
+          "sha256": "35347a1f1f7dd9ba5ef63063a2eacdc27699f2004ab3c3ead4f8dde44a6c8c4a",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "密码、Cookie、CSRF、数据库连接串不泄露；SDK DSN 仅作为授权接入产物，事件文字保持数据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "server time unknown",
+            "expected": [
+              null,
+              null
+            ],
+            "observed": [
+              null,
+              null
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "text remains data, secrets removed",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "DSN retained only for authorized artifact",
+            "expected": "http://127.0.0.1:49674/ingest/key",
+            "observed": "http://127.0.0.1:49674/ingest/key",
+            "verdict": "passed"
+          },
+          {
+            "name": "queue-boundaries recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unknown-asof",
+            "exitCode": 0,
+            "elapsedMs": 419
+          },
+          {
+            "name": "untrusted-event",
+            "exitCode": 0,
+            "elapsedMs": 423
+          },
+          {
+            "name": "sdk-dsn",
+            "exitCode": 0,
+            "elapsedMs": 429
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "be436d98b35088f4c91a222335591525847ab05123b1945ec73ced71940b9c98",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/database-queue-boundaries.json",
+          "sha256": "d7740a0a6926826015b8b4b455031e3e68024c6369acfcdbcacc78fd8781046f",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "6f4f145122762b86e36866048edff2b1c20bfdadb4500c670712ed4cbd6bb304",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "50985b65e5d2d9bb47588bba0cfa4a0960aea71ce0090c56715e90db4b7c2ae4",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "dca68e5f748d2c2817f24e0c710aff00b55cd9301de276a028adf15c71f7019c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/sdk-dsn/command.txt",
+          "sha256": "b608eca9f563c88bd957987ab453d7d7eff8eb84490f95a480d6723d8928eb75",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/sdk-dsn/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/sdk-dsn/stdout.json",
+          "sha256": "184fe93dca0d0f2fa1f7a219dda80da61153d4354565aceb53c4c9b51490fc0b",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/command.txt",
+          "sha256": "adc5ab59e5328d695837a230ea028b7417d611ac2fa9bee6ed2a9cfd6b10d3ea",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unknown-asof/stdout.json",
+          "sha256": "0e6eeb92d42b04caf141734402d0161b39a42dc79841b2ec29b5e4c64cc02d0d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/command.txt",
+          "sha256": "1780b51203309f3970dc73eb52f9d5bf842a3610915234037d1762fa27477bde",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/untrusted-event/stdout.json",
+          "sha256": "35347a1f1f7dd9ba5ef63063a2eacdc27699f2004ab3c3ead4f8dde44a6c8c4a",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

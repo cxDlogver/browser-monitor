@@ -1,0 +1,56 @@
+[
+  {
+    "name": "normalized set",
+    "expected": [
+      "http://localhost",
+      "https://example.test"
+    ],
+    "observed": [
+      "http://localhost",
+      "https://example.test"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "replace entire set",
+    "expected": [
+      "http://localhost",
+      "https://example.test"
+    ],
+    "observed": [
+      "http://localhost",
+      "https://example.test"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "old removed",
+    "expected": false,
+    "observed": false,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-origins original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "qhzhc-origins-readback original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-origins original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  },
+  {
+    "name": "official-origins-readback original exit",
+    "expected": 0,
+    "observed": 0,
+    "verdict": "passed"
+  }
+]

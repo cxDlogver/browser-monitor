@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "events" "wait" "--event-id" "event" "--interval" "1" "--project" "00000000-0000-4000-8000-000000000001" "--base-url" "http://127.0.0.1:50405"

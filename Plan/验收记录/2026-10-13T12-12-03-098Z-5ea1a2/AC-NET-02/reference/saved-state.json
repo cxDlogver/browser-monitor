@@ -1,0 +1,23 @@
+{
+  "project": {
+    "id": "00000000-0000-4000-8000-000000000009",
+    "displayName": "malformed",
+    "appName": "malformed",
+    "enabled": true,
+    "role": "owner",
+    "origins": [
+      "http://localhost:9000"
+    ],
+    "keys": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "active": true,
+        "expiresAt": null,
+        "dsn": "http://127.0.0.1:61725/ingest/key"
+      }
+    ]
+  },
+  "origins": [
+    "http://localhost:3000"
+  ]
+}

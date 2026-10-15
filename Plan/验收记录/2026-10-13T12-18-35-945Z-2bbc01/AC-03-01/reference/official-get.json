@@ -1,0 +1,86 @@
+{
+  "invocation": [
+    "project",
+    "get",
+    "--project",
+    "9d0d0f78-cefc-46d5-9543-7682587db457"
+  ],
+  "stdin": null,
+  "expectedExitCode": 0,
+  "observedExitCode": 0,
+  "result": {
+    "schemaVersion": 1,
+    "ok": true,
+    "command": "project get",
+    "context": {
+      "baseUrl": "http://localhost:8080",
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+    },
+    "data": {
+      "id": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "displayName": "官网项目-CLI验收",
+      "appName": "guanwang",
+      "enabled": true,
+      "role": "owner",
+      "keys": [
+        {
+          "id": "cef0b6f0-44f4-47d2-be92-a822bb55b5cc",
+          "label": "default",
+          "active": true,
+          "expiresAt": null,
+          "createdAt": "2026-10-13T11:31:16.424Z",
+          "dsn": "http://localhost:8080/api/v3/ingest/bm_pk_qvR7cMKyfVgjCVPxoz4l86TYnV6Q47OWem69T4mUlZI/envelopes"
+        }
+      ],
+      "origins": [
+        "http://localhost:8080"
+      ],
+      "members": [
+        {
+          "id": "22eca7f1-3beb-4b9b-b3c5-d5bf14faa9b9",
+          "email": "cli-2026-10-13t11-31-09-545z-9983c2@example.test",
+          "displayName": "CLI acceptance",
+          "role": "owner"
+        }
+      ],
+      "thresholds": {
+        "id": "0f574205-ddb3-4640-8650-ed67e08b1895",
+        "version": 1,
+        "config": {
+          "CLS": {
+            "good": 0.1,
+            "poor": 0.25,
+            "direction": "lower-is-better"
+          },
+          "FCP": {
+            "good": 1800,
+            "poor": 3000,
+            "direction": "lower-is-better"
+          },
+          "FPS": {
+            "good": 50,
+            "poor": 30,
+            "direction": "higher-is-better"
+          },
+          "INP": {
+            "good": 200,
+            "poor": 500,
+            "direction": "lower-is-better"
+          },
+          "LCP": {
+            "good": 2500,
+            "poor": 4000,
+            "direction": "lower-is-better"
+          }
+        },
+        "project_id": null
+      }
+    },
+    "meta": {
+      "source": "platform_api",
+      "warnings": [],
+      "elapsedMs": 127
+    }
+  },
+  "stderr": ""
+}

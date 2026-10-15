@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "auth" "login" "--email" "fixture@example.test" "--password-stdin" "--base-url" "http://127.0.0.1:58162"

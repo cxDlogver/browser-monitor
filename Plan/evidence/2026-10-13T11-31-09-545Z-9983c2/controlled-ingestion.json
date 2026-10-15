@@ -1,0 +1,16 @@
+{
+  "source": "controlled_protocol_fixture",
+  "status": 202,
+  "response": {
+    "accepted": 1,
+    "duplicate": 0,
+    "rejected": 0,
+    "requestId": "7e52035f-980d-48fc-ba61-cb72a54f94e9",
+    "rejections": []
+  },
+  "identity": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "eventId": "942122f2-596e-4275-8aa9-61ee1e022dbf",
+    "occurredAt": "2026-10-13T11:31:18.536Z"
+  }
+}

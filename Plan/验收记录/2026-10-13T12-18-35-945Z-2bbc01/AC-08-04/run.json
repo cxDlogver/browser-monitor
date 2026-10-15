@@ -1,0 +1,73 @@
+{
+  "caseId": "AC-08-04",
+  "startedAt": "2026-10-13T12:19:35.246Z",
+  "endedAt": "2026-10-13T12:19:36.746Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "taskMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "task-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:35.251Z",
+      "endedAt": "2026-10-13T12:19:35.762Z",
+      "elapsedMs": 511,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EzoovC"
+    },
+    {
+      "name": "rawMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "raw-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:35.762Z",
+      "endedAt": "2026-10-13T12:19:36.233Z",
+      "elapsedMs": 471,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EzoovC"
+    },
+    {
+      "name": "allMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "all-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:36.233Z",
+      "endedAt": "2026-10-13T12:19:36.733Z",
+      "elapsedMs": 500,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-EzoovC"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

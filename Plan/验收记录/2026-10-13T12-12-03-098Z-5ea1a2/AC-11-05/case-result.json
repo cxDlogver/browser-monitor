@@ -1,0 +1,113 @@
+{
+  "caseId": "AC-11-05",
+  "status": "failed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": "AssertionError [ERR_ASSERTION]: list capability\n+ actual - expected\n\n+ 'PROJECT_UNAVAILABLE'\n- 'CAPABILITY_UNAVAILABLE'\n\n    at Case.check (file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-kit.mjs:113:38)\n    at file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-protocol.mjs:33:68\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-acceptance.mjs:66:47",
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "能力缺失返回 CAPABILITY_UNAVAILABLE / 退出码 4，不伪造数据。",
+      "observed": {
+        "checks": [],
+        "steps": [
+          {
+            "name": "missing-list",
+            "exitCode": 4,
+            "elapsedMs": 413
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "36e3812f00e428fc0d83e1acb19874c2c2333102bd2cfb3ff79b20d53a631f97",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "1962a1743d21dbc67fc5c49d2ffe7da666b5cb100bb188c49d8ff70861a69f97",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "920934ec8e790649201bbc48e369d06e5bf3ee74bc02e1cddd3e4f541cf16a6b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/missing-list/command.txt",
+          "sha256": "62eabd0a5bfc5049d52fc11014de111531a6b35d949f3ab687bbb302b4e4a665",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-list/stdout.json",
+          "sha256": "05e21b2b2108d0d22b7c1a060c119143e4e855a14bec5b03d89b0b0b016d0499",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "只读契约错误返回 API_CONTRACT_INVALID / 退出码 5，未知或错误字段不被补成零、成功或完成。",
+      "observed": {
+        "checks": [],
+        "steps": [
+          {
+            "name": "missing-list",
+            "exitCode": 4,
+            "elapsedMs": 413
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "36e3812f00e428fc0d83e1acb19874c2c2333102bd2cfb3ff79b20d53a631f97",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "1962a1743d21dbc67fc5c49d2ffe7da666b5cb100bb188c49d8ff70861a69f97",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "920934ec8e790649201bbc48e369d06e5bf3ee74bc02e1cddd3e4f541cf16a6b",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/missing-list/command.txt",
+          "sha256": "62eabd0a5bfc5049d52fc11014de111531a6b35d949f3ab687bbb302b4e4a665",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-list/stdout.json",
+          "sha256": "05e21b2b2108d0d22b7c1a060c119143e4e855a14bec5b03d89b0b0b016d0499",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

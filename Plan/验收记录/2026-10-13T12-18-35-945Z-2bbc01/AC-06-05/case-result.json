@@ -1,0 +1,1087 @@
+{
+  "caseId": "AC-06-05",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认摘要与显式内容入口清楚，payload 遵守平台脱敏与项目权限，不绕过数据边界。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary has no payload",
+            "expected": "[absent]",
+            "observed": "[absent]",
+            "verdict": "passed"
+          },
+          {
+            "name": "payload opt-in",
+            "expected": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "empty is success",
+            "expected": [],
+            "observed": [],
+            "verdict": "passed"
+          },
+          {
+            "name": "denied no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "server-fault no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual member can read own project payload",
+            "expected": "event-mv6lymu3-3-as5ip2jy",
+            "observed": "event-mv6lymu3-3-as5ip2jy",
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign events denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign events content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign diagnostics denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign diagnostics content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign queue denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign queue content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual member can read own project payload",
+            "expected": "event-mv6lymu3-3-as5ip2jy",
+            "observed": "event-mv6lymu3-3-as5ip2jy",
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign events denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign events content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign diagnostics denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign diagnostics content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign queue denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign queue content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 413
+          },
+          {
+            "name": "payload",
+            "exitCode": 0,
+            "elapsedMs": 432
+          },
+          {
+            "name": "empty",
+            "exitCode": 0,
+            "elapsedMs": 449
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 429
+          },
+          {
+            "name": "server-fault",
+            "exitCode": 5,
+            "elapsedMs": 1136
+          },
+          {
+            "name": "real-member-login",
+            "exitCode": 0,
+            "elapsedMs": 661
+          },
+          {
+            "name": "real-member-payload",
+            "exitCode": 0,
+            "elapsedMs": 438
+          },
+          {
+            "name": "real-foreign-events",
+            "exitCode": 4,
+            "elapsedMs": 424
+          },
+          {
+            "name": "real-foreign-diagnostics",
+            "exitCode": 4,
+            "elapsedMs": 421
+          },
+          {
+            "name": "real-foreign-queue",
+            "exitCode": 4,
+            "elapsedMs": 417
+          },
+          {
+            "name": "real-member-write-denied",
+            "exitCode": 4,
+            "elapsedMs": 449
+          },
+          {
+            "name": "real-member-login",
+            "exitCode": 0,
+            "elapsedMs": 702
+          },
+          {
+            "name": "real-member-payload",
+            "exitCode": 0,
+            "elapsedMs": 442
+          },
+          {
+            "name": "real-foreign-events",
+            "exitCode": 4,
+            "elapsedMs": 432
+          },
+          {
+            "name": "real-foreign-diagnostics",
+            "exitCode": 4,
+            "elapsedMs": 430
+          },
+          {
+            "name": "real-foreign-queue",
+            "exitCode": 4,
+            "elapsedMs": 430
+          },
+          {
+            "name": "real-member-write-denied",
+            "exitCode": 4,
+            "elapsedMs": 436
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7de4939b0e842f6415e134029c1f30f807ddc60afddf7a53e2f52dc2c5d17543",
+          "bytes": 3293,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "d3f4926429ee0494fee64f216cf084f49a0bc613d9ddfa4cb723aca8618dbdf8",
+          "bytes": 331,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/member-can-read.json",
+          "sha256": "539cd43812cb73e2b271b5a97374ba9b39e034ce0e75f166590c48781e5616d8",
+          "bytes": 2375,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/member-write-denied.json",
+          "sha256": "591b57ba162c678398cd60b78b731f5ca359c33fac7a6c0c4cd0f84805c79a41",
+          "bytes": 786,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "bytes": 4180,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "bytes": 3605,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/real-permission-binding.json",
+          "sha256": "8d8be0c9f6b3313263b7199a326f0c087d3e01da1cb23ec4ed098e5bb52746ee",
+          "bytes": 319,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "043fdf93b1ef0dd1038b3826aff0ea603fa99f39859780e47547555869fd5897",
+          "bytes": 3795,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0b15edb1cbb37668cde2ee99e77e6f98d90dc92f76d0ff197cb5be21a2b96468",
+          "bytes": 9207,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "b572d8bc35b8ff872fda9210d482721e391a992605bc6e2f9fd64e149be3935c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "d739b41a7495e8194aed341d500041cd07f8c2f5d551c48254552504766b3738",
+          "bytes": 592,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/command.txt",
+          "sha256": "49417cb307223b381d76c60c4148845da284d399f537fdafb2093568d35f377b",
+          "bytes": 143,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/stdout.json",
+          "sha256": "684b9f6afeb50d347c8a61dbfec99d0ecacd546cd0516b565c8c5731941e2ee9",
+          "bytes": 751,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/command.txt",
+          "sha256": "7c29e61cc2576f88d8f866098763a2ec3fbcd43dcc0699c08b957d4715c97156",
+          "bytes": 173,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/stdout.json",
+          "sha256": "fb7db7b3cadeba53221c516e30243fc5b70da3f1cd94959e7769306cfd61c1bb",
+          "bytes": 1446,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/command.txt",
+          "sha256": "c8fb580a6b8620477bf888d48df4f4573da3a2c1683bc3bd0fcf18f4998e1be7",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/stdout.json",
+          "sha256": "b38cc878671cd7e7f0068aefe2fcacbe2fce6a6719068869de6437fc3c9fd29b",
+          "bytes": 506,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/command.txt",
+          "sha256": "01c2c170e689a418cbf9a25d0a17483bb3231c64b462f17bc22e53da92ce38f2",
+          "bytes": 144,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/stdout.json",
+          "sha256": "3b35ca90d5d59592516bf7ff5e2ecb591d7d7f445dcd4601c86005214302c472",
+          "bytes": 590,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/command.txt",
+          "sha256": "bb8497d367442ebc25ab3205f796e9f0fdd5442ab4c2fb79ac7a986f14e1159d",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/stdout.json",
+          "sha256": "d4b2765faef3204568cf81460ad5677dcc0b3ac508a5e8469d16c7e3a942aae8",
+          "bytes": 507,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/command.txt",
+          "sha256": "11685c6224059a7ded820235f8ecbb127e4f3f97087d534924c3e067d88f73c3",
+          "bytes": 168,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/stdout.json",
+          "sha256": "25cc90f5e113ab22b72f7fc214a42dab9d00ed5ee8e3defa894c7d0ca0c0ed78",
+          "bytes": 570,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/command.txt",
+          "sha256": "fcf91039c013de9898b606d223f99b32be5c2c4b7c9c9fbb4992e7d8dced8d74",
+          "bytes": 185,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/stdout.json",
+          "sha256": "0b77782ee065a43bb3021bdc2c30ea58d4a454aa82e6c4fe06adb2d07e19ed30",
+          "bytes": 2602,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/command.txt",
+          "sha256": "65aced71c2d7059172224e88aabe048415935ba513e07bc6ff452be17471bf86",
+          "bytes": 159,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/stdout.json",
+          "sha256": "d6d456351bbc4f049f58bc674ede6810b01c8be1f96a3d766fbb478ce2addecf",
+          "bytes": 491,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/command.txt",
+          "sha256": "b572d8bc35b8ff872fda9210d482721e391a992605bc6e2f9fd64e149be3935c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/stdout.json",
+          "sha256": "9bda5fd30d7f40fec32a6501dc4bc0f5e043f366018c3396bab695bf85463baf",
+          "bytes": 585,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "1ee8ec1464dbedad17de480ac58dc872f6368859b69dec8aa284dbc0707ec0df",
+          "bytes": 153,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "d065dfcdcd4f5f44bed107b9f51d873cbdc8b7f80b574212c8f39f19ff608400",
+          "bytes": 1130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "空列表为成功 / 退出码 0；权限或服务故障为相应错误，不能用空列表代替失败。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary has no payload",
+            "expected": "[absent]",
+            "observed": "[absent]",
+            "verdict": "passed"
+          },
+          {
+            "name": "payload opt-in",
+            "expected": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "empty is success",
+            "expected": [],
+            "observed": [],
+            "verdict": "passed"
+          },
+          {
+            "name": "denied no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "server-fault no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual member can read own project payload",
+            "expected": "event-mv6lymu3-3-as5ip2jy",
+            "observed": "event-mv6lymu3-3-as5ip2jy",
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign events denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign events content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign diagnostics denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign diagnostics content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign queue denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign queue content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual member can read own project payload",
+            "expected": "event-mv6lymu3-3-as5ip2jy",
+            "observed": "event-mv6lymu3-3-as5ip2jy",
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign events denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign events content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign diagnostics denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign diagnostics content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "actual foreign queue denied",
+            "expected": "PROJECT_UNAVAILABLE",
+            "observed": "PROJECT_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "no foreign queue content",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 413
+          },
+          {
+            "name": "payload",
+            "exitCode": 0,
+            "elapsedMs": 432
+          },
+          {
+            "name": "empty",
+            "exitCode": 0,
+            "elapsedMs": 449
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 429
+          },
+          {
+            "name": "server-fault",
+            "exitCode": 5,
+            "elapsedMs": 1136
+          },
+          {
+            "name": "real-member-login",
+            "exitCode": 0,
+            "elapsedMs": 661
+          },
+          {
+            "name": "real-member-payload",
+            "exitCode": 0,
+            "elapsedMs": 438
+          },
+          {
+            "name": "real-foreign-events",
+            "exitCode": 4,
+            "elapsedMs": 424
+          },
+          {
+            "name": "real-foreign-diagnostics",
+            "exitCode": 4,
+            "elapsedMs": 421
+          },
+          {
+            "name": "real-foreign-queue",
+            "exitCode": 4,
+            "elapsedMs": 417
+          },
+          {
+            "name": "real-member-write-denied",
+            "exitCode": 4,
+            "elapsedMs": 449
+          },
+          {
+            "name": "real-member-login",
+            "exitCode": 0,
+            "elapsedMs": 702
+          },
+          {
+            "name": "real-member-payload",
+            "exitCode": 0,
+            "elapsedMs": 442
+          },
+          {
+            "name": "real-foreign-events",
+            "exitCode": 4,
+            "elapsedMs": 432
+          },
+          {
+            "name": "real-foreign-diagnostics",
+            "exitCode": 4,
+            "elapsedMs": 430
+          },
+          {
+            "name": "real-foreign-queue",
+            "exitCode": 4,
+            "elapsedMs": 430
+          },
+          {
+            "name": "real-member-write-denied",
+            "exitCode": 4,
+            "elapsedMs": 436
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "7de4939b0e842f6415e134029c1f30f807ddc60afddf7a53e2f52dc2c5d17543",
+          "bytes": 3293,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "d3f4926429ee0494fee64f216cf084f49a0bc613d9ddfa4cb723aca8618dbdf8",
+          "bytes": 331,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/member-can-read.json",
+          "sha256": "539cd43812cb73e2b271b5a97374ba9b39e034ce0e75f166590c48781e5616d8",
+          "bytes": 2375,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/member-write-denied.json",
+          "sha256": "591b57ba162c678398cd60b78b731f5ca359c33fac7a6c0c4cd0f84805c79a41",
+          "bytes": 786,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "bytes": 4180,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "bytes": 3605,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/real-permission-binding.json",
+          "sha256": "8d8be0c9f6b3313263b7199a326f0c087d3e01da1cb23ec4ed098e5bb52746ee",
+          "bytes": 319,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "043fdf93b1ef0dd1038b3826aff0ea603fa99f39859780e47547555869fd5897",
+          "bytes": 3795,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "0b15edb1cbb37668cde2ee99e77e6f98d90dc92f76d0ff197cb5be21a2b96468",
+          "bytes": 9207,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "b572d8bc35b8ff872fda9210d482721e391a992605bc6e2f9fd64e149be3935c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "d739b41a7495e8194aed341d500041cd07f8c2f5d551c48254552504766b3738",
+          "bytes": 592,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/command.txt",
+          "sha256": "49417cb307223b381d76c60c4148845da284d399f537fdafb2093568d35f377b",
+          "bytes": 143,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/empty/stdout.json",
+          "sha256": "684b9f6afeb50d347c8a61dbfec99d0ecacd546cd0516b565c8c5731941e2ee9",
+          "bytes": 751,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/command.txt",
+          "sha256": "7c29e61cc2576f88d8f866098763a2ec3fbcd43dcc0699c08b957d4715c97156",
+          "bytes": 173,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/payload/stdout.json",
+          "sha256": "fb7db7b3cadeba53221c516e30243fc5b70da3f1cd94959e7769306cfd61c1bb",
+          "bytes": 1446,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/command.txt",
+          "sha256": "c8fb580a6b8620477bf888d48df4f4573da3a2c1683bc3bd0fcf18f4998e1be7",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-diagnostics/stdout.json",
+          "sha256": "b38cc878671cd7e7f0068aefe2fcacbe2fce6a6719068869de6437fc3c9fd29b",
+          "bytes": 506,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/command.txt",
+          "sha256": "01c2c170e689a418cbf9a25d0a17483bb3231c64b462f17bc22e53da92ce38f2",
+          "bytes": 144,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-events/stdout.json",
+          "sha256": "3b35ca90d5d59592516bf7ff5e2ecb591d7d7f445dcd4601c86005214302c472",
+          "bytes": 590,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/command.txt",
+          "sha256": "bb8497d367442ebc25ab3205f796e9f0fdd5442ab4c2fb79ac7a986f14e1159d",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-foreign-queue/stdout.json",
+          "sha256": "d4b2765faef3204568cf81460ad5677dcc0b3ac508a5e8469d16c7e3a942aae8",
+          "bytes": 507,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/command.txt",
+          "sha256": "11685c6224059a7ded820235f8ecbb127e4f3f97087d534924c3e067d88f73c3",
+          "bytes": 168,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-login/stdout.json",
+          "sha256": "25cc90f5e113ab22b72f7fc214a42dab9d00ed5ee8e3defa894c7d0ca0c0ed78",
+          "bytes": 570,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/command.txt",
+          "sha256": "fcf91039c013de9898b606d223f99b32be5c2c4b7c9c9fbb4992e7d8dced8d74",
+          "bytes": 185,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-payload/stdout.json",
+          "sha256": "0b77782ee065a43bb3021bdc2c30ea58d4a454aa82e6c4fe06adb2d07e19ed30",
+          "bytes": 2602,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/command.txt",
+          "sha256": "65aced71c2d7059172224e88aabe048415935ba513e07bc6ff452be17471bf86",
+          "bytes": 159,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/real-member-write-denied/stdout.json",
+          "sha256": "d6d456351bbc4f049f58bc674ede6810b01c8be1f96a3d766fbb478ce2addecf",
+          "bytes": 491,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/command.txt",
+          "sha256": "b572d8bc35b8ff872fda9210d482721e391a992605bc6e2f9fd64e149be3935c",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/server-fault/stdout.json",
+          "sha256": "9bda5fd30d7f40fec32a6501dc4bc0f5e043f366018c3396bab695bf85463baf",
+          "bytes": 585,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "1ee8ec1464dbedad17de480ac58dc872f6368859b69dec8aa284dbc0707ec0df",
+          "bytes": 153,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "d065dfcdcd4f5f44bed107b9f51d873cbdc8b7f80b574212c8f39f19ff608400",
+          "bytes": 1130,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

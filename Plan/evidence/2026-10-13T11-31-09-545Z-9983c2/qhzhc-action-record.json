@@ -1,0 +1,20 @@
+{
+  "source": "actual_browser_business_action",
+  "definitionId": "qhzhc.visualization.view-start",
+  "businessAction": "已登录后进入或重新加载 /#/dataVisualization，确认客户端 SDK 已启动",
+  "actionStartedAt": "2026-10-13T11:38:00Z",
+  "actionEndedAt": "2026-10-13T11:44:00Z",
+  "observedEntryUrl": "http://127.0.0.1:9527/#/dataVisualization",
+  "observedExitUrl": "http://127.0.0.1:9527/#/index",
+  "screenshot": "qhzhc-business-page.jpg",
+  "probeUsed": false,
+  "identity": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "eventId": "event-mv6lymu3-3-as5ip2jy",
+    "occurredAt": "2026-10-13T11:39:07.419Z",
+    "sessionId": "session-mv6lymu2-1-4nyjjht5",
+    "viewId": "view-mv6lymu3-2-k3gcygom",
+    "traceId": null,
+    "spanId": null
+  }
+}

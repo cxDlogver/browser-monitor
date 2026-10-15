@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "data summary",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd"
+  },
+  "data": {
+    "projectId": "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd",
+    "retainedRawEventCount": 233,
+    "latestReceivedAt": "2026-10-13T11:42:35.317Z",
+    "retentionPolicy": {
+      "raw": {
+        "state": "configured",
+        "dropAfter": "30 days",
+        "scheduled": true,
+        "source": "timescaledb_information.jobs"
+      },
+      "completedTasks": {
+        "days": 7,
+        "source": "worker_housekeeping_policy"
+      }
+    },
+    "asOf": "2026-10-13T12:22:56.705Z",
+    "source": "database"
+  },
+  "meta": {
+    "source": "database",
+    "warnings": [],
+    "asOf": "2026-10-13T12:22:56.705Z",
+    "elapsedMs": 102
+  }
+}

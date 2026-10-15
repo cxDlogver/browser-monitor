@@ -1,0 +1,143 @@
+{
+  "caseId": "AC-03-02",
+  "startedAt": "2026-10-13T12:12:25.932Z",
+  "endedAt": "2026-10-13T12:12:28.805Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "duplicate-list",
+      "invocation": [
+        "project",
+        "list",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:25.932Z",
+      "endedAt": "2026-10-13T12:12:26.371Z",
+      "elapsedMs": 439,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "get-a",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:26.371Z",
+      "endedAt": "2026-10-13T12:12:26.804Z",
+      "elapsedMs": 432,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "get-b",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:26.804Z",
+      "endedAt": "2026-10-13T12:12:27.229Z",
+      "elapsedMs": 426,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "invalid-blank",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "   ",
+        "--app-name",
+        "valid",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:27.229Z",
+      "endedAt": "2026-10-13T12:12:27.625Z",
+      "elapsedMs": 396,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "invalid-long",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "--app-name",
+        "valid",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:27.625Z",
+      "endedAt": "2026-10-13T12:12:28.017Z",
+      "elapsedMs": 392,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "invalid-app-long",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "valid",
+        "--app-name",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:28.017Z",
+      "endedAt": "2026-10-13T12:12:28.432Z",
+      "elapsedMs": 415,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    },
+    {
+      "name": "invalid-app-invalid",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "valid",
+        "--app-name",
+        "invalid app name",
+        "--base-url",
+        "http://127.0.0.1:54586"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:28.432Z",
+      "endedAt": "2026-10-13T12:12:28.795Z",
+      "elapsedMs": 364,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-jBocEd"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

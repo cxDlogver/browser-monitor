@@ -1,0 +1,31 @@
+{
+  "caseId": "AC-08-03",
+  "startedAt": "2026-10-13T12:13:03.897Z",
+  "endedAt": "2026-10-13T12:13:04.407Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "noop",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "revision-old",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:03.902Z",
+      "endedAt": "2026-10-13T12:13:04.400Z",
+      "elapsedMs": 499,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-hvrzbB"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

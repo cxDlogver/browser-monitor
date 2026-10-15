@@ -1,0 +1,585 @@
+{
+  "caseId": "AC-E2E-03",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "恢复沿用同一项目 ID，只有一次创建，没有自动删除或重复创建；最终来源可回查。",
+      "observed": {
+        "checks": [
+          {
+            "name": "one create across recovery",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "partial lists generated JSON",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+            "verdict": "passed"
+          },
+          {
+            "name": "original success hash preserved",
+            "expected": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+            "observed": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+            "verdict": "passed"
+          },
+          {
+            "name": "new temp compatible",
+            "expected": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:50232/ingest/key"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:50232/ingest/key"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 408
+          },
+          {
+            "name": "origins-failed",
+            "exitCode": 5,
+            "elapsedMs": 431
+          },
+          {
+            "name": "origins-recovered",
+            "exitCode": 0,
+            "elapsedMs": 486
+          },
+          {
+            "name": "final-project",
+            "exitCode": 0,
+            "elapsedMs": 418
+          },
+          {
+            "name": "export-partial",
+            "exitCode": 8,
+            "elapsedMs": 408
+          },
+          {
+            "name": "example-recovered",
+            "exitCode": 0,
+            "elapsedMs": 409
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/recovery-temp-config.json",
+          "sha256": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+          "bytes": 172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+          "bytes": 172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/sdk-example.ts",
+          "sha256": "fbc4e6ee276a326d91f71d30cc13040af17308e89aca9d8a073370e0c1ecc42d",
+          "bytes": 372,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2111a825d77f5a13f9084d2153eacce709b6b4928141d11de0ad433a83426823",
+          "bytes": 1107,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/recovery-file-hashes.json",
+          "sha256": "058e02a16b49efb7c91248ca585da87c347a2b24f3f8d33df043f38dd329467b",
+          "bytes": 233,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/final-project-state.json",
+          "sha256": "44ae2f8e34f2a9b0cd2927766445d43d8c12ec1f16b2c8be5b7852e3d1289753",
+          "bytes": 471,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "c4f4e5d94a6e140b49615db2511282426d14b6be1e52511f4f08a557c7e4eebd",
+          "bytes": 241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "113dde7232f072e50c4991acb2c2bacc5dc3e23b7a1510943e48436077ec0cb9",
+          "bytes": 2475,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "768df59f185ca3a05a14b665235270fccce6aee0c137f1d79e66b6d121024354",
+          "bytes": 3751,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "e65504ca9832c4571636e87a602e750bcc83a04d9f5657818184fddb18f77b8c",
+          "bytes": 133,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "ca04512b3e0abffddd070df884d8b0128084d5d8c5e7576541562fba4b1a7e91",
+          "bytes": 780,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/command.txt",
+          "sha256": "0f66fc9eaf18607ed39e35948cca68ae04762f1525b73b5e0d11d5ee25c18205",
+          "bytes": 241,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/stdout.json",
+          "sha256": "5653f83d556bd2f12287e6a23e62f8981a5c84e5efff8013b05d38315c6acdab",
+          "bytes": 864,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/command.txt",
+          "sha256": "206010b2f1289d091918be83ae8d15d6ac061b3b8b08f37444d23f1c8fd0e1a2",
+          "bytes": 245,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/stdout.json",
+          "sha256": "78532a9cb0dc222fdfe2aa3f52f83d2c6742c3f26ea90ce084160404a7801dae",
+          "bytes": 795,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/command.txt",
+          "sha256": "165c34193d0d244c5e41bedd785e1169d7b5a8c247b42d6e11b801a2ee5d9bd0",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/stdout.json",
+          "sha256": "8cc2bce98c764fb5e9b27d180de0d2877caa8cef4cb53c230ac7be8b3d8ce503",
+          "bytes": 688,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/command.txt",
+          "sha256": "7f3cc096b75dc1483fcb630348ec467b89d2dbdcc851142ef6fdb7a81bb07e5b",
+          "bytes": 160,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/stdout.json",
+          "sha256": "2ffde65dd0d6fa9cd2e3188cb305c2b1ed40c5255a73b4501f2217d9b1b79f28",
+          "bytes": 490,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/command.txt",
+          "sha256": "7f3cc096b75dc1483fcb630348ec467b89d2dbdcc851142ef6fdb7a81bb07e5b",
+          "bytes": 160,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/stdout.json",
+          "sha256": "8880285e070e5add3fd1435d6dcb592d6234346c94db168746618c7352520ca9",
+          "bytes": 419,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "部分结果列出已生成 JSON；恢复示例后原成功 JSON 哈希不变且仍可用，示例与原配置属于同一项目和参数。重新导出的临时 JSON 不冒充原成功文件，流程各步骤状态与身份有证据。",
+      "observed": {
+        "checks": [
+          {
+            "name": "one create across recovery",
+            "expected": 1,
+            "observed": 1,
+            "verdict": "passed"
+          },
+          {
+            "name": "partial lists generated JSON",
+            "expected": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+            "observed": "C:\\WINDOWS\\TEMP\\bm-acceptance-bP8DNS\\original.json",
+            "verdict": "passed"
+          },
+          {
+            "name": "original success hash preserved",
+            "expected": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+            "observed": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+            "verdict": "passed"
+          },
+          {
+            "name": "new temp compatible",
+            "expected": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:50232/ingest/key"
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "recovery",
+                "version": "1.0.0",
+                "environment": "cli-acceptance"
+              },
+              "transport": {
+                "dsn": "http://127.0.0.1:50232/ingest/key"
+              }
+            },
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "create",
+            "exitCode": 0,
+            "elapsedMs": 408
+          },
+          {
+            "name": "origins-failed",
+            "exitCode": 5,
+            "elapsedMs": 431
+          },
+          {
+            "name": "origins-recovered",
+            "exitCode": 0,
+            "elapsedMs": 486
+          },
+          {
+            "name": "final-project",
+            "exitCode": 0,
+            "elapsedMs": 418
+          },
+          {
+            "name": "export-partial",
+            "exitCode": 8,
+            "elapsedMs": 408
+          },
+          {
+            "name": "example-recovered",
+            "exitCode": 0,
+            "elapsedMs": 409
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "artifacts/recovery-temp-config.json",
+          "sha256": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+          "bytes": 172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/sdk-config.json",
+          "sha256": "4d2700b1ce4280fef9a1151c26192f9bfbe6e7deea661d4f8f5066d6db992f7a",
+          "bytes": 172,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "artifacts/sdk-example.ts",
+          "sha256": "fbc4e6ee276a326d91f71d30cc13040af17308e89aca9d8a073370e0c1ecc42d",
+          "bytes": 372,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "checks/assertions.json",
+          "sha256": "2111a825d77f5a13f9084d2153eacce709b6b4928141d11de0ad433a83426823",
+          "bytes": 1107,
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "checks/recovery-file-hashes.json",
+          "sha256": "058e02a16b49efb7c91248ca585da87c347a2b24f3f8d33df043f38dd329467b",
+          "bytes": 233,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/final-project-state.json",
+          "sha256": "44ae2f8e34f2a9b0cd2927766445d43d8c12ec1f16b2c8be5b7852e3d1289753",
+          "bytes": 471,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "c4f4e5d94a6e140b49615db2511282426d14b6be1e52511f4f08a557c7e4eebd",
+          "bytes": 241,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "113dde7232f072e50c4991acb2c2bacc5dc3e23b7a1510943e48436077ec0cb9",
+          "bytes": 2475,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "run.json",
+          "sha256": "768df59f185ca3a05a14b665235270fccce6aee0c137f1d79e66b6d121024354",
+          "bytes": 3751,
+          "locator": "explicit independent source or fixture"
+        },
+        {
+          "path": "steps/create/command.txt",
+          "sha256": "e65504ca9832c4571636e87a602e750bcc83a04d9f5657818184fddb18f77b8c",
+          "bytes": 133,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/create/stdout.json",
+          "sha256": "ca04512b3e0abffddd070df884d8b0128084d5d8c5e7576541562fba4b1a7e91",
+          "bytes": 780,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/command.txt",
+          "sha256": "0f66fc9eaf18607ed39e35948cca68ae04762f1525b73b5e0d11d5ee25c18205",
+          "bytes": 241,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/example-recovered/stdout.json",
+          "sha256": "5653f83d556bd2f12287e6a23e62f8981a5c84e5efff8013b05d38315c6acdab",
+          "bytes": 864,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/command.txt",
+          "sha256": "206010b2f1289d091918be83ae8d15d6ac061b3b8b08f37444d23f1c8fd0e1a2",
+          "bytes": 245,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/export-partial/stdout.json",
+          "sha256": "78532a9cb0dc222fdfe2aa3f52f83d2c6742c3f26ea90ce084160404a7801dae",
+          "bytes": 795,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/command.txt",
+          "sha256": "165c34193d0d244c5e41bedd785e1169d7b5a8c247b42d6e11b801a2ee5d9bd0",
+          "bytes": 125,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/final-project/stdout.json",
+          "sha256": "8cc2bce98c764fb5e9b27d180de0d2877caa8cef4cb53c230ac7be8b3d8ce503",
+          "bytes": 688,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/command.txt",
+          "sha256": "7f3cc096b75dc1483fcb630348ec467b89d2dbdcc851142ef6fdb7a81bb07e5b",
+          "bytes": 160,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-failed/stdout.json",
+          "sha256": "2ffde65dd0d6fa9cd2e3188cb305c2b1ed40c5255a73b4501f2217d9b1b79f28",
+          "bytes": 490,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/command.txt",
+          "sha256": "7f3cc096b75dc1483fcb630348ec467b89d2dbdcc851142ef6fdb7a81bb07e5b",
+          "bytes": 160,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "locator": "complete command output"
+        },
+        {
+          "path": "steps/origins-recovered/stdout.json",
+          "sha256": "8880285e070e5add3fd1435d6dcb592d6234346c94db168746618c7352520ca9",
+          "bytes": 419,
+          "locator": "complete command output"
+        },
+        {
+          "path": "../setup/inputs.json",
+          "sha256": "fd97144c1d6aed6edef87bc186d4939f09b433856a9bdad520bb1bd0cf7f0181",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/bindings.json",
+          "sha256": "e89e1972fc6321d4e3ee6999af336663cec8a7ff7fa49ee0c85f18aa913aa1bb",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/events.json",
+          "sha256": "c4e64bd99a6433d9ef4fe6cd22667d60c9a0d5a0ec5b75360b2a8a038c9345e8",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/event-definitions.json",
+          "sha256": "7f07fab7cb5f26644077f78003f616bff41d2e996037e6671b673c2ed5112812",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/implementation.json",
+          "sha256": "a727254b830bac9e037b9ce4de5d4a8e65bea56c630d924b2abfb8ef78563d65",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/installation-audit.json",
+          "sha256": "2858be70cd7b2cdb784778ed5ad5f0aaad4426ff4036503e03bb7e125980edbe",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/source-versions.json",
+          "sha256": "bf729dd839195ead0763ee99224b7baeeb2581899d2cf7a64c0c6d8bda4b372d",
+          "locator": "explicit input, implementation or independent source audit"
+        },
+        {
+          "path": "../setup/diagnostics-fixture-sources.json",
+          "sha256": "4047bfebe30acb3e376955c473380c89cdd279692bfdf639ecb4a59af834906d",
+          "locator": "explicit input, implementation or independent source audit"
+        }
+      ]
+    }
+  ],
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

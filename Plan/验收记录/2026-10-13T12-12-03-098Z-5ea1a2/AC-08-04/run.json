@@ -1,0 +1,71 @@
+{
+  "caseId": "AC-08-04",
+  "startedAt": "2026-10-13T12:13:04.452Z",
+  "endedAt": "2026-10-13T12:13:05.904Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "taskMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "task-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:04.459Z",
+      "endedAt": "2026-10-13T12:13:04.930Z",
+      "elapsedMs": 470,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-BkIPHq"
+    },
+    {
+      "name": "rawMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "raw-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:04.930Z",
+      "endedAt": "2026-10-13T12:13:05.412Z",
+      "elapsedMs": 482,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-BkIPHq"
+    },
+    {
+      "name": "allMissing",
+      "invocation": [
+        "events",
+        "diagnose",
+        "--event-id",
+        "all-missing",
+        "--project",
+        "97ddfeeb-cad3-4fd1-9653-31047e809bca",
+        "--base-url",
+        "http://localhost:8080"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:13:05.412Z",
+      "endedAt": "2026-10-13T12:13:05.894Z",
+      "elapsedMs": 482,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-BkIPHq"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

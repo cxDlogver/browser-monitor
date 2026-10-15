@@ -1,0 +1,140 @@
+{
+  "caseId": "AC-06-03",
+  "artifacts": [
+    {
+      "path": "checks/assertions.json",
+      "sha256": "d913be8919b7cda4ebe5be945dd195d75e0661f84c624f3bb4b485d49a0dd064",
+      "bytes": 7830
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "04e53e57c340ea00c100860095fef915b9269d3229a48fd64ee14aff837bc58d",
+      "bytes": 240
+    },
+    {
+      "path": "reference/real-database-page-1.json",
+      "sha256": "b572c117aa6637b1e43c0b34d64282259d1248565da747e62ab037852f31445a",
+      "bytes": 24854
+    },
+    {
+      "path": "reference/real-database-page-2.json",
+      "sha256": "aaadb5260bee0894840ddea065d911ce8d41aab417e1abd406d17627c206e1fe",
+      "bytes": 25463
+    },
+    {
+      "path": "reference/real-database-page-3.json",
+      "sha256": "8b2abec125bc37053a8a46c80268a7e69492448405254d939caab7b8c26786b1",
+      "bytes": 25463
+    },
+    {
+      "path": "reference/real-database-page-4.json",
+      "sha256": "f5ad4ed04d96579c6a65689cbd5a992d0c0938d46ccb11373485ed1693efd4fc",
+      "bytes": 2695
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "c99bf488f2843b142ade0c46f765e2bf32b17b4b176b48d5bcb0e9bd1110126d",
+      "bytes": 3306
+    },
+    {
+      "path": "reference/static-dataset.json",
+      "sha256": "773d09ee7f5e18444ff309748c0a700333a7d98b195920c935b6732d1102b519",
+      "bytes": 90589
+    },
+    {
+      "path": "run.json",
+      "sha256": "a520d769fbfd231093e0965408a8b92cda8262f5599bc09ceb8c1852b9f5c9af",
+      "bytes": 4383
+    },
+    {
+      "path": "steps/changing-page-1/command.txt",
+      "sha256": "caeef2f9067d99774fbd3f34203d491a6d3d853b55d09f1a7c1cc5ce031d08f9",
+      "bytes": 125
+    },
+    {
+      "path": "steps/changing-page-1/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/changing-page-1/stdout.json",
+      "sha256": "e785053d875ada0fc801fa2b56d501c95a02ae082ff57c2b42da099eee7584d5",
+      "bytes": 19703
+    },
+    {
+      "path": "steps/changing-page-2/command.txt",
+      "sha256": "71a888afce36170952271bff6e13dee17d979d49e5c59f809e364805d8a02e11",
+      "bytes": 417
+    },
+    {
+      "path": "steps/changing-page-2/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/changing-page-2/stdout.json",
+      "sha256": "88605bce40695b107b4ff5747b3b239b7592dd79bbc221d38309882ebb7e4b9e",
+      "bytes": 19699
+    },
+    {
+      "path": "steps/page-1/command.txt",
+      "sha256": "caeef2f9067d99774fbd3f34203d491a6d3d853b55d09f1a7c1cc5ce031d08f9",
+      "bytes": 125
+    },
+    {
+      "path": "steps/page-1/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/page-1/stdout.json",
+      "sha256": "4ac2199c7b36236c151479d17c6407410a7866e94edbc20f0ba63aa706e1ce4a",
+      "bytes": 19703
+    },
+    {
+      "path": "steps/page-2/command.txt",
+      "sha256": "963497c810139e1311e3e23e7a79f7e24fce14dd6f05160fad9abbf3e3306b1d",
+      "bytes": 417
+    },
+    {
+      "path": "steps/page-2/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/page-2/stdout.json",
+      "sha256": "63eb0d5d68fdb22e05d5ccf372c770ce393976b279aaa4052077d154d2b75626",
+      "bytes": 19703
+    },
+    {
+      "path": "steps/page-3/command.txt",
+      "sha256": "ea296f9adc5c59d4d721df4173870704220dcc16d91e468db321057e5138b664",
+      "bytes": 417
+    },
+    {
+      "path": "steps/page-3/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/page-3/stdout.json",
+      "sha256": "a4add93dfe177a8aa2da0a91b978c968aaa552d82c6ce8a13c784db24d701e8b",
+      "bytes": 19712
+    },
+    {
+      "path": "steps/page-4/command.txt",
+      "sha256": "c729be83650631961c3eb54070b72d01ffeea06e4c0a69b43612bded80300af2",
+      "bytes": 417
+    },
+    {
+      "path": "steps/page-4/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/page-4/stdout.json",
+      "sha256": "67c26664985d806050709757e7617ef0e8b9879bd2ed34e8dda48062f1caf079",
+      "bytes": 1097
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "caseId": "AC-01-02",
+  "startedAt": "2026-10-13T12:12:08.970Z",
+  "endedAt": "2026-10-13T12:12:10.748Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "use",
+      "invocation": [
+        "project",
+        "use",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:55055"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:08.970Z",
+      "endedAt": "2026-10-13T12:12:09.608Z",
+      "elapsedMs": 637,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX"
+    },
+    {
+      "name": "denied",
+      "invocation": [
+        "project",
+        "use",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:55055"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:09.612Z",
+      "endedAt": "2026-10-13T12:12:10.199Z",
+      "elapsedMs": 586,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX"
+    },
+    {
+      "name": "export",
+      "invocation": [
+        "sdk",
+        "export",
+        "--context-dir",
+        "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--out",
+        "monitor.json",
+        "--base-url",
+        "http://127.0.0.1:55055"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:10.201Z",
+      "endedAt": "2026-10-13T12:12:10.734Z",
+      "elapsedMs": 534,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-KGy8kX\\call-directory"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

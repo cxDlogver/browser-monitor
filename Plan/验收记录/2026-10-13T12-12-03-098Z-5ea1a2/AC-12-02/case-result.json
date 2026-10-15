@@ -1,0 +1,303 @@
+{
+  "caseId": "AC-12-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "依赖或 API 明确不可用时展示具体失败，保留其他已取得事实，按契约返回 HEALTH_UNREADY 或相应错误。",
+      "observed": {
+        "checks": [
+          {
+            "name": "unready outcome",
+            "expected": "HEALTH_UNREADY",
+            "observed": "HEALTH_UNREADY",
+            "verdict": "passed"
+          },
+          {
+            "name": "unready retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "unready stage state",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed outcome",
+            "expected": "HEALTH_UNREADY",
+            "observed": "HEALTH_UNREADY",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed stage state",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check outcome",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check stage state",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unready",
+            "exitCode": 5,
+            "elapsedMs": 1095
+          },
+          {
+            "name": "api-failed",
+            "exitCode": 5,
+            "elapsedMs": 1048
+          },
+          {
+            "name": "missing-check",
+            "exitCode": 4,
+            "elapsedMs": 513
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "29b1fbd134e87a16569870831a20651236a992d49da1cde36f1775689d339f8c",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a32e1627d7d467972e2e459c0db64c351975ebb580ed5c6975a46ece6b582a95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "79a3a639b214d4054be4f2fe501a3881a03f6b4b92d15400d7798f120bf39086",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e0721aa1b7408edd98dddb685c7a84c0647b40cdc481f909467a98b59b8aed03",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/api-failed/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/api-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/api-failed/stdout.json",
+          "sha256": "31d597b70f6315493475358ac1196234e685f92663016a945cf362a0a22edeab",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/stdout.json",
+          "sha256": "bdb8e633265ee7bcd6df8c6ac56e80aacfdc393b021749f10a0e813347b29118",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/stdout.json",
+          "sha256": "fb51b201787db982af8db630202f9b916b8788bde7679dbcc2616f60ce829a1a",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "检查能力缺失说明 unknown 或能力不足，不因为另一端点 HTTP 200 就把全部项标成健康。",
+      "observed": {
+        "checks": [
+          {
+            "name": "unready outcome",
+            "expected": "HEALTH_UNREADY",
+            "observed": "HEALTH_UNREADY",
+            "verdict": "passed"
+          },
+          {
+            "name": "unready retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "unready stage state",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed outcome",
+            "expected": "HEALTH_UNREADY",
+            "observed": "HEALTH_UNREADY",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "api-failed stage state",
+            "expected": "fail",
+            "observed": "fail",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check outcome",
+            "expected": "CAPABILITY_UNAVAILABLE",
+            "observed": "CAPABILITY_UNAVAILABLE",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check retains liveness",
+            "expected": "pass",
+            "observed": "pass",
+            "verdict": "passed"
+          },
+          {
+            "name": "missing-check stage state",
+            "expected": "unknown",
+            "observed": "unknown",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "unready",
+            "exitCode": 5,
+            "elapsedMs": 1095
+          },
+          {
+            "name": "api-failed",
+            "exitCode": 5,
+            "elapsedMs": 1048
+          },
+          {
+            "name": "missing-check",
+            "exitCode": 4,
+            "elapsedMs": 513
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "29b1fbd134e87a16569870831a20651236a992d49da1cde36f1775689d339f8c",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a32e1627d7d467972e2e459c0db64c351975ebb580ed5c6975a46ece6b582a95",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "79a3a639b214d4054be4f2fe501a3881a03f6b4b92d15400d7798f120bf39086",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e0721aa1b7408edd98dddb685c7a84c0647b40cdc481f909467a98b59b8aed03",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/api-failed/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/api-failed/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/api-failed/stdout.json",
+          "sha256": "31d597b70f6315493475358ac1196234e685f92663016a945cf362a0a22edeab",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing-check/stdout.json",
+          "sha256": "bdb8e633265ee7bcd6df8c6ac56e80aacfdc393b021749f10a0e813347b29118",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/command.txt",
+          "sha256": "4d313e7dada88122883d876d5ee47ad605519fb5321993c4245c8b7e46bd73fb",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/unready/stdout.json",
+          "sha256": "fb51b201787db982af8db630202f9b916b8788bde7679dbcc2616f60ce829a1a",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "sdk export",
+  "context": {
+    "baseUrl": "http://127.0.0.1:54694",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "FILE_EXISTS",
+    "message": "文件已存在，需要显式 --overwrite。",
+    "details": {
+      "path": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW\\old.json"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50514",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "API_CONTRACT_INVALID",
+    "message": "事件列表响应契约无效。",
+    "details": null
+  }
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "name": "default budget rejection",
+    "expected": "OUTPUT_TOO_LARGE",
+    "observed": "OUTPUT_TOO_LARGE",
+    "verdict": "passed"
+  },
+  {
+    "name": "no partial page or cursor",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "small pages keep all3 identities",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  },
+  {
+    "name": "continuation finished",
+    "expected": null,
+    "observed": null,
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid budget gives complete JSON 0",
+    "expected": "INVALID_ARGUMENT",
+    "observed": "INVALID_ARGUMENT",
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid budget gives complete JSON 4095",
+    "expected": "INVALID_ARGUMENT",
+    "observed": "INVALID_ARGUMENT",
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid budget gives complete JSON 1.5",
+    "expected": "INVALID_ARGUMENT",
+    "observed": "INVALID_ARGUMENT",
+    "verdict": "passed"
+  },
+  {
+    "name": "invalid budget gives complete JSON invalid",
+    "expected": "INVALID_ARGUMENT",
+    "observed": "INVALID_ARGUMENT",
+    "verdict": "passed"
+  }
+]

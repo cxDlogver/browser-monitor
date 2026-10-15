@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "events list",
+  "context": {
+    "baseUrl": "http://127.0.0.1:57875",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": null,
+  "meta": {
+    "source": "platform_api",
+    "warnings": []
+  },
+  "error": {
+    "code": "INVALID_ARGUMENT",
+    "message": "时间必须为带时区的 ISO 8601：2026-10-13T00:00:00",
+    "details": null
+  }
+}

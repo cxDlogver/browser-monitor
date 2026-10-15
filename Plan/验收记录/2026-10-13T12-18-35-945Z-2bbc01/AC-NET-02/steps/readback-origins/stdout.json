@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "origins get",
+  "context": {
+    "baseUrl": "http://127.0.0.1:50130",
+    "projectId": "00000000-0000-4000-8000-000000000001"
+  },
+  "data": {
+    "origins": [
+      "http://localhost:3000"
+    ]
+  },
+  "meta": {
+    "source": "platform_api",
+    "warnings": [],
+    "elapsedMs": 52
+  }
+}

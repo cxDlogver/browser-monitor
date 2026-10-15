@@ -1,0 +1,66 @@
+{
+  "caseId": "AC-03-03",
+  "startedAt": "2026-10-13T12:12:28.875Z",
+  "endedAt": "2026-10-13T12:12:30.040Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "create-lost",
+      "invocation": [
+        "project",
+        "create",
+        "--display-name",
+        "response-lost",
+        "--app-name",
+        "lost",
+        "--base-url",
+        "http://127.0.0.1:54602"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:28.876Z",
+      "endedAt": "2026-10-13T12:12:29.278Z",
+      "elapsedMs": 402,
+      "exitCode": 5,
+      "expectedExitCode": 5,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-PE9XSx"
+    },
+    {
+      "name": "readback",
+      "invocation": [
+        "project",
+        "get",
+        "--project",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:54602"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:29.281Z",
+      "endedAt": "2026-10-13T12:12:29.667Z",
+      "elapsedMs": 386,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-PE9XSx"
+    },
+    {
+      "name": "use-failed",
+      "invocation": [
+        "project",
+        "use",
+        "00000000-0000-4000-8000-000000000003",
+        "--base-url",
+        "http://127.0.0.1:54602"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:29.668Z",
+      "endedAt": "2026-10-13T12:12:30.031Z",
+      "elapsedMs": 363,
+      "exitCode": 2,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-PE9XSx"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

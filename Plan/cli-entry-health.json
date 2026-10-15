@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "health",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": null
+  },
+  "data": {
+    "target": "http://localhost:8080",
+    "checkedAt": "2026-10-13T12:23:16.994Z",
+    "connectivity": {
+      "state": "pass",
+      "source": "http_responses",
+      "reason": "已收到平台响应"
+    },
+    "liveness": {
+      "state": "pass",
+      "source": "/health/live",
+      "reason": "平台确认",
+      "details": {
+        "status": "ok"
+      }
+    },
+    "readiness": {
+      "state": "pass",
+      "source": "/health/ready",
+      "reason": "平台确认",
+      "details": {
+        "status": "ok"
+      }
+    },
+    "managementApi": {
+      "state": "pass",
+      "authentication": "unknown",
+      "source": "/api/v1/auth/me",
+      "reason": "AUTH_REQUIRED"
+    },
+    "limitations": [
+      "基础健康不证明 Worker 正常或特定项目已经写入、处理。"
+    ]
+  },
+  "meta": {
+    "source": "health_api",
+    "warnings": [],
+    "elapsedMs": 92
+  }
+}

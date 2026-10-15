@@ -1,0 +1,29 @@
+{
+  "caseId": "AC-11-05",
+  "startedAt": "2026-10-13T12:14:32.328Z",
+  "endedAt": "2026-10-13T12:14:32.749Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "missing-list",
+      "invocation": [
+        "events",
+        "list",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:49683"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:14:32.328Z",
+      "endedAt": "2026-10-13T12:14:32.741Z",
+      "elapsedMs": 413,
+      "exitCode": 4,
+      "expectedExitCode": 4,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-PowI0C"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

@@ -1,0 +1,1 @@
+node cli/bin/bm.mjs "events" "list" "--project" "c374e6cd-4d9b-4045-8678-0d0f5b3ca6dd" "--event-id" "event-mv6lymu3-3-as5ip2jy" "--include-payload" "--base-url" "http://localhost:8080"

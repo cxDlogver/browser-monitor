@@ -1,0 +1,233 @@
+{
+  "caseId": "AC-E2E-02",
+  "status": "failed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": "error: relation \"project_origins\" does not exist\n    at F:\\CX_notes\\cx-learn-notes\\browser-monitor\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.0\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.realAutomation (file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-acceptance.mjs:44:18)\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/acceptance-protocol.mjs:69:5\n    at async file:///F:/CX_notes/cx-learn-notes/browser-monitor/cli/scripts/verify-acceptance.mjs:66:47",
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "非交互调用可以执行首版全部授权管理能力，结果可解析并传递身份，不等待页面或人工提示。",
+      "observed": {
+        "checks": [],
+        "steps": [
+          {
+            "name": "ai-create",
+            "exitCode": 0,
+            "elapsedMs": 458
+          },
+          {
+            "name": "ai-origins",
+            "exitCode": 0,
+            "elapsedMs": 475
+          },
+          {
+            "name": "ai-export",
+            "exitCode": 0,
+            "elapsedMs": 502
+          },
+          {
+            "name": "ai-readback",
+            "exitCode": 0,
+            "elapsedMs": 482
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "244a53957e736994b4572796d0616c025eefb12c0f53bb930df8da2486c6f77c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e7023f6a5b476a24e62d9814923856eea66fca24b6105ba0a1efe7a179d3392a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ai-create/command.txt",
+          "sha256": "3380248ec852fd54916be65e3fd12e33bf8573f638a8f9c70c5f6e0bd1ef0a30",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-create/stdout.json",
+          "sha256": "2bd397bde11974c317606ae3fcb9ab3998d28747fb7a91406fb35c28b79b1f42",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/command.txt",
+          "sha256": "651c51ccf581ba01cf62a8a02b3e3330ffde31b0c759f51e4200f71deaa6d726",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/stdout.json",
+          "sha256": "38d11a8040f3836f96448fda9aabab3a1a13e36c4eb415b6031d0960a6f47109",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/command.txt",
+          "sha256": "0855db2c64d39243be02cae9761de89122aab3887665820de4fa1de3d802913a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/stdout.json",
+          "sha256": "fc114b8aa58ff9fd162d550062662403812edcbb571dde9899433fff3751258a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/command.txt",
+          "sha256": "c9069426226148c3b939284fd7690673cb5a0ee171efd29f68bc1f3d5bdb3d81",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/stdout.json",
+          "sha256": "324120eed7ebbaea80b46bffbe816754f9f0fe97604a8d1fa9df344300b98ed0",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "人和 AI 使用相同权限与事实，受限身份不能扩大权限，管理写入与读取结果可独立回查。",
+      "observed": {
+        "checks": [],
+        "steps": [
+          {
+            "name": "ai-create",
+            "exitCode": 0,
+            "elapsedMs": 458
+          },
+          {
+            "name": "ai-origins",
+            "exitCode": 0,
+            "elapsedMs": 475
+          },
+          {
+            "name": "ai-export",
+            "exitCode": 0,
+            "elapsedMs": 502
+          },
+          {
+            "name": "ai-readback",
+            "exitCode": 0,
+            "elapsedMs": 482
+          }
+        ]
+      },
+      "verdict": "failed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "244a53957e736994b4572796d0616c025eefb12c0f53bb930df8da2486c6f77c",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e7023f6a5b476a24e62d9814923856eea66fca24b6105ba0a1efe7a179d3392a",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/ai-create/command.txt",
+          "sha256": "3380248ec852fd54916be65e3fd12e33bf8573f638a8f9c70c5f6e0bd1ef0a30",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-create/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-create/stdout.json",
+          "sha256": "2bd397bde11974c317606ae3fcb9ab3998d28747fb7a91406fb35c28b79b1f42",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/command.txt",
+          "sha256": "651c51ccf581ba01cf62a8a02b3e3330ffde31b0c759f51e4200f71deaa6d726",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-export/stdout.json",
+          "sha256": "38d11a8040f3836f96448fda9aabab3a1a13e36c4eb415b6031d0960a6f47109",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/command.txt",
+          "sha256": "0855db2c64d39243be02cae9761de89122aab3887665820de4fa1de3d802913a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-origins/stdout.json",
+          "sha256": "fc114b8aa58ff9fd162d550062662403812edcbb571dde9899433fff3751258a",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/command.txt",
+          "sha256": "c9069426226148c3b939284fd7690673cb5a0ee171efd29f68bc1f3d5bdb3d81",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/ai-readback/stdout.json",
+          "sha256": "324120eed7ebbaea80b46bffbe816754f9f0fe97604a8d1fa9df344300b98ed0",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

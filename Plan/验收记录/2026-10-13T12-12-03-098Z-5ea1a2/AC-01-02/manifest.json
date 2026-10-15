@@ -1,0 +1,80 @@
+{
+  "caseId": "AC-01-02",
+  "artifacts": [
+    {
+      "path": "artifacts/sdk-config.json",
+      "sha256": "b8362ccfc33ec6db0a809d9358265af324841c3cf66501caa897d2f682983260",
+      "bytes": 171
+    },
+    {
+      "path": "checks/assertions.json",
+      "sha256": "e20ccbb70cd4ad6c14f1d32cf3b3f3fa56e0978a6fca83c68c4ae76c9165f947",
+      "bytes": 872
+    },
+    {
+      "path": "reference/context-after.json",
+      "sha256": "a6d06022009bdbe64bbcafeb5ed91571f1739505c6a76356373cc3a250cf8628",
+      "bytes": 119
+    },
+    {
+      "path": "reference/input-binding.json",
+      "sha256": "2683c9c9a7d31f41351937ae33b18947f00a6674b5803e4491d509bcb114983a",
+      "bytes": 240
+    },
+    {
+      "path": "reference/request-trace.json",
+      "sha256": "17aebd7c68d3252577640c0e9deaed3aaca00b13d563154c6169ef07b6c27667",
+      "bytes": 1143
+    },
+    {
+      "path": "run.json",
+      "sha256": "adee785d77e0a75ceebd8a748a51dea3cc43cf5f81e803161d608026caebbb95",
+      "bytes": 1832
+    },
+    {
+      "path": "steps/denied/command.txt",
+      "sha256": "c1dc7a956ed0ec7ce8bd72eb5ffe115603a94e70c246b2cc1a5bbcc0723fd0ad",
+      "bytes": 113
+    },
+    {
+      "path": "steps/denied/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/denied/stdout.json",
+      "sha256": "177b78c1c1f28ec9ab3a3f3ea3cb49c15ae85a6a9ee4a986b0e79a2cab982e2a",
+      "bytes": 489
+    },
+    {
+      "path": "steps/export/command.txt",
+      "sha256": "b13374f27fb73e01681df9d5ec08e8d848ae8a39774dd2dc05282cea063bd79a",
+      "bytes": 211
+    },
+    {
+      "path": "steps/export/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/export/stdout.json",
+      "sha256": "59330b3fa23ebfdb89cc6dc6e30514ce744de9277947a116fd4b7252c38c2ee5",
+      "bytes": 1153
+    },
+    {
+      "path": "steps/use/command.txt",
+      "sha256": "832605abf500fc91600d9a571dd966e1a6240ba28406172f83acd6485b2e1fc1",
+      "bytes": 113
+    },
+    {
+      "path": "steps/use/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "steps/use/stdout.json",
+      "sha256": "21b1a040e69c741db35e4c4f44f9ff118bc78780410cda8a41728f12157dc1b6",
+      "bytes": 463
+    }
+  ]
+}

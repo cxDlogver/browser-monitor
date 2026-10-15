@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-13T12:49:13.858Z",
+  "actions": [
+    {
+      "name": "official-owned-exec-session-2081",
+      "pid": 33916,
+      "status": "stopped",
+      "output": "�ɹ�: ����ֹ PID 77796 (���� PID 33916 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 68844 (���� PID 33916 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 50888 (���� PID 33916 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 33916 (���� PID 63804 �ӽ���)�Ľ��̡�"
+    },
+    {
+      "name": "business-launcher",
+      "pid": 31116,
+      "status": "stopped",
+      "output": "�ɹ�: ����ֹ PID 62552 (���� PID 41688 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 76588 (���� PID 36960 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 41688 (���� PID 31116 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 36960 (���� PID 31116 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 31116 (���� PID 66696 �ӽ���)�Ľ��̡�"
+    },
+    {
+      "name": "qhzhc-backend-launcher",
+      "pid": 31864,
+      "status": "stopped",
+      "output": "�ɹ�: ����ֹ PID 64864 (���� PID 13640 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 70756 (���� PID 13640 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 13640 (���� PID 31864 �ӽ���)�Ľ��̡�\r\n�ɹ�: ����ֹ PID 31864 (���� PID 18200 �ӽ���)�Ľ��̡�"
+    }
+  ],
+  "containers": [
+    "browser-monitor-cli-test-redis-1",
+    "browser-monitor-cli-test-database-1",
+    "browser-monitor-redis-1",
+    "browser-monitor-timescaledb-1",
+    "browser-monitor-mailpit-1"
+  ],
+  "dataVolumesRemoved": false,
+  "evidenceRemoved": false
+}

@@ -1,0 +1,127 @@
+{
+  "caseId": "AC-05-01",
+  "startedAt": "2026-10-13T12:19:05.769Z",
+  "endedAt": "2026-10-13T12:19:07.937Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "export-files",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--out",
+        "monitor.json",
+        "--example-out",
+        "monitor.ts",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59906"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:05.769Z",
+      "endedAt": "2026-10-13T12:19:06.225Z",
+      "elapsedMs": 455,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YUZYvP"
+    },
+    {
+      "name": "export-inline",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59906"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:06.226Z",
+      "endedAt": "2026-10-13T12:19:06.656Z",
+      "elapsedMs": 430,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YUZYvP"
+    },
+    {
+      "name": "missing-version",
+      "invocation": [
+        "sdk",
+        "export",
+        "--environment",
+        "test",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59906"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:06.656Z",
+      "endedAt": "2026-10-13T12:19:07.052Z",
+      "elapsedMs": 396,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YUZYvP"
+    },
+    {
+      "name": "missing-environment",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59906"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:07.052Z",
+      "endedAt": "2026-10-13T12:19:07.474Z",
+      "elapsedMs": 421,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YUZYvP"
+    },
+    {
+      "name": "export-separate-directories",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "cli-acceptance",
+        "--out",
+        "config/monitor.json",
+        "--example-out",
+        "examples/monitor.ts",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:59906"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:19:07.486Z",
+      "endedAt": "2026-10-13T12:19:07.927Z",
+      "elapsedMs": 441,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-YUZYvP"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence",
+  "executor": "Codex",
+  "implementationVersion": "0.1.0"
+}

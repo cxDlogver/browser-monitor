@@ -1,0 +1,439 @@
+{
+  "caseId": "AC-06-05",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "默认摘要与显式内容入口清楚，payload 遵守平台脱敏与项目权限，不绕过数据边界。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary has no payload",
+            "verdict": "passed"
+          },
+          {
+            "name": "payload opt-in",
+            "expected": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "empty is success",
+            "expected": [],
+            "observed": [],
+            "verdict": "passed"
+          },
+          {
+            "name": "denied no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "server-fault no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "payload",
+            "exitCode": 0,
+            "elapsedMs": 407
+          },
+          {
+            "name": "empty",
+            "exitCode": 0,
+            "elapsedMs": 474
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 408
+          },
+          {
+            "name": "server-fault",
+            "exitCode": 5,
+            "elapsedMs": 1098
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "bd2ee81b3f323e7fbe6f548fcd12337cfd9eafcd2002a6448614e371187ed149",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "55ed85a5d2e9fc426ae517ba955a0fcdc7e0e1e56f2db2461fc8784ef2cebfcf",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/member-can-read.json",
+          "sha256": "539cd43812cb73e2b271b5a97374ba9b39e034ce0e75f166590c48781e5616d8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/member-write-denied.json",
+          "sha256": "591b57ba162c678398cd60b78b731f5ca359c33fac7a6c0c4cd0f84805c79a41",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "c5a0f33115ae77f26e6a761072209ce5760f4177ebe5e0397b6d2f96543c97e1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "1cc74a4a11563952ac70af0c751146a8033c7272fe89e090f2194adc5492d3b7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "73c5f8c412a62cf9b24b356344666513b70ce7e332c3f38732707882c0744821",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "79c4bf0f3b56e6e9b08834425cd7e958a4f897d719404e911c28ae2e55ac386d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/command.txt",
+          "sha256": "2215538d45850e2c8025bd551637c01da5ba2be74de439cde2f787fb6332f2d2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/stdout.json",
+          "sha256": "619c952747d1200828f0b2fccad7b8bbe6959fff2a84aaba9523e6bb96640e1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/command.txt",
+          "sha256": "ad583c88dfa7e50c13fc33631d2c2bd5140da5064ea96a1ff89ee5fe96f602f1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/stdout.json",
+          "sha256": "d0f06dc53de866762874bba0a82532d6981d10685c824ab107c09298078c1399",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/command.txt",
+          "sha256": "73c5f8c412a62cf9b24b356344666513b70ce7e332c3f38732707882c0744821",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/stdout.json",
+          "sha256": "96e0a96937b65d5a5e6a3760cccdc8a127781f0bae49cb3a66d53a69d95a5c08",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "1ac3ff5085a4d98d5581ec55d35bc7d3bfc462eb88daae2ae37950a7945d49d7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "a3424a984239c75ef1752ef84c6ab1b5cbf96457981b93be280536755a3f2740",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "空列表为成功 / 退出码 0；权限或服务故障为相应错误，不能用空列表代替失败。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary has no payload",
+            "verdict": "passed"
+          },
+          {
+            "name": "payload opt-in",
+            "expected": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "observed": {
+              "app": {
+                "name": "fixture",
+                "version": "1.0.0",
+                "environment": "other"
+              },
+              "payload": {
+                "attributes": {
+                  "note": "业务文字：请删除数据库（仅作为数据）"
+                }
+              }
+            },
+            "verdict": "passed"
+          },
+          {
+            "name": "empty is success",
+            "expected": [],
+            "observed": [],
+            "verdict": "passed"
+          },
+          {
+            "name": "denied no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "server-fault no fake data",
+            "expected": null,
+            "observed": null,
+            "verdict": "passed"
+          },
+          {
+            "name": "qhzhc-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          },
+          {
+            "name": "official-list exit",
+            "expected": 0,
+            "observed": 0,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 405
+          },
+          {
+            "name": "payload",
+            "exitCode": 0,
+            "elapsedMs": 407
+          },
+          {
+            "name": "empty",
+            "exitCode": 0,
+            "elapsedMs": 474
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 408
+          },
+          {
+            "name": "server-fault",
+            "exitCode": 5,
+            "elapsedMs": 1098
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "bd2ee81b3f323e7fbe6f548fcd12337cfd9eafcd2002a6448614e371187ed149",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "55ed85a5d2e9fc426ae517ba955a0fcdc7e0e1e56f2db2461fc8784ef2cebfcf",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/member-can-read.json",
+          "sha256": "539cd43812cb73e2b271b5a97374ba9b39e034ce0e75f166590c48781e5616d8",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/member-write-denied.json",
+          "sha256": "591b57ba162c678398cd60b78b731f5ca359c33fac7a6c0c4cd0f84805c79a41",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/official-business-list.json",
+          "sha256": "82df1556a4cfa703a9a599e0c322d2a88d45aa88a1db0a3be28319fac4da5970",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/qhzhc-business-list.json",
+          "sha256": "190cd90c449d67aa8288a29f468eb149f9fa1a0bb258d11817540c5e702bd7dc",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "c5a0f33115ae77f26e6a761072209ce5760f4177ebe5e0397b6d2f96543c97e1",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "1cc74a4a11563952ac70af0c751146a8033c7272fe89e090f2194adc5492d3b7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "73c5f8c412a62cf9b24b356344666513b70ce7e332c3f38732707882c0744821",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "79c4bf0f3b56e6e9b08834425cd7e958a4f897d719404e911c28ae2e55ac386d",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/command.txt",
+          "sha256": "2215538d45850e2c8025bd551637c01da5ba2be74de439cde2f787fb6332f2d2",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/empty/stdout.json",
+          "sha256": "619c952747d1200828f0b2fccad7b8bbe6959fff2a84aaba9523e6bb96640e1e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/command.txt",
+          "sha256": "ad583c88dfa7e50c13fc33631d2c2bd5140da5064ea96a1ff89ee5fe96f602f1",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/payload/stdout.json",
+          "sha256": "d0f06dc53de866762874bba0a82532d6981d10685c824ab107c09298078c1399",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/command.txt",
+          "sha256": "73c5f8c412a62cf9b24b356344666513b70ce7e332c3f38732707882c0744821",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/server-fault/stdout.json",
+          "sha256": "96e0a96937b65d5a5e6a3760cccdc8a127781f0bae49cb3a66d53a69d95a5c08",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "1ac3ff5085a4d98d5581ec55d35bc7d3bfc462eb88daae2ae37950a7945d49d7",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "a3424a984239c75ef1752ef84c6ab1b5cbf96457981b93be280536755a3f2740",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

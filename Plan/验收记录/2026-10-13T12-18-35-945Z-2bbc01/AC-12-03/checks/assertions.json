@@ -1,0 +1,46 @@
+[
+  {
+    "name": "connection failure",
+    "expected": "fail",
+    "observed": "fail",
+    "verdict": "passed"
+  },
+  {
+    "name": "unobtained stages unknown",
+    "expected": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "observed": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "verdict": "passed"
+  },
+  {
+    "name": "shared30 deadline",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "no fresh API budget",
+    "expected": "unknown",
+    "observed": "unknown",
+    "verdict": "passed"
+  },
+  {
+    "name": "liveness retained",
+    "expected": "pass",
+    "observed": "pass",
+    "verdict": "passed"
+  },
+  {
+    "name": "readiness at most3",
+    "expected": 3,
+    "observed": 3,
+    "verdict": "passed"
+  }
+]

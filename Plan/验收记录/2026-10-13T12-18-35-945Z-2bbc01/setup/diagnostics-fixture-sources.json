@@ -1,0 +1,6 @@
+{
+  "database": "actual PostgreSQL queries",
+  "snapshotClock": "controlled replacement of transaction_timestamp only",
+  "redis": "controlled hgetall replacement returning accepted=999, duplicate=3, rejected=2",
+  "purpose": "SQL classifications and separation of auxiliary counters; not a live Redis assertion"
+}

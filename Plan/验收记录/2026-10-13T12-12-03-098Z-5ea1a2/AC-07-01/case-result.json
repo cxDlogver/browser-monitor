@@ -1,0 +1,275 @@
+{
+  "caseId": "AC-07-01",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "概况等于全部当前保留原始记录及其最近 receivedAt，不等于累计数、领域数或默认一天列表条数。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary-scope recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "all retained including old",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "latest received",
+            "expected": "2026-10-13T12:11:57.834Z",
+            "observed": "2026-10-13T12:11:57.834Z",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary ignores list filter",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "source database",
+            "expected": "database",
+            "observed": "database",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 406
+          },
+          {
+            "name": "filtered-list",
+            "exitCode": 0,
+            "elapsedMs": 406
+          },
+          {
+            "name": "summary-after",
+            "exitCode": 0,
+            "elapsedMs": 408
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "1330817f92e5e596ceb8ea839cb882fce4043c821773e5f64d81893761cd635e",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/actual-summary-reference.json",
+          "sha256": "75b3182488fb8f7c895dbcd83c218b36ae7b1218c6dce2fcbe0f05a514ce1c8e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/database-summary-scope.json",
+          "sha256": "62628ebd455813f157afa40420a1bb29a2a0e03ef0e864cd09c4b87d60c8f8d9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "7535518c07ffed322e9b35426fcdd0b14e45c248af50929715882c8bc2e8c068",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "d2e2514ea95dbdf3e65f766330c6314ab2c95e0c70cbc26de34c55725d0bfa17",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "588010a8bc1f5fe2a3e99a2eb39d935e91c1d4c2b4c2c3ca662ad2b451d6f87e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/filtered-list/command.txt",
+          "sha256": "ee01ca76db52f6430c951fefbf2b942b893a5cc81a8fdcf4a2e0c35549fd3748",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/filtered-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/filtered-list/stdout.json",
+          "sha256": "70474ae76ee1ae8c10cfa38b43667d4fd3fdff6e3930a449635800b61b654706",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "14caf7f6e695e4414e094bca6e15ac21287b8cddbcbca9ff3615e75e743d0918",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "d8349007064ef63ae2bd1f3550817cf3108459cac8a885b7d74ee9a985c91379",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/command.txt",
+          "sha256": "14caf7f6e695e4414e094bca6e15ac21287b8cddbcbca9ff3615e75e743d0918",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/stdout.json",
+          "sha256": "3f9b5b9d19bac9b90ae4cef4a89af3bda18a04dcf441414d454957bd85ad9581",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "统计包含服务端 asOf、source 和实际保留策略；列表筛选不会改变概况口径。",
+      "observed": {
+        "checks": [
+          {
+            "name": "summary-scope recorded database comparison",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          },
+          {
+            "name": "all retained including old",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "latest received",
+            "expected": "2026-10-13T12:11:57.834Z",
+            "observed": "2026-10-13T12:11:57.834Z",
+            "verdict": "passed"
+          },
+          {
+            "name": "summary ignores list filter",
+            "expected": 152,
+            "observed": 152,
+            "verdict": "passed"
+          },
+          {
+            "name": "source database",
+            "expected": "database",
+            "observed": "database",
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "summary",
+            "exitCode": 0,
+            "elapsedMs": 406
+          },
+          {
+            "name": "filtered-list",
+            "exitCode": 0,
+            "elapsedMs": 406
+          },
+          {
+            "name": "summary-after",
+            "exitCode": 0,
+            "elapsedMs": 408
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "1330817f92e5e596ceb8ea839cb882fce4043c821773e5f64d81893761cd635e",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/actual-summary-reference.json",
+          "sha256": "75b3182488fb8f7c895dbcd83c218b36ae7b1218c6dce2fcbe0f05a514ce1c8e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/database-summary-scope.json",
+          "sha256": "62628ebd455813f157afa40420a1bb29a2a0e03ef0e864cd09c4b87d60c8f8d9",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "7535518c07ffed322e9b35426fcdd0b14e45c248af50929715882c8bc2e8c068",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "d2e2514ea95dbdf3e65f766330c6314ab2c95e0c70cbc26de34c55725d0bfa17",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "588010a8bc1f5fe2a3e99a2eb39d935e91c1d4c2b4c2c3ca662ad2b451d6f87e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/filtered-list/command.txt",
+          "sha256": "ee01ca76db52f6430c951fefbf2b942b893a5cc81a8fdcf4a2e0c35549fd3748",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/filtered-list/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/filtered-list/stdout.json",
+          "sha256": "70474ae76ee1ae8c10cfa38b43667d4fd3fdff6e3930a449635800b61b654706",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/command.txt",
+          "sha256": "14caf7f6e695e4414e094bca6e15ac21287b8cddbcbca9ff3615e75e743d0918",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary/stdout.json",
+          "sha256": "d8349007064ef63ae2bd1f3550817cf3108459cac8a885b7d74ee9a985c91379",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/command.txt",
+          "sha256": "14caf7f6e695e4414e094bca6e15ac21287b8cddbcbca9ff3615e75e743d0918",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/summary-after/stdout.json",
+          "sha256": "3f9b5b9d19bac9b90ae4cef4a89af3bda18a04dcf441414d454957bd85ad9581",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

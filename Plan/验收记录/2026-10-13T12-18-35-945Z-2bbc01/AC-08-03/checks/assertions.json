@@ -1,0 +1,36 @@
+[
+  {
+    "name": "noop-revision recorded database comparison",
+    "expected": true,
+    "observed": true,
+    "verdict": "passed"
+  },
+  {
+    "name": "actual committed no-op",
+    "expected": "committed",
+    "observed": "committed",
+    "verdict": "passed"
+  },
+  {
+    "name": "event effect remains unknown",
+    "expected": "unknown",
+    "observed": "unknown",
+    "verdict": "passed"
+  },
+  {
+    "name": "one entity higher revision",
+    "expected": [
+      {
+        "sample_id": "shared-entity",
+        "sequence": 2
+      }
+    ],
+    "observed": [
+      {
+        "sample_id": "shared-entity",
+        "sequence": 2
+      }
+    ],
+    "verdict": "passed"
+  }
+]

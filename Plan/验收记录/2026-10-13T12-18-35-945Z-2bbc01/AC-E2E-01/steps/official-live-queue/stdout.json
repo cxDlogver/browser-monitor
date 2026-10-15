@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "queue status",
+  "context": {
+    "baseUrl": "http://localhost:8080",
+    "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+  },
+  "data": {
+    "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+    "pendingTotal": 48,
+    "readyPending": 48,
+    "delayedPending": 0,
+    "pendingUnclassified": 0,
+    "processingTotal": 0,
+    "processingActive": 0,
+    "processingStale": 0,
+    "processingUnclassified": 0,
+    "failed": 0,
+    "processedLastMinute": 0,
+    "deadLetters": 0,
+    "deadLettersOverlappingFailed": 0,
+    "recentFailures": [],
+    "recentFailuresLimit": 20,
+    "recentFailuresHasMore": false,
+    "lockTimeoutSeconds": 300,
+    "lockTimeoutSource": "shared_worker_policy",
+    "otherQueues": {
+      "labAudits": {
+        "source": "database",
+        "asOf": "2026-10-13T12:22:53.599Z",
+        "counts": {}
+      }
+    },
+    "asOf": "2026-10-13T12:22:53.599Z",
+    "source": "database",
+    "scope": {
+      "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457",
+      "taskType": "telemetry",
+      "environment": null
+    },
+    "limitations": [
+      "Active lock is not a worker heartbeat.",
+      "Failed tasks and dead letters may overlap and must not be added.",
+      "Historical failure timestamps are unknown; those rows sort after dated failures by task creation time."
+    ],
+    "ingestion": {
+      "source": "redis",
+      "scope": {
+        "projectId": "9d0d0f78-cefc-46d5-9543-7682587db457"
+      },
+      "requestedAt": "2026-10-13T12:22:53.606Z",
+      "asOf": null,
+      "accepted": 152,
+      "duplicate": 0,
+      "rejected": 0,
+      "limitation": "Counters can expire; missing values are unknown. They are not retained raw row counts or part of the database snapshot."
+    }
+  },
+  "meta": {
+    "source": "database_and_labeled_auxiliary_sources",
+    "warnings": [],
+    "asOf": "2026-10-13T12:22:53.599Z",
+    "elapsedMs": 99
+  }
+}

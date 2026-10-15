@@ -1,0 +1,495 @@
+{
+  "caseId": "AC-11-02",
+  "status": "passed",
+  "requirementsVersion": "1.3",
+  "designVersion": "1.2",
+  "failure": null,
+  "assertions": [
+    {
+      "id": "R1",
+      "expected": "0 / 2 / 3 / 4 / 5 / 6 / 7 / 8 对应成功、参数、身份、授权或能力、网络或写未知、等待超时、处理或历史不足、部分成功。",
+      "observed": {
+        "checks": [
+          {
+            "name": "exit contract",
+            "expected": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "observed": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "missing evidence valid read",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "success",
+            "exitCode": 0,
+            "elapsedMs": 484
+          },
+          {
+            "name": "invalid",
+            "exitCode": 2,
+            "elapsedMs": 395
+          },
+          {
+            "name": "auth",
+            "exitCode": 3,
+            "elapsedMs": 654
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 454
+          },
+          {
+            "name": "network",
+            "exitCode": 5,
+            "elapsedMs": 1110
+          },
+          {
+            "name": "timeout",
+            "exitCode": 6,
+            "elapsedMs": 579
+          },
+          {
+            "name": "terminal",
+            "exitCode": 7,
+            "elapsedMs": 430
+          },
+          {
+            "name": "partial",
+            "exitCode": 8,
+            "elapsedMs": 460
+          },
+          {
+            "name": "missing",
+            "exitCode": 0,
+            "elapsedMs": 431
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "daa60485dea1e36623c89c8cb30a325aae27b68c32f531bd433fc3a12f5da082",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a3d23d7b8636398cc75c7205ee8c979aaf5330182914a30974b07c608d1f33d7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "65602c0d0e09fdec14dcd4bda66562b28989b02bfacdcb9fa7823d2584acae2e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e10dfa78d08f232f67c97f36320efeab1790e52868bf6dc19e1f77c06037e80d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/auth/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/auth/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/auth/stdout.json",
+          "sha256": "f46366d33fcee34c38259dc7689423d8eba20d6e941c6af73e62afdb5c20b054",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "13acba17d64e8b0340730deedaf4d321db64c620c73eee8f67a112c2e5daea97",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/command.txt",
+          "sha256": "5721f11d1773093f0a71d13405a662d496962f49be8247e2be96acf22edcaeb5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/stdout.json",
+          "sha256": "e1bcb028f747ac74dc784c7649454f92b3e76c6e5c0513188ecde249c9c73753",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "db1f7e8f773f3d6e7f447dea3282baf7c2507ebce84d7c6e81601eb57999efcd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "30d8b93fa976f73eb6764173dc1692af5dd06692fdab554bf0f46b1f4c219ecd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/stdout.json",
+          "sha256": "c185fc72323b844a2b57ab748b45deea5c29102f98e301ab8812188772b5590e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/command.txt",
+          "sha256": "8df186a17e77e19b57426825c44355ca828c7dd98e828c6be20ec6444a9958af",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stdout.json",
+          "sha256": "48dc9b71f3cc7d9cf3ea0752f13c9488346014a3c5d890195bf2ae2cc85d3529",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/command.txt",
+          "sha256": "196967e2bdc9b8e6f498216ba10f76bb313f65b3ed98adbc04b66b8737dd5c00",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/stdout.json",
+          "sha256": "ab3a77d1d379f9a97dc72999d67b015ab89f640722b6348ae00cadce65f17a50",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/command.txt",
+          "sha256": "2848124dac87b4c8e29de75122ed0161ca983797d1fc82517ae8ceeb956a9864",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/stdout.json",
+          "sha256": "c83b53177ce80bd0532abad6ff1edfdd580f9326b079dd0fced17ac55e954941",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/command.txt",
+          "sha256": "54b961aff83ab5a5ea816c52846d0952e006bae07f5554d66ab2f587553f607c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/stdout.json",
+          "sha256": "08bdfccb9418a7236805001020d70601efbda0e6af3419ff1df4a1e9e5475792",
+          "locator": "complete result"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "expected": "空列表和成功诊断中的 missing 不变成错误；部分成功与写未知保留事实、身份及恢复方向。",
+      "observed": {
+        "checks": [
+          {
+            "name": "exit contract",
+            "expected": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "observed": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "verdict": "passed"
+          },
+          {
+            "name": "missing evidence valid read",
+            "expected": true,
+            "observed": true,
+            "verdict": "passed"
+          }
+        ],
+        "steps": [
+          {
+            "name": "success",
+            "exitCode": 0,
+            "elapsedMs": 484
+          },
+          {
+            "name": "invalid",
+            "exitCode": 2,
+            "elapsedMs": 395
+          },
+          {
+            "name": "auth",
+            "exitCode": 3,
+            "elapsedMs": 654
+          },
+          {
+            "name": "denied",
+            "exitCode": 4,
+            "elapsedMs": 454
+          },
+          {
+            "name": "network",
+            "exitCode": 5,
+            "elapsedMs": 1110
+          },
+          {
+            "name": "timeout",
+            "exitCode": 6,
+            "elapsedMs": 579
+          },
+          {
+            "name": "terminal",
+            "exitCode": 7,
+            "elapsedMs": 430
+          },
+          {
+            "name": "partial",
+            "exitCode": 8,
+            "elapsedMs": 460
+          },
+          {
+            "name": "missing",
+            "exitCode": 0,
+            "elapsedMs": 431
+          }
+        ]
+      },
+      "verdict": "passed",
+      "evidence": [
+        {
+          "path": "checks/assertions.json",
+          "sha256": "daa60485dea1e36623c89c8cb30a325aae27b68c32f531bd433fc3a12f5da082",
+          "locator": "named expected/observed assertions"
+        },
+        {
+          "path": "reference/input-binding.json",
+          "sha256": "a3d23d7b8636398cc75c7205ee8c979aaf5330182914a30974b07c608d1f33d7",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "reference/request-trace.json",
+          "sha256": "65602c0d0e09fdec14dcd4bda66562b28989b02bfacdcb9fa7823d2584acae2e",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "run.json",
+          "sha256": "e10dfa78d08f232f67c97f36320efeab1790e52868bf6dc19e1f77c06037e80d",
+          "locator": "explicit source or baseline"
+        },
+        {
+          "path": "steps/auth/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/auth/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/auth/stdout.json",
+          "sha256": "f46366d33fcee34c38259dc7689423d8eba20d6e941c6af73e62afdb5c20b054",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/denied/stdout.json",
+          "sha256": "13acba17d64e8b0340730deedaf4d321db64c620c73eee8f67a112c2e5daea97",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/command.txt",
+          "sha256": "5721f11d1773093f0a71d13405a662d496962f49be8247e2be96acf22edcaeb5",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/invalid/stdout.json",
+          "sha256": "e1bcb028f747ac74dc784c7649454f92b3e76c6e5c0513188ecde249c9c73753",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/command.txt",
+          "sha256": "db1f7e8f773f3d6e7f447dea3282baf7c2507ebce84d7c6e81601eb57999efcd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/missing/stdout.json",
+          "sha256": "30d8b93fa976f73eb6764173dc1692af5dd06692fdab554bf0f46b1f4c219ecd",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/command.txt",
+          "sha256": "461e4c3e387d5ec8b83dbfe1d22bd08eca53f6f1d0dcb3cc72fd861f6fcba629",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/network/stdout.json",
+          "sha256": "c185fc72323b844a2b57ab748b45deea5c29102f98e301ab8812188772b5590e",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/command.txt",
+          "sha256": "8df186a17e77e19b57426825c44355ca828c7dd98e828c6be20ec6444a9958af",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/partial/stdout.json",
+          "sha256": "48dc9b71f3cc7d9cf3ea0752f13c9488346014a3c5d890195bf2ae2cc85d3529",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/command.txt",
+          "sha256": "196967e2bdc9b8e6f498216ba10f76bb313f65b3ed98adbc04b66b8737dd5c00",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/success/stdout.json",
+          "sha256": "ab3a77d1d379f9a97dc72999d67b015ab89f640722b6348ae00cadce65f17a50",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/command.txt",
+          "sha256": "2848124dac87b4c8e29de75122ed0161ca983797d1fc82517ae8ceeb956a9864",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/terminal/stdout.json",
+          "sha256": "c83b53177ce80bd0532abad6ff1edfdd580f9326b079dd0fced17ac55e954941",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/command.txt",
+          "sha256": "54b961aff83ab5a5ea816c52846d0952e006bae07f5554d66ab2f587553f607c",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "locator": "complete result"
+        },
+        {
+          "path": "steps/timeout/stdout.json",
+          "sha256": "08bdfccb9418a7236805001020d70601efbda0e6af3419ff1df4a1e9e5475792",
+          "locator": "complete result"
+        }
+      ]
+    }
+  ]
+}

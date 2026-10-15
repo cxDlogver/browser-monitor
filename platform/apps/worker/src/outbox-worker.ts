@@ -5,6 +5,7 @@
 import type { DatabaseHandle } from '@browser-monitor/database';
 import type { TelemetryEventV3 } from '@cxdlogver/browser-monitor-protocol';
 import type { WorkerConfig } from '@browser-monitor/shared';
+import { OUTBOX_LOCK_TIMEOUT_SECONDS, COMPLETED_TASK_RETENTION_DAYS } from '@browser-monitor/shared';
 import type { Redis } from 'ioredis';
 import { randomUUID } from 'node:crypto';
 
@@ -76,7 +77,8 @@ export class OutboxWorker {
   // 定期清理：删除 7 天前已完成的任务，以及已过期的用户会话；由 main.ts 每小时调用一次
   async housekeeping(): Promise<void> {
     await this.database.pool.query(
-      `DELETE FROM outbox_tasks WHERE status = 'completed' AND completed_at < now() - INTERVAL '7 days'`,
+      `DELETE FROM outbox_tasks WHERE status = 'completed' AND completed_at < now() - ($1 * INTERVAL '1 day')`,
+      [COMPLETED_TASK_RETENTION_DAYS],
     );
     await this.database.pool.query(
       `DELETE FROM user_sessions WHERE expires_at < now()`,
@@ -93,7 +95,7 @@ export class OutboxWorker {
          WHERE (
            status = 'pending' AND available_at <= now()
          ) OR (
-           status = 'processing' AND locked_at < now() - INTERVAL '5 minutes'
+           status = 'processing' AND locked_at < now() - ($3 * INTERVAL '1 second')
          )
          ORDER BY available_at, created_at
          LIMIT $1
@@ -103,7 +105,7 @@ export class OutboxWorker {
          status = 'processing', locked_at = now(), locked_by = $2, attempts = attempts + 1
        FROM candidates c WHERE o.id = c.id
        RETURNING o.id, o.project_id, o.event_id, o.event, o.attempts`,
-      [this.config.WORKER_BATCH_SIZE, this.workerId],
+      [this.config.WORKER_BATCH_SIZE, this.workerId, OUTBOX_LOCK_TIMEOUT_SECONDS],
     );
     return result.rows;
   }
@@ -143,7 +145,7 @@ export class OutboxWorker {
           [task.id, task.project_id, task.event_id, JSON.stringify(task.event), task.attempts, message.slice(0, 8_000)],
         );
         await client.query(
-          `UPDATE outbox_tasks SET status = 'failed', last_error = $2, locked_at = NULL, locked_by = NULL
+          `UPDATE outbox_tasks SET status = 'failed', last_error = $2, last_failed_at = now(), locked_at = NULL, locked_by = NULL
            WHERE id = $1`,
           [task.id, message.slice(0, 8_000)],
         );
@@ -160,7 +162,7 @@ export class OutboxWorker {
     const backoffSeconds = Math.min(300, 2 ** task.attempts);
     await this.database.pool.query(
       `UPDATE outbox_tasks SET status = 'pending', available_at = now() + ($2 * INTERVAL '1 second'),
-         last_error = $3, locked_at = NULL, locked_by = NULL
+         last_error = $3, last_failed_at = now(), locked_at = NULL, locked_by = NULL
        WHERE id = $1`,
       [task.id, backoffSeconds, message.slice(0, 8_000)],
     );

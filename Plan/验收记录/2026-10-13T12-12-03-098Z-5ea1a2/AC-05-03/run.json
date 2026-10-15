@@ -1,0 +1,113 @@
+{
+  "caseId": "AC-05-03",
+  "startedAt": "2026-10-13T12:12:40.107Z",
+  "endedAt": "2026-10-13T12:12:41.819Z",
+  "implementation": "@cxdlogver/browser-monitor-cli@0.1.0",
+  "node": "v22.12.0",
+  "steps": [
+    {
+      "name": "exists",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--out",
+        "old.json",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54694"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:40.123Z",
+      "endedAt": "2026-10-13T12:12:40.523Z",
+      "elapsedMs": 400,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW"
+    },
+    {
+      "name": "overwrite",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--out",
+        "old.json",
+        "--overwrite",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54694"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:40.523Z",
+      "endedAt": "2026-10-13T12:12:40.982Z",
+      "elapsedMs": 459,
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW"
+    },
+    {
+      "name": "same-path",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--out",
+        "same",
+        "--example-out",
+        "same",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54694"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:40.983Z",
+      "endedAt": "2026-10-13T12:12:41.354Z",
+      "elapsedMs": 371,
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW"
+    },
+    {
+      "name": "partial",
+      "invocation": [
+        "sdk",
+        "export",
+        "--app-version",
+        "1.0.0",
+        "--environment",
+        "test",
+        "--out",
+        "saved.json",
+        "--example-out",
+        "blocked",
+        "--overwrite",
+        "--project",
+        "00000000-0000-4000-8000-000000000001",
+        "--base-url",
+        "http://127.0.0.1:54694"
+      ],
+      "stdin": null,
+      "startedAt": "2026-10-13T12:12:41.356Z",
+      "endedAt": "2026-10-13T12:12:41.806Z",
+      "elapsedMs": 451,
+      "exitCode": 8,
+      "expectedExitCode": 8,
+      "cwd": "C:\\WINDOWS\\TEMP\\bm-acceptance-M0XJOW"
+    }
+  ],
+  "inputMode": "noninteractive",
+  "source": "controlled_http_and_explicit_reused_real_database_evidence"
+}

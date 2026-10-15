@@ -1,0 +1,6 @@
+{
+  "maxQueryDays": 180,
+  "maxPageSize": 100,
+  "invalidLimit": 101,
+  "cursorVersion": 1
+}

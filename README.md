@@ -30,7 +30,7 @@ pnpm check
 
 `cx-learn-notes` 通过 Git 子模块将本仓库保留在 `browser-monitor/` 路径，并锁定具体提交。克隆主仓库时使用 `git clone --recurse-submodules`；已有主仓库时执行 `git submodule update --init --recursive`。
 
-主仓库的 pnpm workspace 继续包含 `browser-monitor/protocol` 和 `browser-monitor/sdk`，官网与走航车前端继续通过 `@cxdlogver/browser-monitor-sdk: workspace:*` 使用 SDK。先在主仓库根目录执行 `pnpm install`，再构建协议和 SDK：
+主仓库的 pnpm workspace 继续包含 `browser-monitor/protocol` 和 `browser-monitor/sdk`，官网与走航车前端现在锁定 Registry 发布的 `@cxdlogver/browser-monitor-sdk: 0.3.0`，Protocol 为 `3.0.0`；验收不使用本地 SDK 链接。监控系统内部仍通过 workspace 维护协议和 SDK 开发依赖。先在主仓库根目录执行 `pnpm install`，再构建协议和 SDK：
 
 ```bash
 pnpm --filter @cxdlogver/browser-monitor-protocol build
@@ -45,6 +45,7 @@ pnpm --filter @cxdlogver/browser-monitor-sdk build
 | --- | --- | --- |
 | `sdk/` | `@cxdlogver/browser-monitor-sdk` | 在浏览器中采集、加工、排队并发送遥测数据 |
 | `protocol/` | `@cxdlogver/browser-monitor-protocol` | 定义 SDK、API 与 Worker 共同遵守的协议 3.0 Schema、类型、枚举和测试夹具 |
+| `cli/` | `@cxdlogver/browser-monitor-cli` | 供人、AI 和脚本管理接入配置、读取原始数据与诊断任务 |
 | `platform/` | `@browser-monitor/platform` | 提供账号与项目管理、采集 API、异步处理、TimescaleDB 聚合和 React 看板 |
 
 `protocol/` 是线上数据契约的唯一来源。SDK 不再保留 `src/protocol` 转发目录，而是直接依赖 `@cxdlogver/browser-monitor-protocol`。SDK 内部尚未形成上报事件的浏览器事实放在 `sdk/src/signals/`；Raw Signal 只在 SDK 进程内流动，不属于跨项目协议。
@@ -59,6 +60,8 @@ browser-monitor/
 ├─ package.json                 # 整个监控系统的统一检查和构建入口
 ├─ pnpm-workspace.yaml          # pnpm workspace 范围
 ├─ pnpm-lock.yaml               # 三个项目共享的依赖锁定结果
+├─ cli/                        # 本地 bm 命令、使用说明与验收驱动
+├─ Plan/                       # 需求、设计、实施、验收计划与执行证据
 ├─ sdk/
 │  ├─ src/                     # Instrumentation、Signal、Collector、Processing、Transport
 │  ├─ tests/                   # SDK 核心链路测试
@@ -131,7 +134,37 @@ docker compose --env-file platform/.env --profile dev -f platform/infra/docker-c
 
 启动后，Caddy 默认通过 `http://localhost:8080` 提供 Web 与 API，Mailpit 默认位于 `http://localhost:8025`。创建账号、验证邮箱并创建项目后，在项目设置中复制公开 DSN，再传给 SDK 的 `transport.dsn`。
 
+### 【从终端或 AI 调用平台】
+
+全局安装发布版后，可以在任意业务目录调用：
+
+```bash
+npm install --global @cxdlogver/browser-monitor-cli@0.1.0
+bm --help
+bm health --base-url http://localhost:8080
+bm auth login --email developer@example.test
+bm project list
+```
+
+运行环境需要 Node.js 22 或以上。npm 包已包含构建产物；源码开发也可以使用仓库内入口：
+
+```bash
+pnpm --filter @cxdlogver/browser-monitor-cli build
+pnpm --filter @cxdlogver/browser-monitor-cli exec bm health
+pnpm --filter @cxdlogver/browser-monitor-cli exec bm auth login --email developer@example.test
+pnpm --filter @cxdlogver/browser-monitor-cli exec bm project list
+```
+
+默认输出完整 JSON。非交互登录使用 `--password-stdin`；业务目录的调用方式、项目选择、配置导出、数据检索与诊断见 [CLI 使用说明](cli/README.md)。首次部署诊断能力需要执行数据库迁移 `0007_diagnostics.sql`。
+
 ## 5. 文档入口
+
+### 【CLI 与实施记录】
+
+- [CLI 使用说明](cli/README.md)
+- [CLI 全部指令、两个业务示例与输出](Plan/监控平台CLI指令使用说明.md)
+- [CLI npm 发布与全局安装验证](Plan/监控平台CLI发布记录.md)
+- [需求、设计与计划索引](Plan/README.md)
 
 ### 【SDK 与协议】
 
